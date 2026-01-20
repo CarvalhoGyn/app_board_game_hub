@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Record Match Score</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#f48c25",
+                "background-light": "#f8f7f5",
+                "background-dark": "#221910",
+                "surface-dark": "#2d241b",
+              },
+              fontFamily: {
+                "display": ["Plus Jakarta Sans", "sans-serif"]
+              },
+              borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+            },
+          },
+        }
+      </script>
+<style>
+        /* Custom scrollbar hide for cleaner UI */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display antialiased selection:bg-primary/30">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-x-hidden pb-24">
+<!-- Top App Bar -->
+<div class="sticky top-0 z-50 flex items-center bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md p-4 pb-2 justify-between border-b border-black/5 dark:border-white/5">
+<button class="text-slate-900 dark:text-white flex size-12 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">
+                Record Match Score
+            </h2>
+</div>
+<!-- Game Header Info -->
+<div class="flex p-4 @container mt-2">
+<div class="flex w-full flex-col gap-4">
+<div class="flex gap-4 items-center">
+<!-- Game Cover Art -->
+<div class="bg-center bg-no-repeat bg-cover rounded-xl shadow-lg shadow-black/20 h-28 w-28 shrink-0 relative overflow-hidden group" data-alt="Wingspan board game box art with bird illustration" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCKBYu7w8PN3JoWaw6f-17qaZ1qdIs15Cm0tqlvXCH6CDpJl5L0LQZ5MhL4XELw7ATogtCZNfupTFEN4jMfiFtAdXK3k5NmBCvIMS-sbErx6YPd4M7i56aVa56471pqXOxfRdAGpBcnyvtDaAj8spLrldc2vmlPm-ckRkW-_EAO42BFp6u-T5CqvEHo4stAAg0ngmbZbtm63brt9aJsJoMlTmlSD0JecyVEEQrXeXNPvtYujewrXKgxXabrdnvZqdREnjJXP0Bq6A");'>
+<div class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
+</div>
+<div class="flex flex-col justify-center gap-1">
+<span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-primary/10 text-primary text-xs font-bold w-fit mb-1">
+<span class="material-symbols-outlined text-[14px]">category</span>
+                            Strategy
+                        </span>
+<h1 class="text-slate-900 dark:text-white text-2xl font-bold leading-tight tracking-[-0.015em]">Wingspan</h1>
+<div class="flex items-center gap-1.5 text-slate-500 dark:text-[#baab9c] text-sm font-medium">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+<p>Oct 24, 2023 • 2:30 PM</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="h-px bg-black/5 dark:bg-white/5 mx-4 mb-2"></div>
+<!-- Players List Header -->
+<div class="px-6 py-2 flex justify-between items-end">
+<span class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Players</span>
+<span class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Score</span>
+</div>
+<!-- Player 1: Alice (Winner) -->
+<div class="mx-4 mb-3">
+<div class="relative flex items-center gap-4 bg-white dark:bg-surface-dark p-3 pr-4 rounded-[1.5rem] shadow-sm border-2 border-primary/50 dark:border-primary/40 transition-all">
+<!-- Avatar -->
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12 border-2 border-primary" data-alt="Portrait of a smiling woman with glasses" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA6uOj4gbtTpBgS4mXlQlG2G1UVWPfn2bBhMhDfmxaKtEPm907o8X4nbQaO2jEHs7bPuJYxqgX3zLb3tRz-s3SY9BHMNudRlTJhyvtrSBRvm3cVVN0Ebl8NudpDJe2GUOU5x6PvocqXaoEVLBJKxbfVoXtSzPJQlPcxRMEhBwgz9GYYKRL4tmdBumZW4yUrJLfRdMwkplfdv0uX-xt0Cjss1cFHF3p-2t5rhAomihIM0uV7mK80IyNti0kfm1_-n6KA4260Gv-cgw");'>
+</div>
+<!-- Name -->
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-slate-900 dark:text-white text-base font-bold leading-normal truncate flex items-center gap-2">
+                        Alice
+                        <span class="material-symbols-outlined text-primary text-[20px] animate-pulse">emoji_events</span>
+</p>
+<p class="text-primary text-xs font-semibold">Winner!</p>
+</div>
+<!-- Score Input -->
+<div class="shrink-0 relative">
+<input class="w-20 bg-primary/10 dark:bg-black/20 text-primary dark:text-primary text-center text-xl font-mono font-bold py-3 rounded-xl border-0 focus:ring-2 focus:ring-primary focus:outline-none appearance-none" inputmode="numeric" type="number" value="98"/>
+</div>
+</div>
+</div>
+<!-- Player 2: Charlie -->
+<div class="mx-4 mb-3">
+<div class="relative flex items-center gap-4 bg-white dark:bg-surface-dark p-3 pr-4 rounded-[1.5rem] shadow-sm border border-transparent dark:border-white/5">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12 opacity-90" data-alt="Portrait of a young man with a beard" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCBzWt7pbtybrBq5FY0AjMTZCVNh8eHg2JxaETHdwCb78RwKcO-4rw6MYHtze7Vpr1i_SqjDSTZnhHNDEIXxPgsgKZge-8JPZLahhPp5DOfgXypO3sWNKdqHqukEAlIU6-6EBT_l_0v0ggDN9-ZuQ63EVTLdIjaEwunwJMao0vCYWvS3TPxxkUhm5IzQ4dd68PeQFeZ-VeSlS7c9MEG1I7lqMiddavX8C7dGLOMtXym39um7yDcxlwrKxdqqI52r8kU8qgk3vWwrA");'>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-slate-900 dark:text-white text-base font-medium leading-normal truncate">Charlie</p>
+</div>
+<div class="shrink-0 relative">
+<input class="w-20 bg-slate-100 dark:bg-black/20 text-slate-700 dark:text-slate-200 text-center text-xl font-mono font-bold py-3 rounded-xl border-0 focus:ring-2 focus:ring-primary focus:text-primary focus:bg-primary/5 transition-all outline-none appearance-none" inputmode="numeric" type="number" value="92"/>
+</div>
+</div>
+</div>
+<!-- Player 3: Bob -->
+<div class="mx-4 mb-3">
+<div class="relative flex items-center gap-4 bg-white dark:bg-surface-dark p-3 pr-4 rounded-[1.5rem] shadow-sm border border-transparent dark:border-white/5">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12 opacity-90" data-alt="Portrait of a smiling man in a blue shirt" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCAKTO44ZMmhNKa4zRmxFzbaim5gbwfT7DfG6Rv8Ka31X2-T6pxMkLULUNgDm4p-3ihmxwvVoIQCqzDZF-yZhcImM2RX2t-3OGZSfICJVf8AEsgpYu4KCQGGC7PSB4WAPMDR5HSZsy22hc3fFqRuglojYyjMQSuUktDF0EibnON_OpqLCczaTpM5lHCIM1evPy28IuCjrZ_yAo8u2AgJXcdf5tcMMl_1DAM06ckQl-pBJ4rEz6LB_CYRx6CkMUx1gde3ba2Q6oePQ");'>
+</div>
+<div class="flex flex-col flex-1 min-w-0">
+<p class="text-slate-900 dark:text-white text-base font-medium leading-normal truncate">Bob</p>
+</div>
+<div class="shrink-0 relative">
+<input class="w-20 bg-slate-100 dark:bg-black/20 text-slate-700 dark:text-slate-200 text-center text-xl font-mono font-bold py-3 rounded-xl border-0 focus:ring-2 focus:ring-primary focus:text-primary focus:bg-primary/5 transition-all outline-none appearance-none" inputmode="numeric" type="number" value="84"/>
+</div>
+</div>
+</div>
+<!-- Add Player / Options -->
+<div class="mx-4 mt-2 flex justify-center">
+<button class="flex items-center gap-2 px-4 py-3 text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors text-sm font-semibold rounded-full hover:bg-primary/5">
+<span class="material-symbols-outlined">person_add</span>
+                Add another player
+            </button>
+</div>
+<!-- Bottom Action Bar (Sticky) -->
+<div class="fixed bottom-0 left-0 w-full p-4 bg-gradient-to-t from-background-light via-background-light to-transparent dark:from-background-dark dark:via-background-dark dark:to-transparent pt-12">
+<button class="w-full bg-primary hover:bg-primary/90 text-white text-lg font-bold py-4 rounded-full shadow-lg shadow-primary/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">save</span>
+                Save History
+            </button>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Board Game Profile Dashboard</title>
+<!-- Fonts and Icons -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f48c25",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#221910", // Using the provided dark background
+                        "card-dark": "#2d241b", // Slightly lighter for cards
+                        "surface-dark": "#393028", // Even lighter for interactive elements
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#181411] dark:text-white min-h-screen flex flex-col overflow-x-hidden selection:bg-primary selection:text-white">
+<!-- Top Status Bar Area (Simulated for iOS) -->
+<div class="h-12 w-full bg-background-light dark:bg-background-dark sticky top-0 z-50 flex items-center justify-between px-6 pt-2">
+<!-- Time -->
+<div class="text-sm font-bold dark:text-white/80">9:41</div>
+<!-- Status Icons -->
+<div class="flex gap-2 text-sm dark:text-white/80">
+<span class="material-symbols-outlined text-[18px]">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[18px]">wifi</span>
+<span class="material-symbols-outlined text-[18px]">battery_full</span>
+</div>
+</div>
+<!-- Top App Bar -->
+<header class="flex items-center justify-between p-4 sticky top-12 z-40 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md">
+<h2 class="text-2xl font-bold leading-tight tracking-[-0.015em] flex-1 pl-2">My Profile</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="flex items-center justify-center rounded-full h-10 w-10 text-gray-900 dark:text-white hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</header>
+<!-- Main Content Scroll Area -->
+<main class="flex-1 pb-24">
+<!-- Profile Header -->
+<section class="flex flex-col items-center gap-6 px-4 pt-4 pb-8">
+<div class="relative group cursor-pointer">
+<!-- Avatar with Primary Ring -->
+<div class="p-[3px] rounded-full bg-gradient-to-tr from-primary to-orange-300">
+<div class="h-32 w-32 rounded-full border-4 border-background-light dark:border-background-dark overflow-hidden bg-surface-dark">
+<div class="w-full h-full bg-center bg-cover bg-no-repeat" data-alt="User avatar of a friendly meeple character" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBH9lXkGzp5WUKlrW6ytz4E_AbgEzY3eWjvN525zZgufd6YojpuWpEwZKGhBSbhAhV7-Uns-4U1Y3H3bbvx-O4JhUkkJrZytfzrHfhux3bGBawifwszJurrjWB8f5bTtxqlmGL7cqEwlG0otCffmfs5MGummAe1xRI0tntBtvHmd8aCg6R7EjKZXf2Dsoh80ZIZ6pRKBt1SzkNpahvUy4r0byXhTaHhE4tWT6q3savMzwwuy7o9ZshdFZvHz8o4p7S4xMqm3Zm1-A");'>
+</div>
+</div>
+</div>
+<!-- Badge Icon -->
+<div class="absolute bottom-1 right-1 bg-surface-dark dark:bg-card-dark p-1.5 rounded-full border-[3px] border-background-light dark:border-background-dark flex items-center justify-center text-primary shadow-sm">
+<span class="material-symbols-outlined text-[20px] filled">verified</span>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1 text-center">
+<h1 class="text-3xl font-bold leading-tight tracking-tight">Alex The Meeple</h1>
+<p class="text-gray-500 dark:text-[#baab9c] font-medium text-lg">Level 12 Strategist</p>
+</div>
+<button class="flex min-w-[140px] items-center justify-center rounded-full h-11 px-6 bg-transparent border-2 border-gray-200 dark:border-surface-dark text-gray-900 dark:text-white font-bold text-sm tracking-wide hover:border-primary dark:hover:border-primary hover:text-primary dark:hover:text-primary transition-all active:scale-95">
+                Edit Profile
+            </button>
+</section>
+<!-- Stats Grid -->
+<section class="px-4">
+<div class="grid grid-cols-2 gap-4">
+<!-- Card 1: Matches Played -->
+<div class="flex flex-col justify-between h-44 rounded-[2rem] bg-white dark:bg-card-dark p-5 shadow-sm border border-gray-100 dark:border-white/5 relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 w-24 h-24 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors"></div>
+<div class="flex justify-between items-start z-10">
+<div class="flex flex-col">
+<h3 class="text-4xl font-extrabold text-primary dark:text-primary tracking-tight">124</h3>
+<p class="text-gray-500 dark:text-[#baab9c] text-sm font-medium mt-1">Matches</p>
+</div>
+<div class="p-2 bg-primary/10 rounded-full text-primary">
+<span class="material-symbols-outlined">casino</span>
+</div>
+</div>
+<div class="mt-auto z-10">
+<div class="flex items-center gap-2 text-xs font-medium text-green-500 bg-green-500/10 w-fit px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+<span>+12 this week</span>
+</div>
+</div>
+</div>
+<!-- Card 2: My Collection -->
+<div class="flex flex-col justify-between h-44 rounded-[2rem] bg-white dark:bg-card-dark p-5 shadow-sm border border-gray-100 dark:border-white/5 relative overflow-hidden group">
+<div class="flex justify-between items-start z-10">
+<div class="flex flex-col">
+<h3 class="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">48</h3>
+<p class="text-gray-500 dark:text-[#baab9c] text-sm font-medium mt-1">Collection</p>
+</div>
+<div class="p-2 bg-gray-100 dark:bg-surface-dark rounded-full text-gray-500 dark:text-gray-300">
+<span class="material-symbols-outlined">inventory_2</span>
+</div>
+</div>
+<!-- Overlapping Game Covers -->
+<div class="flex items-center -space-x-4 mt-auto pl-2">
+<div class="w-10 h-10 rounded-lg border-2 border-white dark:border-card-dark bg-cover bg-center shadow-md transform -rotate-6 transition-transform group-hover:-translate-y-1" data-alt="Cover art of Catan board game" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBfkyjcQGLjh5BMS4nL5QNP3wjJOhCgW_cLiu21TRGVMcTb_4b4ifHZH287hFCuTf90plRA9KztJkWUQuaBPfM1XsyzHmwy6b9r3UgZCHK7XGUZkexM9BrstbZK64kNIbbLOcaRi2yuU3ipb_gr2MEi0hMDVqEtTWWHm_XQyKdkT9ZSnwl8u9i8Jj8GfGwhGNjoOvUooDtS8SHMNFip70-CWm01vpYgb9L2dJm8qBrML0Sri-N9wze2TNNRpupkWGVFf0uAqQzG8w");'></div>
+<div class="w-10 h-10 rounded-lg border-2 border-white dark:border-card-dark bg-cover bg-center shadow-md transform rotate-3 transition-transform group-hover:-translate-y-1 delay-75" data-alt="Cover art of Ticket to Ride board game" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBQEGUR5DX1XXFe5bRFOpYyVyVZrr9kRzyrjIiKnW4w5FdZ9q5ykfwtTjtuNhaZ2LdGUNTGHP-7EUJ4zCQ2L1CoVJslnQQ2hXMtqFgZFQo4lxqXdwfr8zcXrTJRAqEBiydVkjMKRJV6UvJ839LpMMcFp9PVBK89npwjCxJi7CRdhe0Rue5STDYXwox-2Tt-_DPUgz2RYjOcQUgyXgNexnXHr1MiBPL7b3JTjwwIHu8JfOoqpLTvifLBvVaeQFj8c5j8-wDnIhJCjQ");'></div>
+<div class="w-10 h-10 rounded-lg border-2 border-white dark:border-card-dark bg-cover bg-center shadow-md transform -rotate-3 transition-transform group-hover:-translate-y-1 delay-150" data-alt="Cover art of Pandemic board game" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCCLbWamdGPI99ArS4yGG2lqLWW8BZFEd30x3YikPsa6Fb2ss-OsRMxWZ6fHrxIoIiso0NRFdqVBqYOfcqvhNJYYoUvCWHOrGzie6czkGlJw2Sg4xRlCGF-OoNfuPjhGsED0mXvtBpfyTefr3k0EycjW834IcqRoSKRtTJ-TXLJ9wJ_Vq5jx7w5ElkrS6JV8Oqg4eKj3aQRRr5iR12GnGYFbdj4IRdpSDNXTculYbcHcR6D82SI-BtD1JsCl8gUve5otiLCTn7GSw");'></div>
+</div>
+</div>
+<!-- Card 3: Wishlist -->
+<div class="flex flex-col justify-between h-44 rounded-[2rem] bg-white dark:bg-card-dark p-5 shadow-sm border border-gray-100 dark:border-white/5 relative overflow-hidden">
+<div class="flex justify-between items-start z-10">
+<div class="flex flex-col">
+<h3 class="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">12</h3>
+<p class="text-gray-500 dark:text-[#baab9c] text-sm font-medium mt-1">Wishlist</p>
+</div>
+<div class="p-2 bg-pink-100 dark:bg-pink-500/20 rounded-full text-pink-500">
+<span class="material-symbols-outlined">favorite</span>
+</div>
+</div>
+<!-- Top Pick visual -->
+<div class="mt-auto w-full bg-surface-dark/10 dark:bg-surface-dark rounded-xl p-2 flex items-center gap-3">
+<div class="h-10 w-10 rounded-lg bg-cover bg-center shrink-0" data-alt="Top wishlist game thumbnail" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCjBn-F4dYfIcArK1uh_xouSwFNeS19sZKYnGNaqE9zFE38vfYPuouy34Lp--yrJkeK39wEDJt1WBnig4emwYYVBM59htd68_LAbZJA6GhrsDTb7k-lQQVgVu_9KcEqBn3bOPSgfR6rocEZ60ra-xPavtz7in_s8eJEuhJBrp2oADCjn-0-RqzvuiwdRsyoifxd90PHLRMj9kJoin4NpZ5npnt4anVgUvDNXOdDaNdZesSvZS1wxj4i-tAp5SCaSuljgSAknwzpIg");'></div>
+<div class="flex flex-col min-w-0">
+<p class="text-xs font-bold truncate text-gray-900 dark:text-white">Gloomhaven</p>
+<p class="text-[10px] text-primary font-bold uppercase tracking-wide">Top Pick</p>
+</div>
+</div>
+</div>
+<!-- Card 4: Friends List -->
+<div class="flex flex-col justify-between h-44 rounded-[2rem] bg-white dark:bg-card-dark p-5 shadow-sm border border-gray-100 dark:border-white/5 relative overflow-hidden group">
+<div class="flex justify-between items-start z-10">
+<div class="flex flex-col">
+<h3 class="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight">35</h3>
+<p class="text-gray-500 dark:text-[#baab9c] text-sm font-medium mt-1">Friends</p>
+</div>
+<div class="p-2 bg-blue-100 dark:bg-blue-500/20 rounded-full text-blue-500">
+<span class="material-symbols-outlined">diversity_3</span>
+</div>
+</div>
+<!-- Avatar Group Component -->
+<div class="flex items-center mt-auto pl-2">
+<div class="flex -space-x-3 overflow-hidden p-1">
+<div class="inline-block h-9 w-9 rounded-full ring-2 ring-white dark:ring-card-dark bg-cover bg-center" data-alt="Friend avatar 1" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCZ_L6S2yXuCxVdjp4Op4MBdaU1Oq6epclYe2otY3gbSiVpm4kzvgzBnxRubp3fBOT6Sl0HRhkAZUcWKZoSlE8YtGqyqA4PNsbvmDcKvWZmra6i7rG2AYqXMUtssjsgkOe6_-8LB_wu4aDI2kWZbgUky5iXDfGv6g5ioPzy_PfgUuZFOAcEfKoIW1kvEKMjbeIQUbmFi-LAMCCHF6KyVMgtaQ5Z-azwayC5TRKXjz33SZcTAK1e7NNHuUikiB__GqOeBT0I25Bojw");'></div>
+<div class="inline-block h-9 w-9 rounded-full ring-2 ring-white dark:ring-card-dark bg-cover bg-center" data-alt="Friend avatar 2" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCUmKYRsr5j9nLx0IHhaRqAlKt2GyFw8LpodRQYxAa8D7sYJbrG3P8UfcU-i2kyIqlMppzSmhhLNmAL8pP0rVR1asXwwVRIj3l1aBSEcp36K9Mor2ErUt9mykDO5XHRFYmtZu_gUyldcdT3OAxdlIJdoAoi0aLn9eBxnsdoX51u1s9fE4KqAqfJvh_yff2DrwIYMNBRMFQ-5D3aHRx8N_B0PWKFmsiKSpbuKx-SDqcdlGETwAMbD3hVeGnCRbsge1srbk2kZLVMNg");'></div>
+<div class="inline-block h-9 w-9 rounded-full ring-2 ring-white dark:ring-card-dark bg-cover bg-center" data-alt="Friend avatar 3" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAYHNflBxcKPN0VpCGRdvihzSU5L6RknfIxf7GAm2BZTh_VzCPxTkIgQynEYBYzTB36u_z_hu5r9EuR85ixyuspbxIeX5HG-OjoVTyJKdjXce13PTfTlhVWd54DzL3EDmNdbKR8DntM1wz9ER50dx2DqAyvVt-b3S8fXTgiLMHd6tsIibnWwmTXLCtCfcHkyxXrFe-1vcY8WyQhVsUavC5iEEqNxb6qwb2ZnVmi9woVDtjCPrJ-cFi1Xli7RLwk4M8hK0ucO7h7OQ");'></div>
+</div>
+<div class="ml-2 text-xs font-bold text-gray-400">+32</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Achievement Banner (Bonus) -->
+<section class="px-4 mt-4">
+<div class="w-full bg-gradient-to-r from-orange-500/10 via-orange-500/5 to-transparent rounded-[2rem] p-5 border border-primary/20 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">trophy</span>
+</div>
+<div>
+<h4 class="text-sm font-bold dark:text-white">Monthly Challenge</h4>
+<p class="text-xs text-gray-500 dark:text-[#baab9c]">Play 5 new strategy games</p>
+</div>
+</div>
+<div class="h-8 w-8 rounded-full border-2 border-primary/30 flex items-center justify-center">
+<span class="text-[10px] font-bold text-primary">3/5</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-6 left-4 right-4 bg-background-light/80 dark:bg-[#27211b]/80 backdrop-blur-xl border border-white/20 dark:border-white/5 rounded-full shadow-lg z-50 p-2">
+<ul class="flex justify-between items-center px-2">
+<!-- Home -->
+<li class="flex-1">
+<a class="flex flex-col items-center justify-center gap-1 py-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" href="#">
+<span class="material-symbols-outlined text-[26px]">home</span>
+</a>
+</li>
+<!-- Search -->
+<li class="flex-1">
+<a class="flex flex-col items-center justify-center gap-1 py-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" href="#">
+<span class="material-symbols-outlined text-[26px]">search</span>
+</a>
+</li>
+<!-- Play (Center FAB style) -->
+<li class="flex-1 -mt-8">
+<a class="flex items-center justify-center h-14 w-14 rounded-full bg-primary text-white shadow-lg shadow-primary/40 hover:scale-105 transition-transform mx-auto" href="#">
+<span class="material-symbols-outlined text-[28px]">smart_toy</span>
+</a>
+</li>
+<!-- Community -->
+<li class="flex-1">
+<a class="flex flex-col items-center justify-center gap-1 py-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors" href="#">
+<span class="material-symbols-outlined text-[26px]">forum</span>
+</a>
+</li>
+<!-- Profile (Active) -->
+<li class="flex-1">
+<a class="flex flex-col items-center justify-center gap-1 py-2 text-primary" href="#">
+<span class="material-symbols-outlined text-[26px] filled font-variation-settings-'FILL'-1">person</span>
+</a>
+</li>
+</ul>
+</nav>
+<!-- Decorative Bottom Spacer for Scroll -->
+<div class="h-6 w-full"></div>
+</body></html>

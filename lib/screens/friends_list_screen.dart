@@ -1,0 +1,261 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../services/gamification_service.dart';
+import '../database/database.dart';
+import '../providers/user_session.dart';
+import 'user_search_screen.dart';
+import 'profile_dashboard.dart';
+import 'dart:io';
+
+class FriendsListScreen extends StatefulWidget {
+  const FriendsListScreen({super.key});
+
+  @override
+  State<FriendsListScreen> createState() => _FriendsListScreenState();
+}
+
+class _FriendsListScreenState extends State<FriendsListScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  List<User> _friends = [];
+  List<FriendshipWithUser> _pendingRequests = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final userSession = context.read<UserSession>();
+    final currentUser = userSession.currentUser;
+    if (currentUser == null) return;
+
+    setState(() => _isLoading = true);
+
+    final friendshipsDao = context.read<FriendshipsDao>();
+    final friends = await friendshipsDao.getFriends(currentUser.id);
+    final pending = await friendshipsDao.getPendingRequests(currentUser.id);
+
+    if (mounted) {
+      setState(() {
+        _friends = friends;
+        _pendingRequests = pending;
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _acceptRequest(FriendshipWithUser request) async {
+    final friendshipsDao = context.read<FriendshipsDao>();
+    final gamificationService = context.read<GamificationService>();
+    final userSession = context.read<UserSession>();
+    
+    await friendshipsDao.acceptFriendRequest(request.friendship.id);
+    
+    // Gamification Hook: +10 XP for Friend
+    if (userSession.currentUser != null) {
+       await gamificationService.addXp(userSession.currentUser!.id, 10);
+    }
+    
+    _loadData(); // Reload all data
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Accepted friend request from ${request.user.username} (+10 XP)')),
+      );
+    }
+  }
+
+  Future<void> _rejectRequest(FriendshipWithUser request) async {
+    final friendshipsDao = context.read<FriendshipsDao>();
+    await friendshipsDao.rejectFriendRequest(request.friendship.id);
+    _loadData(); // Reload
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final mutedColor = theme.inputDecorationTheme.hintStyle?.color ?? Colors.grey;
+
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: Text('Friends', style: TextStyle(color: theme.colorScheme.onSurface)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person_add),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const UserSearchScreen()),
+              ).then((_) => _loadData());
+            },
+          ),
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: theme.primaryColor,
+          labelColor: theme.primaryColor,
+          unselectedLabelColor: mutedColor,
+          tabs: [
+            const Tab(text: 'My Friends'),
+            Tab(text: _pendingRequests.isNotEmpty ? 'Requests (${_pendingRequests.length})' : 'Requests'),
+          ],
+        ),
+      ),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator(color: theme.primaryColor))
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                _buildFriendsList(theme, mutedColor),
+                _buildRequestsList(theme, mutedColor),
+              ],
+            ),
+    );
+  }
+
+  ImageProvider? _getAvatarImage(String? url) {
+    if (url != null && url.isNotEmpty) {
+      if (url.startsWith('http')) {
+        return NetworkImage(url);
+      } else if (File(url).existsSync()) {
+        return FileImage(File(url));
+      }
+    }
+    return null;
+  }
+
+  Widget _buildAvatar(User user, ThemeData theme) {
+    ImageProvider? imageProvider = _getAvatarImage(user.avatarUrl);
+
+    return CircleAvatar(
+      backgroundColor: theme.cardTheme.color ?? theme.colorScheme.surface,
+      child: imageProvider != null 
+          ? ClipOval(
+              child: Image(
+                image: imageProvider,
+                width: 40,
+                height: 40,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return _buildInitials(user, theme);
+                },
+              ),
+            )
+          : _buildInitials(user, theme),
+    );
+  }
+
+  Widget _buildInitials(User user, ThemeData theme) {
+    return Center(
+      child: Text(
+        user.username.length > 1 ? user.username.substring(0, 2).toUpperCase() : user.username.toUpperCase(),
+        style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildFriendsList(ThemeData theme, Color mutedColor) {
+    if (_friends.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.people_outline, size: 64, color: mutedColor.withValues(alpha:0.5)),
+            const SizedBox(height: 16),
+            Text('No friends yet', style: TextStyle(color: mutedColor, fontSize: 18)),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              onPressed: () {
+                 Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const UserSearchScreen()),
+                ).then((_) => _loadData());
+              },
+              icon: Icon(Icons.search, color: theme.primaryColor),
+              label: Text('Find Friends', style: TextStyle(color: theme.primaryColor)),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _friends.length,
+      itemBuilder: (context, index) {
+        final friend = _friends[index];
+        return ListTile(
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileDashboard(userId: friend.id)));
+          },
+          leading: _buildAvatar(friend, theme),
+          title: Text(
+            friend.username,
+            style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold),
+          ),
+          subtitle: friend.firstName != null
+              ? Text('${friend.firstName} ${friend.lastName ?? ""}', style: TextStyle(color: mutedColor))
+              : null,
+        );
+      },
+    );
+  }
+
+  Widget _buildRequestsList(ThemeData theme, Color mutedColor) {
+    if (_pendingRequests.isEmpty) {
+      return Center(
+        child: Text('No pending requests', style: TextStyle(color: mutedColor)),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _pendingRequests.length,
+      itemBuilder: (context, index) {
+        final request = _pendingRequests[index];
+        return Card(
+          color: theme.cardTheme.color,
+          margin: const EdgeInsets.only(bottom: 12),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                _buildAvatar(request.user, theme),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        request.user.username,
+                        style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      Text(
+                        'Sent you a friend request',
+                        style: TextStyle(color: mutedColor, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.check_circle, color: Colors.green),
+                  onPressed: () => _acceptRequest(request),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.cancel, color: Colors.redAccent),
+                  onPressed: () => _rejectRequest(request),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Board Game Details</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#f48c25",
+              "background-light": "#f8f7f5",
+              "background-dark": "#221910",
+              "surface-dark": "#2C241B", // Slightly lighter than background-dark for cards
+              "surface-light": "#FFFFFF",
+            },
+            fontFamily: {
+              "display": ["Plus Jakarta Sans", "sans-serif"],
+              "body": ["Noto Sans", "sans-serif"],
+            },
+            borderRadius: {
+              "DEFAULT": "1rem", 
+              "lg": "1.5rem", 
+              "xl": "2rem", 
+              "full": "9999px"
+            },
+          },
+        },
+      }
+    </script>
+<style>
+        /* Custom scrollbar hiding */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased min-h-screen">
+<!-- Sticky Header -->
+<div class="fixed top-0 z-50 w-full bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md border-b border-gray-200 dark:border-white/10">
+<div class="flex items-center justify-between p-4 h-16 max-w-md mx-auto">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-gray-900 dark:text-white">arrow_back</span>
+</button>
+<div class="flex gap-2">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-gray-900 dark:text-white">ios_share</span>
+</button>
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-gray-900 dark:text-white">more_horiz</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Main Content Container -->
+<main class="relative flex flex-col w-full max-w-md mx-auto pt-16 pb-24 overflow-x-hidden">
+<!-- Image Carousel -->
+<div class="mt-2 w-full">
+<div class="flex overflow-x-auto no-scrollbar snap-x snap-mandatory px-4 pb-4 gap-4">
+<div class="snap-center shrink-0 w-[85vw] md:w-[320px]">
+<div class="w-full aspect-[4/3] bg-gray-800 rounded-xl overflow-hidden shadow-lg relative">
+<div class="w-full h-full bg-cover bg-center" data-alt="Wingspan board game box art with bird illustration" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD7NhmY2wmeKkWyYGJ85ZU-IjV2r56ymRz2qPdNaFDQ3LICIug0IBDdcJvpet67b9BAQ6fpqvS4imURthS-Q4PYDG4LVkbWVcaIy4594jilk8is7OyZbOM3FebOPuFv1z4kxWLgtdgvweQ_C8S4-jUg5L0T3-dCo3F8Tkaja_QLqM4wWjLLUU9WMLptBDQFIDWJhqt-Xjyn5lM-eOh4MzyCBdV1X8RmHLLnBiX1s-vpBfaxEGa51V1_yfSzkNWhjWxDLyngdqYpQA');"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60"></div>
+<div class="absolute bottom-3 right-3 bg-black/50 backdrop-blur-sm px-2 py-1 rounded-md text-xs text-white font-medium">1/4</div>
+</div>
+</div>
+<div class="snap-center shrink-0 w-[85vw] md:w-[320px]">
+<div class="w-full aspect-[4/3] bg-gray-800 rounded-xl overflow-hidden shadow-lg">
+<div class="w-full h-full bg-cover bg-center" data-alt="Detail of colorful game pieces and tokens" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA6-44CIDh_SVJnw-ZyaRIiKnNYqhYtqIK2vioyVRO79FahFmwRqUPvcjyOhL56w-W5Daj6Pjf_fBYrr2HAmiuOtk2htUIAX_0slkh5mRi5rVfynpJx6kMfXsDJ1P3K7jrz-K-ey5F0rIYZL383PzhxU8ukrQJLAM5k-xjFGXJmBVDzTtsJyUaxf-UWAu5E3rOdI1mr1fEoxKyEy6O0QLZYQC6r43iSXs9noo3ywaBVETGQ3raP5fyYzGsPuoSA81YF0p3E73lmig');"></div>
+</div>
+</div>
+<div class="snap-center shrink-0 w-[85vw] md:w-[320px]">
+<div class="w-full aspect-[4/3] bg-gray-800 rounded-xl overflow-hidden shadow-lg">
+<div class="w-full h-full bg-cover bg-center" data-alt="Top down view of game player board setup" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBEf7B-c96EiMrDJr4j-G71RQExIofC5MJdM_qOwKLqQMGqOY3Tnh8k-l3Vbi1c5kKcz6FCHBaC1IjM1o9hGtrYMhahaAzm3nI6X_3ar7J9ez45cEcdMc5bla6d4kcgz0V6t4BVDhTp5zuFlmyrADrPje-74xzHXYyoCYxXndIsDFpEB7LePCmrZUV4x5RB8Bg60WD6t_r__e4JZ4httcul83-aTZLZlrnqTZLaZrmEiQ-Qt0QjOSyRf3wCfhOEk2vsoCciWQ5x3w');"></div>
+</div>
+</div>
+<div class="snap-center shrink-0 w-[85vw] md:w-[320px]">
+<div class="w-full aspect-[4/3] bg-gray-800 rounded-xl overflow-hidden shadow-lg">
+<div class="w-full h-full bg-cover bg-center" data-alt="Close up of custom dice on wooden table" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC4NYvcHSIJAj0NgRBCUwEBB31ZXlDV5Az6dR3_XuocVq84M9PzlQ6m_E5NXMboTIq9XkUdElDknDSjjCF7WN8EFj-GnDQuVF_IsvODEW7hQPV0jN_cA6U2VwfIXlxtOOsTH1zvByUDqSJQ0rRG9w-YJvRTFhXc0yk06B3a_0-Dhzl6MfRgd0cGXhrEk5eGIjMceIQweLxycBseTi1aN9gXtRN0hW_-tW0v8iuQNKqSrqXJQVphSTEMQRE5pRED_-fhaBBvZGOjRg');"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Title & Meta -->
+<div class="px-4 pt-2">
+<h1 class="text-gray-900 dark:text-white text-3xl font-bold leading-tight tracking-tight mb-1">Wingspan</h1>
+<p class="text-gray-500 dark:text-[#baab9c] text-sm font-medium">2019 • Elizabeth Hargrave • Stonemaier Games</p>
+<div class="flex flex-wrap gap-2 mt-3">
+<span class="px-3 py-1 bg-gray-200 dark:bg-white/10 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-full">Strategy</span>
+<span class="px-3 py-1 bg-gray-200 dark:bg-white/10 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-full">Card Game</span>
+<span class="px-3 py-1 bg-gray-200 dark:bg-white/10 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-full">Animals</span>
+</div>
+</div>
+<!-- Action Toggles -->
+<div class="px-4 py-6 grid grid-cols-2 gap-3">
+<button class="flex items-center justify-center gap-2 h-12 rounded-full border-2 border-primary bg-primary/10 text-primary font-bold text-sm transition-all hover:bg-primary hover:text-white group">
+<span class="material-symbols-outlined text-[20px] group-hover:text-white" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                Owned
+            </button>
+<button class="flex items-center justify-center gap-2 h-12 rounded-full border border-gray-300 dark:border-white/20 bg-transparent text-gray-600 dark:text-gray-300 font-bold text-sm transition-all hover:bg-white/5 active:scale-95">
+<span class="material-symbols-outlined text-[20px]">favorite</span>
+                Wishlist
+            </button>
+</div>
+<!-- Stats Grid -->
+<div class="px-4 pb-6">
+<div class="grid grid-cols-4 gap-2">
+<!-- Rating -->
+<div class="flex flex-col items-center justify-center p-3 bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-white/5">
+<span class="text-primary text-xl font-bold">8.1</span>
+<span class="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-1">Rating</span>
+</div>
+<!-- Weight -->
+<div class="flex flex-col items-center justify-center p-3 bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-white/5">
+<span class="text-gray-900 dark:text-white text-lg font-bold">2.4</span>
+<span class="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-1">Weight</span>
+</div>
+<!-- Time -->
+<div class="flex flex-col items-center justify-center p-3 bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-white/5">
+<span class="text-gray-900 dark:text-white text-lg font-bold">40m</span>
+<span class="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-1">Time</span>
+</div>
+<!-- Players -->
+<div class="flex flex-col items-center justify-center p-3 bg-white dark:bg-surface-dark rounded-xl shadow-sm border border-gray-100 dark:border-white/5">
+<span class="text-gray-900 dark:text-white text-lg font-bold">1-5</span>
+<span class="text-gray-400 text-[10px] uppercase tracking-wider font-semibold mt-1">Players</span>
+</div>
+</div>
+</div>
+<!-- Description -->
+<div class="px-4 pb-6">
+<h3 class="text-gray-900 dark:text-white text-lg font-bold mb-2">About</h3>
+<div class="relative">
+<p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed font-body">
+                    You are bird enthusiasts—researchers, bird watchers, ornithologists, and collectors—seeking to discover and attract the best birds to your network of wildlife preserves. Each bird you extend a chain of powerful combinations in one of your habitats (actions). These habitats focus on several key aspects of growth...
+                </p>
+<button class="text-primary text-sm font-bold mt-1">Read more</button>
+</div>
+</div>
+<!-- Divider -->
+<div class="h-px bg-gray-200 dark:bg-white/10 mx-4 mb-6"></div>
+<!-- Reviews Section -->
+<div class="px-4 pb-8">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-gray-900 dark:text-white text-lg font-bold">Community Reviews</h3>
+<span class="text-primary font-bold text-sm">See All</span>
+</div>
+<!-- Summary Card -->
+<div class="flex gap-4 items-center bg-white dark:bg-surface-dark p-4 rounded-xl border border-gray-100 dark:border-white/5 mb-4 shadow-sm">
+<div class="flex flex-col items-center justify-center pr-4 border-r border-gray-200 dark:border-white/10">
+<span class="text-3xl font-extrabold text-gray-900 dark:text-white">8.2</span>
+<div class="flex text-primary text-[10px]">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 0;">star</span>
+</div>
+<span class="text-xs text-gray-500 mt-1">1.2k Ratings</span>
+</div>
+<div class="flex-1 flex flex-col gap-1 justify-center">
+<div class="flex items-center gap-2 text-xs text-gray-500">
+<span>5</span>
+<div class="h-1.5 flex-1 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[70%] rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center gap-2 text-xs text-gray-500">
+<span>4</span>
+<div class="h-1.5 flex-1 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary/80 w-[20%] rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center gap-2 text-xs text-gray-500">
+<span>3</span>
+<div class="h-1.5 flex-1 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary/60 w-[5%] rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center gap-2 text-xs text-gray-500">
+<span>2</span>
+<div class="h-1.5 flex-1 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary/40 w-[3%] rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center gap-2 text-xs text-gray-500">
+<span>1</span>
+<div class="h-1.5 flex-1 bg-gray-200 dark:bg-white/10 rounded-full overflow-hidden">
+<div class="h-full bg-primary/20 w-[2%] rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Individual Review -->
+<div class="flex flex-col gap-4">
+<div class="bg-transparent border border-gray-200 dark:border-white/10 p-4 rounded-xl">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-gray-700 overflow-hidden" data-alt="User avatar of a man smiling" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCf_HYDttoXVjLDZY3xowGXZ8xezSgRI-kG6QHQv6D6aJKouAPCfByJtLNXa7OuW2JqEKgmrHmsF57PMeWKsadRjqeIXgpV8MqdAhp2Mntkq7tvxftgIITP0IE7Bj9_b2mBbzK8PTQ7_2CDVl1H4zfwQYst3p0airoFrAC_I3IrZzOz7BWs3TK5Z6WeqaFEaW8pxZXOd19ztvznEIOi2tMUlF63wOaspswj_7shIblUKeaFoLP5pRLpzV6cVA1knRfyoK4X1tA1tw'); background-size: cover; background-position: center;"></div>
+<div>
+<h4 class="text-sm font-bold text-gray-900 dark:text-white">Alex M.</h4>
+<span class="text-xs text-gray-500">2 days ago</span>
+</div>
+</div>
+<div class="flex items-center bg-primary/10 px-2 py-1 rounded-lg">
+<span class="text-primary font-bold text-sm mr-1">9.0</span>
+<span class="material-symbols-outlined text-primary text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<p class="text-sm text-gray-600 dark:text-gray-300 font-body leading-relaxed">
+                        Absolutely stunning artwork and surprisingly deep strategy. My group loves how the engine building ramps up.
+                    </p>
+</div>
+<div class="bg-transparent border border-gray-200 dark:border-white/10 p-4 rounded-xl">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-gray-700 overflow-hidden" data-alt="User avatar of a woman with glasses" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAtYeVnCEGU9W7e-Fg8gDQHqG4wWycuwGQyuaGR50TJ4xPHf8f1RSMcow40eUFTImS6omj2ZzMAj0BxZtDv3gxjNKJ82KKArQxhQlnC3ayAfq-INfQTUwjFTDpXjVnQ1QKip6tPGWgUVDsz2Zmv_U0m4KlAGkCXQrSb38U-3rUSNaXkoYaOxofh4-NUvpjS99Xo1pKOvyVHAkKsstwcqsDOl2VHgdvQW_KYvxuKxoSgsC_Yk_ta_I8M0rJ3DlHaTa7sbM0yDu8msw'); background-size: cover; background-position: center;"></div>
+<div>
+<h4 class="text-sm font-bold text-gray-900 dark:text-white">Sarah Jenkins</h4>
+<span class="text-xs text-gray-500">1 week ago</span>
+</div>
+</div>
+<div class="flex items-center bg-primary/10 px-2 py-1 rounded-lg">
+<span class="text-primary font-bold text-sm mr-1">8.5</span>
+<span class="material-symbols-outlined text-primary text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+<p class="text-sm text-gray-600 dark:text-gray-300 font-body leading-relaxed">
+                        Great components. A bit light on player interaction but perfect for a chill evening.
+                    </p>
+</div>
+</div>
+</div>
+</main>
+<!-- Sticky Bottom Bar -->
+<div class="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background-light via-background-light to-transparent dark:from-background-dark dark:via-background-dark dark:to-transparent pt-8 pb-6 z-40 max-w-md mx-auto">
+<button class="w-full h-14 bg-primary hover:bg-orange-600 active:scale-[0.98] transition-all text-white font-bold text-lg rounded-full shadow-lg shadow-orange-900/20 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">rate_review</span>
+            Review Game
+        </button>
+</div>
+</body></html>

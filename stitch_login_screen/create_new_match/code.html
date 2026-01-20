@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Create New Match</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f48c25",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#221910",
+                        "surface-dark": "#2c241b", // Derived surface color for dark mode contrast
+                        "surface-light": "#ffffff",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar hiding for clean UI */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display antialiased selection:bg-primary selection:text-white pb-32">
+<!-- Header -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-black/5 dark:border-white/5">
+<div class="flex items-center justify-between px-4 py-3 pt-safe-top">
+<button class="text-primary hover:text-primary/80 font-medium text-base px-2 py-1 transition-colors">
+                Cancel
+            </button>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">New Match</h2>
+<div class="w-[60px]"></div> <!-- Spacer to balance layout -->
+</div>
+</header>
+<main class="w-full max-w-md mx-auto flex flex-col gap-6 p-4">
+<!-- Game Selector Section -->
+<section>
+<label class="block text-sm font-semibold text-slate-500 dark:text-slate-400 mb-3 px-1">Game</label>
+<div class="group relative flex items-center w-full bg-surface-light dark:bg-surface-dark rounded-2xl border border-black/5 dark:border-white/5 p-2 pr-4 transition-all hover:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20">
+<!-- Selected Game Thumbnail Placeholder -->
+<div class="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-slate-200 dark:bg-white/10 mr-4">
+<img alt="Abstract colorful board game pieces on a table" class="h-full w-full object-cover" data-alt="Abstract colorful board game pieces on a table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuR7tIWQKHg-SYh8Kn_GrJAQIQO_W-tKXZpjJ4byVcw0rlKqnLFOloA3VTcXL1Nvxdk5hfwy_wi54FuKCPsbguMzndThZfd0pk7ZYGzHfmZqbMpOf0qBvs4FJT8A8n6lPVDwM5UlIwHKJhUPtlsEWwAoswTPqQKhTSvwDAMVUAobwn7R0xYjc1ZDCGMx0BglL44QXnmEFrEgbHPSuW9f1UA7o3GoTHYeshF5MSIGgFvWLjaiKQ-QWcJFBg_QlLTJ4Nb5PMF4M7kA"/>
+</div>
+<div class="flex-1 min-w-0 flex flex-col justify-center">
+<span class="text-xs font-medium text-primary uppercase tracking-wider mb-0.5">Selected</span>
+<input class="block w-full border-0 bg-transparent p-0 text-base font-bold text-slate-900 dark:text-white placeholder:text-slate-400 focus:ring-0" placeholder="Search for a game..." type="text" value="Catan"/>
+</div>
+<button class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl">edit</span>
+</button>
+</div>
+</section>
+<!-- Date & Time Section -->
+<section class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-2">
+<label class="text-sm font-semibold text-slate-500 dark:text-slate-400 px-1">Date</label>
+<div class="relative flex items-center">
+<span class="absolute left-4 text-slate-400 material-symbols-outlined text-[20px]">calendar_today</span>
+<input class="w-full bg-surface-light dark:bg-surface-dark border border-black/5 dark:border-white/5 rounded-2xl h-14 pl-12 pr-4 text-base font-medium focus:border-primary focus:ring-0 transition-colors" type="text" value="Today"/>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-semibold text-slate-500 dark:text-slate-400 px-1">Time</label>
+<div class="relative flex items-center">
+<span class="absolute left-4 text-slate-400 material-symbols-outlined text-[20px]">schedule</span>
+<input class="w-full bg-surface-light dark:bg-surface-dark border border-black/5 dark:border-white/5 rounded-2xl h-14 pl-12 pr-4 text-base font-medium focus:border-primary focus:ring-0 transition-colors" type="text" value="8:30 PM"/>
+</div>
+</div>
+</section>
+<!-- Players Section -->
+<section>
+<div class="flex items-center justify-between px-1 mb-3">
+<h3 class="text-lg font-bold">Who's playing?</h3>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary">
+                    3 / 4
+                </span>
+</div>
+<div class="flex gap-4 overflow-x-auto no-scrollbar pb-2 px-1 -mx-1 snap-x">
+<!-- Add Player Button -->
+<button class="flex-shrink-0 flex flex-col items-center gap-2 group snap-start">
+<div class="w-16 h-16 rounded-full border-2 border-dashed border-slate-300 dark:border-white/20 flex items-center justify-center text-slate-400 group-hover:border-primary group-hover:text-primary transition-colors bg-surface-light dark:bg-surface-dark">
+<span class="material-symbols-outlined text-2xl">add</span>
+</div>
+<span class="text-xs font-medium text-slate-500 group-hover:text-primary">Add</span>
+</button>
+<!-- Player 1 (User) -->
+<div class="flex-shrink-0 flex flex-col items-center gap-2 snap-start relative">
+<div class="w-16 h-16 rounded-full p-0.5 ring-2 ring-primary relative">
+<img alt="Portrait of a woman with curly hair" class="w-full h-full rounded-full object-cover" data-alt="Portrait of a woman with curly hair" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7HCMzEfxMOAYr41xUpR6Xoocrhd5VqKv6WmU6E1OE0frbgoKt4M8c0ba48HaOaVnW_tV9Rt1bz0Vk9hjXMXHnEzAEo662ZL22w2r9eyYxj9d50sHbTdE2GcCubNT5Hz9vk6FRNC_yQGvFjXUCfX3gfIAqk2soAQg75Rq9TROL-0VGD0OYPn9-XqseMoQ-6YFhz_kfWV0ZjHgvIDwViAYsjfnkbkoZ-v8RoYKjk5x2MkUrlhrxrbejQOcIAOAHb1lGL1fXYodmEA"/>
+<div class="absolute -bottom-1 -right-1 bg-primary text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-background-light dark:border-background-dark">YOU</div>
+</div>
+<span class="text-xs font-medium text-slate-900 dark:text-white">Sarah</span>
+</div>
+<!-- Player 2 -->
+<div class="flex-shrink-0 flex flex-col items-center gap-2 snap-start">
+<div class="w-16 h-16 rounded-full p-0.5 bg-gradient-to-tr from-slate-200 to-slate-300 dark:from-white/10 dark:to-white/5">
+<img alt="Portrait of a young man looking serious" class="w-full h-full rounded-full object-cover opacity-90" data-alt="Portrait of a young man looking serious" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAki5ZxG6gxb9T3H1py-gxSgYHDwI6Jej3mMtybMNgzyiGCyCbqJfbTMEiXDMRYwhwiFWLzZ20-3RqA0SIPlmZ7IJD9tH6WnbOb_SKUyAGveN6oM9RliOHmjYIjWjA4dU1kYRDR6s0Wz5EmKPuqKgfr4mvz6OtITC3w3bqTnDXlgcjsRFdWexAedF6NVVML-6JbwtO5hje9NzKKzAqkS3fYZEuIviPiW60m0BLSAUvEvNYfepYMD33unFye6zUqwL6VIpCcGaBPdQ"/>
+</div>
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400">Marcus</span>
+</div>
+<!-- Player 3 -->
+<div class="flex-shrink-0 flex flex-col items-center gap-2 snap-start">
+<div class="w-16 h-16 rounded-full p-0.5 bg-gradient-to-tr from-slate-200 to-slate-300 dark:from-white/10 dark:to-white/5">
+<img alt="Portrait of a woman with glasses" class="w-full h-full rounded-full object-cover opacity-90" data-alt="Portrait of a woman with glasses" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5o1UUK7Mtlm7pneOuxV3kHxAvQOWQRWFBhrJxh2ukVGNLj0Gw1j_i7ADrqcEYQjSZW_jpxpHU1XmcV7Jw9tW4YaU_Nw60_1fpXfiw5GWzyvZCxt4pxTswJSTPnDvwtaIwApZUcphOoZ_9wR592GQ3Ds8R_lx9s5GnofkchziiG6Ds43KanWQU2Wge-k2P6-b23-hxyF2_KqllOU8CAqO-XAOh-jiWEOGQqxjbSx2i8JITRNfco8XqaiGZ8fA7NmVMWuWdFQ0Vuw"/>
+</div>
+<span class="text-xs font-medium text-slate-500 dark:text-slate-400">Elena</span>
+</div>
+</div>
+</section>
+<!-- Who Starts Randomizer -->
+<section class="mt-2">
+<div class="bg-surface-light dark:bg-surface-dark border border-black/5 dark:border-white/5 rounded-3xl p-5 relative overflow-hidden">
+<!-- Background decoration -->
+<div class="absolute -right-6 -top-6 w-32 h-32 bg-primary/10 rounded-full blur-2xl"></div>
+<div class="relative z-10 flex items-center justify-between">
+<div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            Who starts?
+                        </h3>
+<p class="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-[160px]">
+                            Don't argue, let the dice decide your fate.
+                        </p>
+</div>
+<button class="group flex flex-col items-center justify-center gap-1 active:scale-95 transition-transform">
+<div class="w-14 h-14 bg-gradient-to-br from-primary to-orange-600 rounded-2xl shadow-lg shadow-primary/30 flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-3xl group-hover:animate-[spin_1s_ease-in-out]">casino</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-wider text-primary mt-1">Roll</span>
+</button>
+</div>
+<!-- Result Area (Hidden/Empty State) -->
+<div class="mt-4 pt-4 border-t border-black/5 dark:border-white/5 flex items-center gap-2">
+<span class="material-symbols-outlined text-slate-400 text-lg">info</span>
+<span class="text-xs text-slate-500 font-medium">Tap the dice to pick a random player</span>
+</div>
+</div>
+</section>
+<!-- Optional Location -->
+<section>
+<label class="block text-sm font-semibold text-slate-500 dark:text-slate-400 mb-3 px-1">Location (Optional)</label>
+<div class="relative">
+<span class="absolute left-4 top-3.5 text-slate-400 material-symbols-outlined">location_on</span>
+<input class="w-full bg-transparent border-b border-black/10 dark:border-white/10 px-4 pl-12 py-3 text-base focus:border-primary focus:ring-0 placeholder:text-slate-600 dark:placeholder:text-slate-500 transition-colors" placeholder="Add a location..." type="text"/>
+</div>
+</section>
+</main>
+<!-- Sticky Footer -->
+<div class="fixed bottom-0 left-0 w-full p-4 bg-background-light dark:bg-background-dark border-t border-black/5 dark:border-white/5 z-40">
+<div class="max-w-md mx-auto">
+<button class="w-full h-14 bg-primary hover:bg-orange-600 text-white font-bold text-lg rounded-full shadow-xl shadow-primary/25 flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
+<span>Start Match</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</body></html>

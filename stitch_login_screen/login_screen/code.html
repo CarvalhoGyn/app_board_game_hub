@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Board Game App Login</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f48c25",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#181411", // Dark wood/charcoal tone from requirements
+                        "surface-dark": "#2c241b", // Slightly lighter for inputs/cards
+                        "text-muted": "#baab9c",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem", 
+                        "lg": "1.5rem", 
+                        "xl": "2rem", 
+                        "full": "9999px"
+                    },
+                    backgroundImage: {
+                        'wood-pattern': "url('https://images.unsplash.com/photo-1610368305096-7b44766579c1?q=80&w=2070&auto=format&fit=crop')",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom styles for iOS-like feel */
+        body {
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-blur {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        /* Hide scrollbar for clean look */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased selection:bg-primary selection:text-white">
+<div class="relative flex min-h-screen w-full flex-col overflow-hidden items-center justify-center">
+<!-- Abstract Background Pattern with Gradient Overlay -->
+<div class="absolute inset-0 z-0">
+<!-- Background Image -->
+<div class="absolute inset-0 bg-cover bg-center opacity-20 mix-blend-overlay" data-alt="Abstract dark wooden texture or dice scattered on table" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC00UCQ0swBzzjoQfZupN0p4ovLePNhAnKZl_Zx2TKPZneTEVeOnQrQP_CWri6q2Jk0Z18S02VQwoftH7-ra598v6YbU-6E3Sb1KM46ZqJbX72mlI3ebwdVb0M4MnTYXaIOVJCcYAnePzIeT2qcy7rEDWmUU6sog3kAn-8qjJSKGJPW4vUMLSwOJNG_6a_6iOxSO8KMAByshHtOhPx70qzuEHsAwjqGty55jUzsng6EV4_YUJJ2Qa1aW2vENN_9ZWNbutqFKPh4_A');"></div>
+<!-- Gradient to fade out edges -->
+<div class="absolute inset-0 bg-gradient-to-b from-background-dark/80 via-background-dark/95 to-background-dark"></div>
+</div>
+<div class="relative z-10 w-full max-w-md px-6 py-8 flex flex-col h-full justify-between min-h-[800px]">
+<!-- Top Section: Logo & Headline -->
+<div class="flex flex-col items-center pt-8">
+<!-- Logo mark -->
+<div class="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-[#d97210] shadow-[0_8px_30px_rgb(244,140,37,0.3)]">
+<span class="material-symbols-outlined text-white !text-5xl">casino</span>
+</div>
+<h1 class="text-white tracking-tight text-3xl font-extrabold leading-tight text-center pb-2">Welcome Back, Player</h1>
+<p class="text-text-muted text-base text-center font-medium">Ready for your next turn?</p>
+</div>
+<!-- Middle Section: Form -->
+<div class="flex flex-col gap-5 w-full mt-8">
+<!-- Email/Nickname Field -->
+<div class="group relative">
+<label class="sr-only" for="email">Email or Nickname</label>
+<div class="flex w-full items-center rounded-2xl bg-surface-dark border border-transparent focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/10 transition-all duration-300">
+<div class="flex h-14 w-12 items-center justify-center pl-1 text-text-muted group-focus-within:text-primary transition-colors">
+<span class="material-symbols-outlined">person</span>
+</div>
+<input class="flex-1 bg-transparent border-none text-white placeholder-text-muted/70 focus:ring-0 h-14 text-base font-medium pl-1 pr-4" id="email" placeholder="Email or Nickname" type="text"/>
+</div>
+</div>
+<!-- Password Field -->
+<div class="group relative">
+<label class="sr-only" for="password">Password</label>
+<div class="flex w-full items-center rounded-2xl bg-surface-dark border border-transparent focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/10 transition-all duration-300">
+<div class="flex h-14 w-12 items-center justify-center pl-1 text-text-muted group-focus-within:text-primary transition-colors">
+<span class="material-symbols-outlined">lock</span>
+</div>
+<input class="flex-1 bg-transparent border-none text-white placeholder-text-muted/70 focus:ring-0 h-14 text-base font-medium pl-1 pr-4" id="password" placeholder="Password" type="password"/>
+<button class="flex h-14 w-12 items-center justify-center pr-1 text-text-muted hover:text-white transition-colors focus:outline-none">
+<span class="material-symbols-outlined !text-[20px]">visibility_off</span>
+</button>
+</div>
+</div>
+<!-- Forgot Password -->
+<div class="flex justify-end -mt-1">
+<a class="text-sm font-semibold text-primary hover:text-white transition-colors" href="#">Forgot Password?</a>
+</div>
+<!-- Login Button -->
+<button class="mt-2 flex w-full cursor-pointer items-center justify-center rounded-full bg-primary h-14 text-background-dark text-lg font-bold tracking-wide shadow-[0_4px_0_rgb(194,105,18)] active:translate-y-[2px] active:shadow-none transition-all hover:bg-[#ff9d40]">
+                    Log In
+                </button>
+<!-- Divider -->
+<div class="relative flex items-center py-4">
+<div class="flex-grow border-t border-white/10"></div>
+<span class="flex-shrink-0 mx-4 text-text-muted text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined !text-[14px]">casino</span>
+                        Or continue with
+                        <span class="material-symbols-outlined !text-[14px]">casino</span>
+</span>
+<div class="flex-grow border-t border-white/10"></div>
+</div>
+<!-- Social Login Buttons -->
+<div class="flex items-center justify-center gap-6">
+<!-- Apple -->
+<button class="flex h-14 w-14 items-center justify-center rounded-full bg-surface-dark border border-white/5 hover:bg-white/10 transition-all text-white active:scale-95">
+<!-- Using an icon font or SVG usually, here using generic apple icon approach for cleanliness without external svgs -->
+<span class="text-2xl font-bold font-sans"></span>
+</button>
+<!-- Google -->
+<button class="flex h-14 w-14 items-center justify-center rounded-full bg-surface-dark border border-white/5 hover:bg-white/10 transition-all text-white active:scale-95 p-3">
+<div class="w-6 h-6 rounded-full bg-white flex items-center justify-center overflow-hidden" data-alt="Google G Logo Multi-colored">
+<!-- Simple Google G representation for layout -->
+<span class="text-surface-dark font-bold text-lg">G</span>
+</div>
+</button>
+<!-- Facebook -->
+<button class="flex h-14 w-14 items-center justify-center rounded-full bg-surface-dark border border-white/5 hover:bg-white/10 transition-all text-white active:scale-95">
+<span class="font-bold text-2xl text-[#1877F2]">f</span>
+</button>
+</div>
+</div>
+<!-- Bottom Section: Sign Up -->
+<div class="pb-6 text-center">
+<p class="text-text-muted text-sm font-medium">
+                    New player? 
+                    <a class="text-primary font-bold hover:text-white hover:underline decoration-2 underline-offset-4 ml-1 transition-colors" href="#">
+                        Create an Account
+                    </a>
+</p>
+</div>
+</div>
+</div>
+</body></html>

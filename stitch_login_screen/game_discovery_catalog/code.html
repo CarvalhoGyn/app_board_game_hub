@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Game Discovery Catalog</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f48c25",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#221910",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-x-hidden antialiased">
+<div class="relative min-h-screen w-full flex flex-col max-w-md mx-auto shadow-2xl overflow-hidden bg-background-light dark:bg-background-dark">
+<!-- Header & Top Nav -->
+<header class="flex items-center justify-between p-6 pb-2">
+<div class="flex items-center gap-3">
+<div class="relative">
+<div class="w-10 h-10 rounded-full bg-cover bg-center ring-2 ring-primary/50" data-alt="User profile avatar portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDQLQVlm2VJVuMiq-VGurWTUzXy0Fd_yOQcQNHKZ_54Dt7F0VtYJ3BAWAnkRAS5bwHO5nWOf9oxa92RVVIqdVq6H17OAF8WHGxGWMuS2-P6hEnZd0qF3TZLnpE6e_KYOTk_kqUYwCX-ip5lt5hM_f0jEqYuDK03Bq-f3poq2G7ZlhI36SVtxBVk9XN7ABU0s7JwzwisC-c0JbqdrX-UYi1liVrJpg56fWeiOkggXd-Wile9InrQob5ZPjRnLr258gwGDJkfiKftiQ");'></div>
+<div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background-dark rounded-full"></div>
+</div>
+<div>
+<p class="text-xs text-slate-500 dark:text-gray-400 font-medium">Welcome back,</p>
+<h2 class="text-lg font-bold leading-none">Alex Hunter</h2>
+</div>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-[#393028] text-slate-600 dark:text-[#baab9c] hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</header>
+<!-- Search Bar -->
+<div class="px-6 py-4 sticky top-0 z-20 bg-background-light dark:bg-background-dark/95 backdrop-blur-md">
+<label class="relative flex w-full items-center">
+<span class="absolute left-4 flex items-center justify-center text-slate-400 dark:text-[#baab9c]">
+<span class="material-symbols-outlined">search</span>
+</span>
+<input class="w-full h-12 rounded-full bg-white dark:bg-[#393028] border-none pl-12 pr-12 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-[#baab9c]/60 focus:ring-2 focus:ring-primary focus:outline-none shadow-sm" placeholder="Search games, brands, publishers..." type="text"/>
+<button class="absolute right-2 top-1.5 h-9 w-9 flex items-center justify-center rounded-full bg-primary text-white shadow-md hover:bg-primary/90 transition">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+</button>
+</label>
+</div>
+<!-- Scrollable Main Content -->
+<main class="flex-1 overflow-y-auto no-scrollbar pb-24">
+<!-- Trending Section (Horizontal Scroll) -->
+<section class="mt-2">
+<div class="flex items-center justify-between px-6 mb-4">
+<h3 class="text-xl font-bold tracking-tight">Trending Games</h3>
+<a class="text-sm font-semibold text-primary hover:text-primary/80" href="#">See All</a>
+</div>
+<div class="flex overflow-x-auto no-scrollbar px-6 gap-5 pb-4 snap-x snap-mandatory">
+<!-- Trending Card 1 -->
+<div class="relative group snap-center shrink-0 w-[280px] h-[360px] rounded-lg overflow-hidden shadow-lg">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Wingspan board game artwork showing birds" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAocE-yjcqwlUZ5gvscpEM0x5MI0KbtMI7JlaJGA31b-7_8F07GFoapdz9dO3t9KDZjomBW5aeK4ugGvHhi10Ej_HYisda3n_lGtXlf5LUVkgCk6FB7parNGN9dpx2Grpppx3sOJKClBzgMGPSpPB4aH_mTV3rCwl9shMuZgC0k3sp7eU6rZSN7JcikIvtckbKavAak0EN0a2qrtG-5lha9-7XBmz7PKEj5elCof81011hwoPOvpUJa-pMP6tg7o-9OOl_EcYIS0Q");'></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+<div class="absolute top-4 right-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-sm text-white hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">favorite</span>
+</button>
+</div>
+<div class="absolute bottom-0 w-full p-5 flex flex-col gap-2">
+<div class="flex items-center gap-2 mb-1">
+<span class="bg-primary text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Strategy</span>
+<div class="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm border border-white/10">
+<span class="material-symbols-outlined text-primary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold text-white">4.8</span>
+</div>
+</div>
+<h4 class="text-2xl font-bold text-white leading-tight">Wingspan</h4>
+<p class="text-gray-300 text-sm line-clamp-2">Attract the best birds to your wildlife preserve in this engine-building game.</p>
+</div>
+</div>
+<!-- Trending Card 2 -->
+<div class="relative group snap-center shrink-0 w-[280px] h-[360px] rounded-lg overflow-hidden shadow-lg">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Dune Imperium game art desert landscape" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAe73czl-8Uvu1Re35G8AQPuwQOgI-CTlk1p_asAfq6W_G480YRKyPgFSw4lO6jboTLKulloVfWMUm0Vdr208uWuqvntpoP3ybzMi6kbu1JmSufdfC593pD6zOpHIhIudLJlXVtb71be-VWfGC1eMgvncmoB9fhAUZyjaBuRhukVLm9SuOF1Kz95okczHd0iPhtRNkiIA65Tis838SXah0qaO6LnmBQmGR0vr6kfG_7sHLvMmwfD_7C9OugQgiu3feFK2AjYD8K3Q");'></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+<div class="absolute top-4 right-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-sm text-white hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">favorite</span>
+</button>
+</div>
+<div class="absolute bottom-0 w-full p-5 flex flex-col gap-2">
+<div class="flex items-center gap-2 mb-1">
+<span class="bg-indigo-500 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Sci-Fi</span>
+<div class="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm border border-white/10">
+<span class="material-symbols-outlined text-primary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold text-white">4.9</span>
+</div>
+</div>
+<h4 class="text-2xl font-bold text-white leading-tight">Dune: Imperium</h4>
+<p class="text-gray-300 text-sm line-clamp-2">Deck-building and worker placement in the world of Dune.</p>
+</div>
+</div>
+<!-- Trending Card 3 -->
+<div class="relative group snap-center shrink-0 w-[280px] h-[360px] rounded-lg overflow-hidden shadow-lg">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Ark Nova zoo themed board game art" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC-1RpoU3d6QUoySCYRBhGD0U07CUXdTqAv1RgO7AyJBqnXd1zkopZbtKgr3XQbsQoTZc7zvjgq2_qmyOzl3Ks1U0z2dCq3oEHYNMX6PpbNHpwchGDQSeZOLLIJ9QJ4G7HztSX-XspPEVMhnhLqjwZGwgNCO1cLglIY1PFgzuYIMt3z_ijRvPc7gtHjm7dqtvzAviv79C2KeCnzMpG20eu2j5T4aUlIqn7mUyeNagrxN_PsHIdVU0J2aZYUDofPL2Q_TiX8LmxwhA");'></div>
+<div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+<div class="absolute top-4 right-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 backdrop-blur-sm text-white hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">favorite</span>
+</button>
+</div>
+<div class="absolute bottom-0 w-full p-5 flex flex-col gap-2">
+<div class="flex items-center gap-2 mb-1">
+<span class="bg-green-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider">Tycoon</span>
+<div class="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm border border-white/10">
+<span class="material-symbols-outlined text-primary text-[14px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-xs font-bold text-white">4.7</span>
+</div>
+</div>
+<h4 class="text-2xl font-bold text-white leading-tight">Ark Nova</h4>
+<p class="text-gray-300 text-sm line-clamp-2">Plan and build a modern, scientifically managed zoo.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Recommended Section (Vertical List) -->
+<section class="mt-6 px-6">
+<h3 class="text-xl font-bold tracking-tight mb-4">Recommended for You</h3>
+<div class="flex flex-col gap-4">
+<!-- Item 1 -->
+<div class="flex items-center gap-4 p-3 rounded-lg bg-white dark:bg-[#2c241e] shadow-sm hover:shadow-md transition-shadow">
+<div class="w-20 h-20 shrink-0 rounded-lg bg-cover bg-center shadow-inner" data-alt="Catan board game box art with landscape" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB6D_ebwM1G0xfoF5e5CjQRaKZnA2G_K8QPewZBjG823UP0s_RFcY56QVPkoJAj7eQ0amqxWPM2F_HkCqUNINs34CJsZtBl7bDoN5y149mn1B2m33diYRy8-Yw7pIg0C9qlBnpuHpI2uEQvyFh_cYf9zJe8kqXpHtTD_BkrRhz5boFWw43QEPRFDu6uMfJtBjK2SyzqM952IcamMNutyxkx9HdrJHMVgfyQ6V5Dyyob2d2jm5Yhd_Xl2veY98e30lIFFV6b9aMHYg");'></div>
+<div class="flex-1 min-w-0">
+<h4 class="text-base font-bold text-slate-900 dark:text-white truncate">Catan</h4>
+<p class="text-xs text-slate-500 dark:text-[#baab9c] mb-1">Family • 60-90 min</p>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-sm font-bold text-slate-700 dark:text-gray-200">4.5</span>
+<span class="text-xs text-slate-400 dark:text-gray-500 ml-1">(12k reviews)</span>
+</div>
+</div>
+<button class="shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-[#393028] text-slate-400 dark:text-[#baab9c] hover:text-primary hover:bg-primary/10 transition">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">bookmark_add</span>
+</button>
+</div>
+<!-- Item 2 -->
+<div class="flex items-center gap-4 p-3 rounded-lg bg-white dark:bg-[#2c241e] shadow-sm hover:shadow-md transition-shadow">
+<div class="w-20 h-20 shrink-0 rounded-lg bg-cover bg-center shadow-inner" data-alt="Ticket to Ride game train pieces" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDqX7qop50q7JKeEmb2jnD6uBx1SZUVxXGGgLhsyKms0R9_-akf-GnqewVForxcBfSuKosP71MJD-PmuoUP1fkMcQ4TM_5qrlXK9_O0BKIAhyl93ibjvrLRbhLPZMJI7nEJ1HEKqkomummW9ry-kcW-rRNfI1_ZkSObQO-nCcTtcW2iBMkTb2igtb0ViLQXu6m_V6vTJCxzSGit_EbE9CVupM5fsR8TBACTTEr_KIHfZvOqOO0w09-InR9eOjNxqpu_ZurBHH8WsQ");'></div>
+<div class="flex-1 min-w-0">
+<h4 class="text-base font-bold text-slate-900 dark:text-white truncate">Ticket to Ride</h4>
+<p class="text-xs text-slate-500 dark:text-[#baab9c] mb-1">Family • 30-60 min</p>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-sm font-bold text-slate-700 dark:text-gray-200">4.6</span>
+<span class="text-xs text-slate-400 dark:text-gray-500 ml-1">(18k reviews)</span>
+</div>
+</div>
+<button class="shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-[#393028] text-slate-400 dark:text-[#baab9c] hover:text-primary hover:bg-primary/10 transition">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">bookmark_add</span>
+</button>
+</div>
+<!-- Item 3 -->
+<div class="flex items-center gap-4 p-3 rounded-lg bg-white dark:bg-[#2c241e] shadow-sm hover:shadow-md transition-shadow">
+<div class="w-20 h-20 shrink-0 rounded-lg bg-cover bg-center shadow-inner" data-alt="Gloomhaven fantasy game box art" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD8jGTWHwiY9P0wXQCrNIlG24R7VmPRZp32NrJTU94qvS0a6hGQSvhmtyzmxpJzwf6Sb1Sxhhf8VRi6c2YS14imenL0zz9LslxmkvB6ubRT1fFOKV3qZRnm-dCFfgWhdhlXroKvSnOXadmwjGJRK1VV_6CK8994k5ECu666xWM_IUFll047yzlOfIyODyJVhAgjCyvMQOs7fZtAA2OTDjz0O9w4E01fMeccVHd9mATrCLVijm21xSLXwXOSchoVhvEbASwLlu3v9w");'></div>
+<div class="flex-1 min-w-0">
+<h4 class="text-base font-bold text-slate-900 dark:text-white truncate">Gloomhaven</h4>
+<p class="text-xs text-slate-500 dark:text-[#baab9c] mb-1">Adventure • 120+ min</p>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-sm font-bold text-slate-700 dark:text-gray-200">4.9</span>
+<span class="text-xs text-slate-400 dark:text-gray-500 ml-1">(9.5k reviews)</span>
+</div>
+</div>
+<button class="shrink-0 w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-[#393028] text-slate-400 dark:text-[#baab9c] hover:text-primary hover:bg-primary/10 transition">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">bookmark_add</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Bottom spacing for nav -->
+<div class="h-6"></div>
+</main>
+<!-- Bottom Navigation -->
+<nav class="absolute bottom-0 w-full bg-white dark:bg-[#1a140e] border-t border-slate-200 dark:border-[#393028] pb-6 pt-2 px-6">
+<div class="flex justify-between items-center">
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-[#baab9c] hover:text-slate-600 dark:hover:text-white transition" href="#">
+<span class="material-symbols-outlined">explore</span>
+<span class="text-[10px] font-medium">Browse</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-[#baab9c] hover:text-slate-600 dark:hover:text-white transition" href="#">
+<div class="w-12 h-12 -mt-8 bg-primary rounded-full flex items-center justify-center shadow-lg shadow-primary/40 text-white">
+<span class="material-symbols-outlined text-2xl">add</span>
+</div>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-[#baab9c] hover:text-slate-600 dark:hover:text-white transition" href="#">
+<span class="material-symbols-outlined">favorite</span>
+<span class="text-[10px] font-medium">Wishlist</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400 dark:text-[#baab9c] hover:text-slate-600 dark:hover:text-white transition" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profile</span>
+</a>
+</div>
+</nav>
+</div>
+</body></html>
