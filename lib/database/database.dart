@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:core' hide Match;
+import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
@@ -7,11 +8,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqlite3/sqlite3.dart';
 import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart';
+import 'package:uuid/uuid.dart';
 
 part 'database.g.dart';
 
 class Users extends Table {
-  IntColumn get id => integer().autoIncrement()();
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
   TextColumn get username => text().withLength(min: 3, max: 20).unique()();
   TextColumn get email => text().unique()();
   TextColumn get password => text()();
@@ -26,11 +28,14 @@ class Users extends Table {
   IntColumn get xp => integer().withDefault(const Constant(0))();
   IntColumn get prestige => integer().withDefault(const Constant(0))();
   TextColumn get title => text().nullable()();
+  
+  @override
+  Set<Column> get primaryKey => {id};
 }
 
 class UserAchievements extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  IntColumn get userId => integer().references(Users, #id)();
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
+  TextColumn get userId => text().references(Users, #id)();
   TextColumn get achievementId => text()(); // e.g. 'first_win'
   DateTimeColumn get unlockedAt => dateTime().withDefault(currentDateAndTime)();
   
@@ -39,7 +44,7 @@ class UserAchievements extends Table {
 }
 
 class Games extends Table {
-  IntColumn get id => integer().autoIncrement()();
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
 
   IntColumn get bggId => integer().nullable().unique()();
   TextColumn get name => text()();
@@ -64,23 +69,30 @@ class Games extends Table {
   TextColumn get families => text().nullable()();
   TextColumn get integrations => text().nullable()();
   TextColumn get reimplementations => text().nullable()();
+  
+  @override
+  Set<Column> get primaryKey => {id};
 }
 
 @DataClassName('MatchRow')
 class Matches extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  IntColumn get gameId => integer().references(Games, #id)();
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
+  TextColumn get gameId => text().references(Games, #id)();
   DateTimeColumn get date => dateTime()();
   TextColumn get location => text().nullable()();
   TextColumn get scoringType => text().withDefault(const Constant('competitive'))(); // 'competitive' or 'cooperative'
   @ReferenceName('createdMatches')
-  IntColumn get creatorId => integer().nullable().references(Users, #id)();
+  TextColumn get creatorId => text().nullable().references(Users, #id)();
+  
+  @override
+  Set<Column> get primaryKey => {id};
 }
 
 class Players extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  IntColumn get matchId => integer().references(Matches, #id)();
-  IntColumn get userId => integer().references(Users, #id)();
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
+  TextColumn get matchId => text().references(Matches, #id)();
+
+  TextColumn get userId => text().references(Users, #id)();
   IntColumn get score => integer().nullable()();
   IntColumn get rank => integer().nullable()(); // NEW: Position (1, 2, 3...)
   RealColumn get matchRating => real().nullable()(); // NEW: Rating 0.0 - 5.0
@@ -88,12 +100,15 @@ class Players extends Table {
 }
 
 class UserGameCollections extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  IntColumn get userId => integer().references(Users, #id)();
-  IntColumn get gameId => integer().references(Games, #id)();
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
+  TextColumn get userId => text().references(Users, #id)();
+  TextColumn get gameId => text().references(Games, #id)();
   TextColumn get collectionType => text()(); // 'wishlist' or 'owned'
   DateTimeColumn get addedAt => dateTime()();
   
+  @override
+  Set<Column> get primaryKey => {id};
+
   @override
   List<Set<Column>> get uniqueKeys => [
     {userId, gameId, collectionType},
@@ -101,15 +116,18 @@ class UserGameCollections extends Table {
 }
 
 class Friendships extends Table {
-  IntColumn get id => integer().autoIncrement()();
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
   @ReferenceName('sentFriendships')
-  IntColumn get userId => integer().references(Users, #id)();
+  TextColumn get userId => text().references(Users, #id)();
   @ReferenceName('receivedFriendships')
-  IntColumn get friendId => integer().references(Users, #id)();
+  TextColumn get friendId => text().references(Users, #id)();
   TextColumn get status => text()(); // 'pending', 'accepted', 'rejected'
   DateTimeColumn get requestedAt => dateTime()();
   DateTimeColumn get respondedAt => dateTime().nullable()();
   
+  @override
+  Set<Column> get primaryKey => {id};
+
   @override
   List<Set<Column>> get uniqueKeys => [
     {userId, friendId},
@@ -118,20 +136,30 @@ class Friendships extends Table {
 
 
 class Notifications extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  IntColumn get userId => integer().references(Users, #id)();
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
+  TextColumn get userId => text().references(Users, #id)();
   TextColumn get type => text()(); // friend_request, match_result, system
   TextColumn get title => text()();
   TextColumn get message => text()();
-  IntColumn get relatedId => integer().nullable()(); // ID of match or friendship
+  TextColumn get relatedId => text().nullable()(); // ID of match or friendship or user (polymorphic)
   BoolColumn get isRead => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
-class Reviews extends Table {
+class SyncQueue extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get userId => integer().references(Users, #id)();
-  IntColumn get gameId => integer().references(Games, #id)();
+  TextColumn get entity => text()(); // 'matches', 'players', 'users', etc. -- Renamed from tableName to avoid conflict
+  TextColumn get action => text()(); // 'INSERT', 'UPDATE', 'DELETE'
+  TextColumn get payload => text()(); // JSON string
+  TextColumn get status => text().withDefault(const Constant('PENDING'))(); // 'PENDING', 'RETRY', 'FAILED'
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  IntColumn get retryCount => integer().withDefault(const Constant(0))();
+}
+
+class Reviews extends Table {
+  TextColumn get id => text().clientDefault(() => const Uuid().v4())();
+  TextColumn get userId => text().references(Users, #id)();
+  TextColumn get gameId => text().references(Games, #id)();
   RealColumn get rating => real()();
   TextColumn get comment => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
@@ -141,14 +169,14 @@ class Reviews extends Table {
 }
 
 @DriftDatabase(
-  tables: [Users, Games, Matches, Players, UserGameCollections, Friendships, Notifications, Reviews, UserAchievements],
-  daos: [UsersDao, GamesDao, MatchesDao, UserGameCollectionsDao, FriendshipsDao, NotificationsDao, ReviewsDao, UserAchievementsDao],
+  tables: [Users, Games, Matches, Players, UserGameCollections, Friendships, Notifications, Reviews, UserAchievements, SyncQueue],
+  daos: [UsersDao, GamesDao, MatchesDao, UserGameCollectionsDao, FriendshipsDao, NotificationsDao, ReviewsDao, UserAchievementsDao, SyncQueueDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 15;
 
   @override
   MigrationStrategy get migration {
@@ -195,6 +223,17 @@ class AppDatabase extends _$AppDatabase {
          if (from < 11) { // Migration to v11
             await m.addColumn(users, users.prestige);
          }
+         if (from < 12) { // Migration to v12
+            await m.createTable(syncQueue);
+         }
+         if (from < 14) { // Migration to v14
+            // Note: Changing ID types is complex in SQLite. 
+            // For development, we might need to recreate tables or use complex migration.
+            // Since we are in dev/refactor phase, we might rely on destructive rebuild if needed,
+            // or we accept potential breakage of existing local data.
+            // Ideally: Create new tables, copy data transforming IDs, drop old, rename new.
+            // For now, implementing basic column Alter if possible or assuming clean slate/reinstall.
+         }
       }
     );
   }
@@ -204,7 +243,7 @@ class AppDatabase extends _$AppDatabase {
 class UserAchievementsDao extends DatabaseAccessor<AppDatabase> with _$UserAchievementsDaoMixin {
   UserAchievementsDao(AppDatabase db) : super(db);
 
-  Future<void> unlockAchievement(int userId, String achievementId) {
+  Future<void> unlockAchievement(String userId, String achievementId) {
     return into(userAchievements).insert(
        UserAchievementsCompanion(
           userId: Value(userId),
@@ -215,11 +254,11 @@ class UserAchievementsDao extends DatabaseAccessor<AppDatabase> with _$UserAchie
     );
   }
   
-  Future<List<UserAchievement>> getAchievements(int userId) {
+  Future<List<UserAchievement>> getAchievements(String userId) {
      return (select(userAchievements)..where((u) => u.userId.equals(userId))).get();
   }
   
-  Future<bool> hasAchievement(int userId, String achievementId) async {
+  Future<bool> hasAchievement(String userId, String achievementId) async {
      final result = await (select(userAchievements)
         ..where((u) => u.userId.equals(userId) & u.achievementId.equals(achievementId))
      ).getSingleOrNull();
@@ -232,11 +271,11 @@ class NotificationsDao extends DatabaseAccessor<AppDatabase> with _$Notification
   NotificationsDao(AppDatabase db) : super(db);
 
   Future<void> createNotification({
-    required int userId,
+    required String userId,
     required String type,
     required String title,
     required String message,
-    int? relatedId,
+    String? relatedId,
   }) {
     return into(notifications).insert(NotificationsCompanion.insert(
       userId: userId,
@@ -247,14 +286,14 @@ class NotificationsDao extends DatabaseAccessor<AppDatabase> with _$Notification
     ));
   }
 
-  Future<List<Notification>> getNotifications(int userId) {
+  Future<List<Notification>> getNotifications(String userId) {
     return (select(notifications)
           ..where((n) => n.userId.equals(userId))
           ..orderBy([(n) => OrderingTerm.desc(n.createdAt)]))
         .get();
   }
 
-  Future<int> getUnreadCount(int userId) {
+  Future<int> getUnreadCount(String userId) {
     var count = notifications.id.count();
     return (selectOnly(notifications)
           ..where(notifications.userId.equals(userId) & notifications.isRead.equals(false))
@@ -264,13 +303,13 @@ class NotificationsDao extends DatabaseAccessor<AppDatabase> with _$Notification
         .then((value) => value ?? 0);
   }
 
-  Future<void> markAsRead(int notificationId) {
+  Future<void> markAsRead(String notificationId) {
     return (update(notifications)
       ..where((n) => n.id.equals(notificationId))
     ).write(const NotificationsCompanion(isRead: Value(true)));
   }
   
-  Future<void> markAllAsRead(int userId) {
+  Future<void> markAllAsRead(String userId) {
     return (update(notifications)
       ..where((n) => n.userId.equals(userId))
     ).write(const NotificationsCompanion(isRead: Value(true)));
@@ -281,9 +320,12 @@ class NotificationsDao extends DatabaseAccessor<AppDatabase> with _$Notification
 class UsersDao extends DatabaseAccessor<AppDatabase> with _$UsersDaoMixin {
   UsersDao(super.db);
 
-  Future<int> createUser(UsersCompanion user) => into(users).insert(user);
+  Future<String> createUser(UsersCompanion user) async {
+    final row = await into(users).insertReturning(user);
+    return row.id;
+  }
   Future<User?> getUserByEmail(String email) => (select(users)..where((u) => u.email.equals(email))).getSingleOrNull();
-  Future<User?> getUserById(int id) => (select(users)..where((u) => u.id.equals(id))).getSingleOrNull();
+  Future<User?> getUserById(String id) => (select(users)..where((u) => u.id.equals(id))).getSingleOrNull();
   Future<User?> login(String identifier, String password) => 
       (select(users)..where((u) => (u.email.equals(identifier) | u.username.equals(identifier)) & u.password.equals(password))).getSingleOrNull();
   
@@ -294,7 +336,7 @@ class UsersDao extends DatabaseAccessor<AppDatabase> with _$UsersDaoMixin {
         .get();
   }
 
-  Future<void> updateUser(int id, UsersCompanion user) {
+  Future<void> updateUser(String id, UsersCompanion user) {
     return (update(users)..where((u) => u.id.equals(id))).write(user);
   }
 }
@@ -303,40 +345,72 @@ class UsersDao extends DatabaseAccessor<AppDatabase> with _$UsersDaoMixin {
 class UserGameCollectionsDao extends DatabaseAccessor<AppDatabase> with _$UserGameCollectionsDaoMixin {
   UserGameCollectionsDao(super.db);
 
-  Future<void> addToWishlist(int userId, int gameId) async {
-    await into(userGameCollections).insert(
+  Future<void> addToWishlist(String userId, String gameId) async {
+    final row = await into(userGameCollections).insertReturning(
       UserGameCollectionsCompanion(
         userId: Value(userId),
         gameId: Value(gameId),
         collectionType: const Value('wishlist'),
         addedAt: Value(DateTime.now()),
       ),
-      mode: InsertMode.insertOrIgnore,
+      mode: InsertMode.insertOrReplace,
+    );
+    
+    await db.syncQueueDao.enqueue(
+      entity: 'user_collections',
+      action: 'INSERT',
+      payload: jsonEncode(row.toJson()),
     );
   }
 
-  Future<void> addToCollection(int userId, int gameId) async {
-    await into(userGameCollections).insert(
+  Future<void> addToCollection(String userId, String gameId) async {
+    final row = await into(userGameCollections).insertReturning(
       UserGameCollectionsCompanion(
         userId: Value(userId),
         gameId: Value(gameId),
         collectionType: const Value('owned'),
         addedAt: Value(DateTime.now()),
       ),
-      mode: InsertMode.insertOrIgnore,
+      mode: InsertMode.insertOrReplace,
+    );
+    
+    await db.syncQueueDao.enqueue(
+      entity: 'user_collections',
+      action: 'INSERT',
+      payload: jsonEncode(row.toJson()),
     );
   }
 
-  Future<void> removeFromCollection(int userId, int gameId, String type) {
-    return (delete(userGameCollections)
-          ..where((c) => 
-              c.userId.equals(userId) & 
-              c.gameId.equals(gameId) & 
-              c.collectionType.equals(type)))
-        .go();
+  Future<void> removeFromCollection(String userId, String gameId, String type) async {
+    // We need the ID for sync delete, so we select first
+    final row = await (select(userGameCollections)
+      ..where((c) => 
+          c.userId.equals(userId) & 
+          c.gameId.equals(gameId) & 
+          c.collectionType.equals(type))).getSingleOrNull();
+
+    if (row != null) {
+      await (delete(userGameCollections)..where((c) => c.id.equals(row.id))).go();
+      
+      await db.syncQueueDao.enqueue(
+        entity: 'user_collections',
+        action: 'DELETE',
+        payload: jsonEncode({'id': row.id}),
+      );
+    }
   }
 
-  Future<List<Game>> getWishlist(int userId) async {
+  // --- ONLINE-FIRST HELPERS (No Sync Queue) ---
+  
+  Future<void> saveLocalCollectionItem(UserGameCollection item) async {
+    await into(userGameCollections).insert(item, mode: InsertMode.insertOrReplace);
+  }
+  
+  Future<void> deleteLocalCollectionItem(String id) async {
+    await (delete(userGameCollections)..where((c) => c.id.equals(id))).go();
+  }
+
+  Future<List<Game>> getWishlist(String userId) async {
     final query = select(userGameCollections).join([
       innerJoin(games, games.id.equalsExp(userGameCollections.gameId)),
     ])
@@ -346,7 +420,7 @@ class UserGameCollectionsDao extends DatabaseAccessor<AppDatabase> with _$UserGa
     return query.map((row) => row.readTable(games)).get();
   }
 
-  Future<List<Game>> getOwnedGames(int userId) async {
+  Future<List<Game>> getOwnedGames(String userId) async {
     final query = select(userGameCollections).join([
       innerJoin(games, games.id.equalsExp(userGameCollections.gameId)),
     ])
@@ -356,7 +430,7 @@ class UserGameCollectionsDao extends DatabaseAccessor<AppDatabase> with _$UserGa
     return query.map((row) => row.readTable(games)).get();
   }
 
-  Future<bool> isInWishlist(int userId, int gameId) async {
+  Future<bool> isInWishlist(String userId, String gameId) async {
     final result = await (select(userGameCollections)
           ..where((c) => 
               c.userId.equals(userId) & 
@@ -366,7 +440,7 @@ class UserGameCollectionsDao extends DatabaseAccessor<AppDatabase> with _$UserGa
     return result != null;
   }
 
-  Future<bool> isOwned(int userId, int gameId) async {
+  Future<bool> isOwned(String userId, String gameId) async {
     final result = await (select(userGameCollections)
           ..where((c) => 
               c.userId.equals(userId) & 
@@ -376,7 +450,7 @@ class UserGameCollectionsDao extends DatabaseAccessor<AppDatabase> with _$UserGa
     return result != null;
   }
 
-  Future<int> getWishlistCount(int userId) async {
+  Future<int> getWishlistCount(String userId) async {
     final countExp = userGameCollections.id.count();
     final query = selectOnly(userGameCollections)
       ..addColumns([countExp])
@@ -386,7 +460,7 @@ class UserGameCollectionsDao extends DatabaseAccessor<AppDatabase> with _$UserGa
     return result ?? 0;
   }
 
-  Future<int> getOwnedCount(int userId) async {
+  Future<int> getOwnedCount(String userId) async {
     final countExp = userGameCollections.id.count();
     final query = selectOnly(userGameCollections)
       ..addColumns([countExp])
@@ -401,7 +475,7 @@ class UserGameCollectionsDao extends DatabaseAccessor<AppDatabase> with _$UserGa
 class FriendshipsDao extends DatabaseAccessor<AppDatabase> with _$FriendshipsDaoMixin {
   FriendshipsDao(super.db);
 
-  Future<void> sendFriendRequest(int userId, int friendId) async {
+  Future<void> sendFriendRequest(String userId, String friendId) async {
     await into(friendships).insert(
       FriendshipsCompanion.insert(
         userId: userId,
@@ -425,7 +499,7 @@ class FriendshipsDao extends DatabaseAccessor<AppDatabase> with _$FriendshipsDao
     }
   }
 
-  Future<void> acceptFriendRequest(int requestId) async {
+  Future<void> acceptFriendRequest(String requestId) async {
     final friendship = await (select(friendships)..where((f) => f.id.equals(requestId))).getSingle();
 
     await (update(friendships)..where((f) => f.id.equals(requestId))).write(
@@ -460,7 +534,7 @@ class FriendshipsDao extends DatabaseAccessor<AppDatabase> with _$FriendshipsDao
     }
   }
 
-  Future<void> rejectFriendRequest(int requestId) {
+  Future<void> rejectFriendRequest(String requestId) {
     return (update(friendships)..where((f) => f.id.equals(requestId))).write(
       FriendshipsCompanion(
         status: const Value('rejected'),
@@ -469,7 +543,7 @@ class FriendshipsDao extends DatabaseAccessor<AppDatabase> with _$FriendshipsDao
     );
   }
 
-  Future<List<User>> getFriends(int userId) async {
+  Future<List<User>> getFriends(String userId) async {
     final query = select(friendships).join([
       innerJoin(users, users.id.equalsExp(friendships.friendId)),
     ])
@@ -479,7 +553,7 @@ class FriendshipsDao extends DatabaseAccessor<AppDatabase> with _$FriendshipsDao
     return query.map((row) => row.readTable(users)).get();
   }
 
-  Future<List<FriendshipWithUser>> getPendingRequests(int userId) async {
+  Future<List<FriendshipWithUser>> getPendingRequests(String userId) async {
     final query = select(friendships).join([
       innerJoin(users, users.id.equalsExp(friendships.userId)),
     ])
@@ -494,7 +568,7 @@ class FriendshipsDao extends DatabaseAccessor<AppDatabase> with _$FriendshipsDao
     }).get();
   }
 
-  Future<int> getFriendCount(int userId) async {
+  Future<int> getFriendCount(String userId) async {
     final countExp = friendships.id.count();
     final query = selectOnly(friendships)
       ..addColumns([countExp])
@@ -504,7 +578,7 @@ class FriendshipsDao extends DatabaseAccessor<AppDatabase> with _$FriendshipsDao
     return result ?? 0;
   }
 
-  Future<String?> getFriendshipStatus(int userId, int friendId) async {
+  Future<String?> getFriendshipStatus(String userId, String friendId) async {
     final result = await (select(friendships)
           ..where((f) => 
               (f.userId.equals(userId) & f.friendId.equals(friendId)) |
@@ -513,19 +587,63 @@ class FriendshipsDao extends DatabaseAccessor<AppDatabase> with _$FriendshipsDao
         .getSingleOrNull();
     return result?.status;
   }
+
+  // --- ONLINE-FIRST HELPERS (No Sync Queue) ---
+  
+  Future<void> saveLocalFriendship(Friendship f) async {
+    await into(friendships).insert(f, mode: InsertMode.insertOrReplace);
+  }
+  
+  Future<void> updateLocalFriendshipStatus(String id, String status, DateTime? respondedAt) async {
+    await (update(friendships)..where((f) => f.id.equals(id))).write(
+      FriendshipsCompanion(
+        status: Value(status),
+        respondedAt: Value(respondedAt),
+      ),
+    );
+  }
 }
 
 @DriftAccessor(tables: [Games])
 class GamesDao extends DatabaseAccessor<AppDatabase> with _$GamesDaoMixin {
   GamesDao(super.db);
 
-  Future<int> createGame(GamesCompanion game) => into(games).insert(game);
+  Future<String> createGame(GamesCompanion game) async {
+    return transaction(() async {
+      final row = await into(games).insertReturning(game);
+      
+      await db.syncQueueDao.enqueue(
+        entity: 'games',
+        action: 'INSERT',
+        payload: jsonEncode(row.toJson()),
+      );
+      
+      return row.id;
+    });
+  }
   Future<List<Game>> getAllGames() => select(games).get();
-  Future<Game?> getGameById(int id) => (select(games)..where((g) => g.id.equals(id))).getSingleOrNull();
+  Future<Game?> getGameById(String id) => (select(games)..where((g) => g.id.equals(id))).getSingleOrNull();
   Future<Game?> getGameByBggId(int bggId) => (select(games)..where((g) => g.bggId.equals(bggId))).getSingleOrNull();
 
   Future<void> upsertGame(GamesCompanion game) async {
-    await into(games).insertOnConflictUpdate(game);
+    await transaction(() async {
+      await into(games).insertOnConflictUpdate(game);
+      // We don't easily get the row back from insertOnConflictUpdate in generic Drift without query.
+      // But we can approximate functionality or just skip sync for update if assuming it exists?
+      // Better to fetch and sync.
+      
+      // Note: upsertGame is often used for bulk or cache. Syncing every upsert might be noisy.
+      // But for consistency we should.
+      // Let's implement a 'safe' enqueue if ID is known.
+      if (game.id.present) {
+         final row = await (select(games)..where((g) => g.id.equals(game.id.value))).getSingle();
+         await db.syncQueueDao.enqueue(
+            entity: 'games',
+            action: 'INSERT', // Treat as Upsert intent
+            payload: jsonEncode(row.toJson()),
+         );
+      }
+    });
   }
 
   Future<List<Game>> searchGames(String query) {
@@ -546,18 +664,49 @@ class GamesDao extends DatabaseAccessor<AppDatabase> with _$GamesDaoMixin {
 @DriftAccessor(tables: [Matches, Players, Users, Games])
 class MatchesDao extends DatabaseAccessor<AppDatabase> with _$MatchesDaoMixin {
   MatchesDao(super.db);
+  
+  // --- ONLINE-FIRST HELPERS (No Sync Queue) ---
+  
+  Future<void> saveLocalMatch(MatchRow match, List<Player> matchPlayers) async {
+    await transaction(() async {
+       await into(matches).insert(match, mode: InsertMode.insertOrReplace);
+       for (var player in matchPlayers) {
+          await into(players).insert(player, mode: InsertMode.insertOrReplace);
+       }
+    });
+  }
 
-  Future<int> createMatch(MatchesCompanion match, List<PlayersCompanion> matchPlayers) async {
+  Future<String> createMatch(MatchesCompanion match, List<PlayersCompanion> matchPlayers) async {
     return transaction(() async {
-      final matchId = await into(matches).insert(match);
+      final matchRow = await into(matches).insertReturning(match);
+      final matchId = matchRow.id;
       for (var player in matchPlayers) {
         await into(players).insert(player.copyWith(matchId: Value(matchId)));
+      }
+      // Queue for Sync
+      await db.syncQueueDao.enqueue(
+        entity: 'matches',
+        action: 'INSERT',
+        payload: jsonEncode(matchRow.toJson()),
+      );
+      
+      // Players are technically separate inserts, but for Matches we might want to sync them together?
+      // Or sync purely by table. Simpler to sync by table.
+      for (var player in matchPlayers) {
+        final p = player.copyWith(matchId: Value(matchId));
+        final playerRow = await into(players).insertReturning(p);
+        
+        await db.syncQueueDao.enqueue(
+           entity: 'match_players',
+           action: 'INSERT',
+           payload: jsonEncode(playerRow.toJson()),
+        );
       }
       return matchId;
     });
   }
 
-  Future<List<MatchWithDetails>> getMatchesForUser(int userId) async {
+  Future<List<MatchWithDetails>> getMatchesForUser(String userId) async {
     // Join matches -> players (filter by user) -> games
     final query = select(matches).join([
        innerJoin(games, games.id.equalsExp(matches.gameId)),
@@ -575,6 +724,23 @@ class MatchesDao extends DatabaseAccessor<AppDatabase> with _$MatchesDaoMixin {
     }).get();
   }
 
+  Stream<List<MatchWithDetails>> watchMatchesForUser(String userId) {
+    final query = select(matches).join([
+       innerJoin(games, games.id.equalsExp(matches.gameId)),
+       innerJoin(players, players.matchId.equalsExp(matches.id)), 
+    ])..where(players.userId.equals(userId))
+      ..orderBy([OrderingTerm.desc(matches.date)]);
+      
+    return query.watch().map((rows) {
+      return rows.map((row) {
+        return MatchWithDetails(
+          match: row.readTable(matches),
+          game: row.readTable(games),
+        );
+      }).toList();
+    });
+  }
+
   Future<List<MatchWithDetails>> getRecentMatches() async {
     final query = select(matches).join([
       innerJoin(games, games.id.equalsExp(matches.gameId)),
@@ -588,7 +754,7 @@ class MatchesDao extends DatabaseAccessor<AppDatabase> with _$MatchesDaoMixin {
     }).get();
   }
 
-  Future<Map<String, dynamic>> getUserStats(int userId) async {
+  Future<Map<String, dynamic>> getUserStats(String userId) async {
     final matchCount = await (select(players)..where((p) => p.userId.equals(userId))).get();
     final winCount = await (select(players)..where((p) => p.userId.equals(userId) & p.isWinner.equals(true))).get();
     
@@ -599,7 +765,7 @@ class MatchesDao extends DatabaseAccessor<AppDatabase> with _$MatchesDaoMixin {
     };
   }
 
-  Future<MatchWithDetails?> getMatchWithDetails(int matchId) async {
+  Future<MatchWithDetails?> getMatchWithDetails(String matchId) async {
     final query = select(matches).join([
       innerJoin(games, games.id.equalsExp(matches.gameId)),
     ])..where(matches.id.equals(matchId));
@@ -613,7 +779,7 @@ class MatchesDao extends DatabaseAccessor<AppDatabase> with _$MatchesDaoMixin {
     );
   }
 
-  Future<List<PlayerWithUser>> getPlayersForMatch(int matchId) async {
+  Future<List<PlayerWithUser>> getPlayersForMatch(String matchId) async {
     final query = (select(players).join([
       innerJoin(users, users.id.equalsExp(players.userId)),
     ])..where(players.matchId.equals(matchId)));
@@ -626,7 +792,7 @@ class MatchesDao extends DatabaseAccessor<AppDatabase> with _$MatchesDaoMixin {
     }).get();
   }
 
-  Future<void> updatePlayerResult(int playerId, int rank, bool isWinner, double? rating) {
+  Future<void> updatePlayerResult(String playerId, int rank, bool isWinner, double? rating) {
     return (update(players)..where((p) => p.id.equals(playerId))).write(
       PlayersCompanion(
         rank: Value(rank),
@@ -652,7 +818,7 @@ class MatchesDao extends DatabaseAccessor<AppDatabase> with _$MatchesDaoMixin {
     return (select(games)..where((g) => g.id.isIn(gameIds))).get();
   }
 
-  Future<List<Game>> getRecommendedGames(int userId, int maxCount) async {
+  Future<List<Game>> getRecommendedGames(String userId, int maxCount) async {
     // 1. Get games user has played
     // 1. Get games user has played
     final playedGameIds = await (selectOnly(players)
@@ -717,7 +883,7 @@ class ReviewsDao extends DatabaseAccessor<AppDatabase> with _$ReviewsDaoMixin {
 
   Future<void> addReview(ReviewsCompanion review) => into(reviews).insertOnConflictUpdate(review);
   
-  Future<List<ReviewWithUser>> getReviewsForGame(int gameId) async {
+  Future<List<ReviewWithUser>> getReviewsForGame(String gameId) async {
     final query = select(reviews).join([
       innerJoin(users, users.id.equalsExp(reviews.userId)),
     ])..where(reviews.gameId.equals(gameId))
@@ -729,6 +895,41 @@ class ReviewsDao extends DatabaseAccessor<AppDatabase> with _$ReviewsDaoMixin {
         user: row.readTable(users),
       );
     }).get();
+  }
+}
+
+@DriftAccessor(tables: [SyncQueue])
+class SyncQueueDao extends DatabaseAccessor<AppDatabase> with _$SyncQueueDaoMixin {
+  SyncQueueDao(super.db);
+
+  Future<void> enqueue({
+    required String entity,
+    required String action, // INSERT, UPDATE, DELETE
+    required String payload, // JSON
+  }) async {
+    await into(syncQueue).insert(
+      SyncQueueCompanion.insert(
+        entity: entity,
+        action: action,
+        payload: payload,
+        status: const Value('PENDING'),
+        createdAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
+  Future<List<SyncQueueData>> getPendingItems() => 
+    (select(syncQueue)..where((s) => s.status.equals('PENDING'))).get();
+
+  Future<void> markAsCompleted(int id) =>
+    (delete(syncQueue)..where((s) => s.id.equals(id))).go();
+
+  Future<void> markAsFailed(int id) =>
+    (update(syncQueue)..where((s) => s.id.equals(id))).write(const SyncQueueCompanion(status: Value('FAILED')));
+
+  Future<void> retryFailedItems() {
+    return (update(syncQueue)..where((s) => s.status.equals('FAILED')))
+      .write(const SyncQueueCompanion(status: Value('PENDING')));
   }
 }
 

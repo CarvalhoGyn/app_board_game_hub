@@ -1,20 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:app_board_game_hub/l10n/app_localizations.dart';
 import 'database/database.dart';
-import 'database/sample_data.dart';
+
 import 'screens/login_screen.dart';
+import 'screens/splash_screen.dart';
 import 'theme/app_theme.dart';
 import 'providers/user_session.dart';
 import 'services/bgg_service.dart';
 import 'services/gamification_service.dart';
-
 import 'providers/theme_provider.dart';
+import 'providers/localization_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'env/env.dart';
+import 'services/supabase_sync_service.dart';
+import 'services/supabase_storage_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: Env.supabaseUrl,
+    anonKey: Env.supabaseAnonKey,
+  );
   
   final database = AppDatabase();
-  await SampleData.insertSampleData(database);
+
 
   runApp(
     MultiProvider(
@@ -30,8 +42,11 @@ void main() async {
         Provider<UserAchievementsDao>(create: (_) => database.userAchievementsDao),
         Provider<GamificationService>(create: (_) => GamificationService(database)),
         Provider<BggService>(create: (_) => BggService()),
+        Provider<SupabaseSyncService>(create: (_) => SupabaseSyncService(database)),
+        Provider<SupabaseStorageService>(create: (_) => SupabaseStorageService()),
         ChangeNotifierProvider<UserSession>(create: (_) => UserSession()),
         ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider<LocalizationProvider>(create: (_) => LocalizationProvider()),
       ],
       child: const MyApp(),
     ),
@@ -43,15 +58,23 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
+    return Consumer2<ThemeProvider, LocalizationProvider>(
+      builder: (context, themeProvider, localizationProvider, child) {
         return MaterialApp(
           title: 'MeepleSync',
           debugShowCheckedModeBanner: false,
           themeMode: themeProvider.themeMode,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
-          home: const LoginScreen(),
+          locale: localizationProvider.locale,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const SplashScreen(),
         );
       },
     );

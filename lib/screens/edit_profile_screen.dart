@@ -6,6 +6,11 @@ import '../database/database.dart';
 import '../theme/app_theme.dart';
 import '../providers/user_session.dart';
 import '../providers/theme_provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+
+import '../services/supabase_storage_service.dart';
+
 
 class EditProfileScreen extends StatefulWidget {
   final User user;
@@ -22,6 +27,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _phoneController;
   late TextEditingController _countryController;
   DateTime? _selectedBirthDate;
+  File? _pickedImageFile;
   bool _isLoading = false;
 
   @override
@@ -55,8 +61,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         phone: drift.Value(_phoneController.text.isNotEmpty ? _phoneController.text : null),
         country: drift.Value(_countryController.text.isNotEmpty ? _countryController.text : null),
         birthDate: drift.Value(_selectedBirthDate),
+
         latitude: drift.Value(_currentPosition?.latitude ?? widget.user.latitude),
         longitude: drift.Value(_currentPosition?.longitude ?? widget.user.longitude),
+        avatarUrl: drift.Value(_avatarUrl ?? widget.user.avatarUrl),
       );
 
       await usersDao.updateUser(widget.user.id, updatedUser);
@@ -145,7 +153,41 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       setState(() => _isLoading = false);
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error getting location: $e')));
     }
+    }
+  
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    
+    if (pickedFile != null) {
+       setState(() {
+         _pickedImageFile = File(pickedFile.path);
+         _isLoading = true;
+       });
+
+       try {
+         final storageService = context.read<SupabaseStorageService>();
+         final url = await storageService.uploadAvatar(_pickedImageFile!, widget.user.id);
+         
+         if (mounted && url != null) {
+             setState(() {
+               _avatarUrl = url;
+               _isLoading = false;
+             });
+             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Image uploaded!')));
+         }
+       } catch (e) {
+          setState(() {
+             _pickedImageFile = null; 
+             _isLoading = false;
+          });
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+       }
+    }
   }
+  
+  String? _avatarUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -214,8 +256,48 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                      ),
                   ],
                ),
+               ),
+
+            const SizedBox(height: 24),
+            
+            // Avatar Picker
+            Center(
+              child: GestureDetector(
+                onTap: _pickImage,
+                child: Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 60,
+                      backgroundColor: theme.primaryColor.withOpacity(0.1),
+                      backgroundImage: _pickedImageFile != null 
+                          ? FileImage(_pickedImageFile!)
+                          : (_avatarUrl != null || widget.user.avatarUrl != null)
+                              ? NetworkImage(_avatarUrl ?? widget.user.avatarUrl!) as ImageProvider
+                              : null,
+                      child: (_pickedImageFile == null && _avatarUrl == null && widget.user.avatarUrl == null)
+                          ? Icon(Icons.person, size: 60, color: theme.primaryColor)
+                          : null,
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: theme.primaryColor,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: theme.scaffoldBackgroundColor, width: 2),
+                        ),
+                        child: Icon(Icons.camera_alt, color: theme.colorScheme.onPrimary, size: 20),
+                      ),
+                    ),
+                    if (_isLoading)
+                       const Positioned.fill(child: CircularProgressIndicator()),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
             _buildTextField(
               controller: _firstNameController,

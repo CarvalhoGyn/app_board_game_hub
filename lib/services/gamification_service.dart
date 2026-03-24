@@ -78,7 +78,7 @@ class GamificationService {
   
   // -- PRESTIGE --
   
-  Future<void> prestigeUser(int userId) async {
+  Future<void> prestigeUser(String userId) async {
     final user = await db.usersDao.getUserById(userId);
     if (user == null) return;
     
@@ -149,7 +149,7 @@ class GamificationService {
   }
 
   /// Adds XP to user and returns the new total XP
-  Future<int> addXp(int userId, int amount) async {
+  Future<int> addXp(String userId, int amount) async {
     final user = await db.usersDao.getUserById(userId);
     if (user == null) return 0;
 
@@ -179,7 +179,7 @@ class GamificationService {
 
   /// Checks for achievements based on triggers
   /// Returns list of newly unlocked achievements
-  Future<List<AchievementDefinition>> checkAchievements(int userId) async {
+  Future<List<AchievementDefinition>> checkAchievements(String userId) async {
     List<AchievementDefinition> newlyUnlocked = [];
 
     // existing unlocked

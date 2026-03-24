@@ -6,6 +6,7 @@ import '../providers/user_session.dart';
 import 'user_search_screen.dart';
 import 'profile_dashboard.dart';
 import 'dart:io';
+import '../services/supabase_sync_service.dart';
 
 class FriendsListScreen extends StatefulWidget {
   const FriendsListScreen({super.key});
@@ -48,29 +49,43 @@ class _FriendsListScreenState extends State<FriendsListScreen> with SingleTicker
   }
 
   Future<void> _acceptRequest(FriendshipWithUser request) async {
-    final friendshipsDao = context.read<FriendshipsDao>();
+    setState(() => _isLoading = true);
+    final service = context.read<SupabaseSyncService>();
     final gamificationService = context.read<GamificationService>();
     final userSession = context.read<UserSession>();
     
-    await friendshipsDao.acceptFriendRequest(request.friendship.id);
+    final error = await service.respondToFriendRequest(request.friendship.id, true);
     
-    // Gamification Hook: +10 XP for Friend
-    if (userSession.currentUser != null) {
-       await gamificationService.addXp(userSession.currentUser!.id, 10);
-    }
-    
-    _loadData(); // Reload all data
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Accepted friend request from ${request.user.username} (+10 XP)')),
-      );
+    if (error == null) {
+      // Gamification Hook: +10 XP for Friend
+      if (userSession.currentUser != null) {
+         await gamificationService.addXp(userSession.currentUser!.id, 10);
+      }
+      
+      await _loadData(); // Reload all data
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Accepted friend request from ${request.user.username} (+10 XP)')),
+        );
+      }
+    } else {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $error')));
+        setState(() => _isLoading = false);
     }
   }
 
   Future<void> _rejectRequest(FriendshipWithUser request) async {
-    final friendshipsDao = context.read<FriendshipsDao>();
-    await friendshipsDao.rejectFriendRequest(request.friendship.id);
-    _loadData(); // Reload
+    setState(() => _isLoading = true);
+    final service = context.read<SupabaseSyncService>();
+    
+    final error = await service.respondToFriendRequest(request.friendship.id, false);
+    
+    if (error == null) {
+      await _loadData();
+    } else {
+       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $error')));
+       setState(() => _isLoading = false);
+    }
   }
 
   @override

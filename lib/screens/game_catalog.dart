@@ -12,6 +12,7 @@ import '../widgets/shared_bottom_nav.dart';
 import '../providers/user_session.dart';
 import 'notifications_screen.dart';
 import '../widgets/staggered_slide_fade.dart';
+import 'package:app_board_game_hub/l10n/app_localizations.dart';
 
 class GameCatalog extends StatefulWidget {
   const GameCatalog({super.key});
@@ -43,7 +44,13 @@ class _GameCatalogState extends State<GameCatalog> {
     try {
       if (currentUser != null) {
         final trending = await matchesDao.getTrendingGames(5);
-        final recommended = await matchesDao.getRecommendedGames(currentUser.id, 3);
+        final stats = await matchesDao.getUserStats(currentUser.id);
+        final matchCount = stats['matches'] as int? ?? 0;
+
+        List<Game> recommended = [];
+        if (matchCount > 0) {
+           recommended = await matchesDao.getRecommendedGames(currentUser.id, 3);
+        }
         
         if (mounted) {
            setState(() {
@@ -66,6 +73,8 @@ class _GameCatalogState extends State<GameCatalog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       extendBody: true,
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -77,7 +86,7 @@ class _GameCatalogState extends State<GameCatalog> {
           bottom: false,
           child: Column(
             children: [
-              _buildHeader(theme),
+              _buildHeader(theme, l10n),
               Expanded(
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
@@ -87,28 +96,28 @@ class _GameCatalogState extends State<GameCatalog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       if (_trendingGames.isNotEmpty)
-                         _buildTrendingSection(context, _trendingGames, theme)
+                         _buildTrendingSection(context, _trendingGames, theme, l10n)
                       else
                          _buildEmptyStateCard(
                            context,
                            theme,
-                           title: "No Trends Yet",
-                           subtitle: "Play matches to see what's hot among your group.",
+                           title: l10n.noTrendingGames,
+                           subtitle: l10n.noTrendingSubtitle,
                            icon: Icons.trending_up,
-                           actionLabel: "Start a Match",
+                           actionLabel: l10n.startMatch,
                            onAction: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateMatch())),
                          ),
   
                       if (_recommendedGames.isNotEmpty)
-                        _buildRecommendedSection(context, _recommendedGames, theme)
+                        _buildRecommendedSection(context, _recommendedGames, theme, l10n)
                       else
                          _buildEmptyStateCard(
                            context,
                            theme,
-                           title: "Need More Data",
-                           subtitle: "Play and rate games to get personalized picks.",
+                           title: l10n.needMoreData,
+                           subtitle: l10n.needMoreDataSubtitle,
                            icon: Icons.auto_awesome,
-                           actionLabel: "Explore Games",
+                           actionLabel: l10n.exploreGamesButton,
                            onAction: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ExploreScreen())),
                          ),
                       const SizedBox(height: 100), // Extra space for floating nav
@@ -124,7 +133,7 @@ class _GameCatalogState extends State<GameCatalog> {
     );
   }
 
-  Widget _buildHeader(ThemeData theme) {
+  Widget _buildHeader(ThemeData theme, AppLocalizations l10n) {
     final userSession = context.watch<UserSession>();
     final currentUser = userSession.currentUser;
 
@@ -189,7 +198,7 @@ class _GameCatalogState extends State<GameCatalog> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Welcome back,', style: TextStyle(color: mutedColor, fontSize: 12, fontWeight: FontWeight.w500)),
+                  Text(l10n.welcomeBack, style: TextStyle(color: mutedColor, fontSize: 12, fontWeight: FontWeight.w500)),
                   Text(displayName, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
                 ],
               ),
@@ -240,7 +249,7 @@ class _GameCatalogState extends State<GameCatalog> {
     );
   }
 
-  Widget _buildTrendingSection(BuildContext context, List<Game> games, ThemeData theme) {
+  Widget _buildTrendingSection(BuildContext context, List<Game> games, ThemeData theme, AppLocalizations l10n) {
     if (games.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,8 +259,8 @@ class _GameCatalogState extends State<GameCatalog> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Trending Games', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
-              TextButton(onPressed: () {}, child: Text('See All', style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold))),
+              Text(l10n.trendingGames, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
+              TextButton(onPressed: () {}, child: Text(l10n.seeAll, style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold))),
             ],
           ),
         ),
@@ -363,14 +372,14 @@ class _GameCatalogState extends State<GameCatalog> {
     );
   }
 
-  Widget _buildRecommendedSection(BuildContext context, List<Game> games, ThemeData theme) {
+  Widget _buildRecommendedSection(BuildContext context, List<Game> games, ThemeData theme, AppLocalizations l10n) {
     if (games.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
-          child: Text('Recommended for You', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
+          child: Text(l10n.recommendedForYou, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
         ),
         LayoutBuilder(
           builder: (context, constraints) {
@@ -395,6 +404,7 @@ class _GameCatalogState extends State<GameCatalog> {
                        context: context,
                        game: game,
                        theme: theme,
+                       l10n: l10n,
                      ),
                    );
                 },
@@ -415,6 +425,7 @@ class _GameCatalogState extends State<GameCatalog> {
                       context: context,
                       game: game,
                       theme: theme,
+                      l10n: l10n,
                     ),
                   );
                 },
@@ -430,9 +441,10 @@ class _GameCatalogState extends State<GameCatalog> {
     required BuildContext context,
     required Game game,
     required ThemeData theme,
+    required AppLocalizations l10n,
   }) {
     final rating = game.rating?.toStringAsFixed(1) ?? 'N/A';
-    final players = game.minPlayers != null ? '${game.minPlayers}-${game.maxPlayers} players' : 'Strategy';
+    final players = game.minPlayers != null ? l10n.playersCount(game.minPlayers!, game.maxPlayers!) : 'Strategy';
     final time = game.maxPlaytime != null ? ' • ${game.maxPlaytime} min' : '';
     final mutedColor = theme.inputDecorationTheme.hintStyle?.color ?? Colors.grey;
 
@@ -468,7 +480,7 @@ class _GameCatalogState extends State<GameCatalog> {
                       const SizedBox(width: 4),
                       Text(rating, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
                       const SizedBox(width: 4),
-                      Text(game.rank != null ? '(Rank #${game.rank})' : '', style: TextStyle(color: mutedColor, fontSize: 12)),
+                      Text(game.rank != null ? l10n.rankLabel(game.rank!) : '', style: TextStyle(color: mutedColor, fontSize: 12)),
                     ],
                   ),
                 ],

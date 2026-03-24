@@ -1,0 +1,20 @@
+
+Showing Recent Errors Only
+
+Build target Runner of project Runner with configuration Release
+note: Run script build phase 'Run Script' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'Runner' from project 'Runner')
+note: Run script build phase 'Thin Binary' will be run during every build because the option to run the script phase "Based on dependency analysis" is unchecked. (in target 'Runner' from project 'Runner')
+
+
+PhaseScriptExecution [CP]\ Check\ Pods\ Manifest.lock /Users/thiagocarvalho/Library/Developer/Xcode/DerivedData/Runner-cpsqdbnmvbmnvrefkmqeieepqfkw/Build/Intermediates.noindex/Runner.build/Release-iphoneos/Runner.build/Script-88014213FF50E96E671755B4.sh (in target 'Runner' from project 'Runner')
+    cd /Users/thiagocarvalho/Documents/git/app_board_game_hub/ios
+    /bin/sh -c /Users/thiagocarvalho/Library/Developer/Xcode/DerivedData/Runner-cpsqdbnmvbmnvrefkmqeieepqfkw/Build/Intermediates.noindex/Runner.build/Release-iphoneos/Runner.build/Script-88014213FF50E96E671755B4.sh
+
+diff: /Users/thiagocarvalho/Documents/git/app_board_game_hub/ios/Pods/Manifest.lock: No such file or directory
+error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.
+
+The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.
+
+
+
+Build failed    27/01/26, 19:39    2.0 seconds

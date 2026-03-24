@@ -6,6 +6,7 @@ import 'package:drift/drift.dart' as drift;
 import 'package:geolocator/geolocator.dart';
 import 'game_catalog.dart';
 import '../providers/user_session.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -479,41 +480,70 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           }
 
           final usersDao = context.read<UsersDao>();
+          final messenger = ScaffoldMessenger.of(context);
+          final navigator = Navigator.of(context);
+          
           try {
+            // 1. Create User in Supabase Auth
+            final response = await supabase.Supabase.instance.client.auth.signUp(
+              email: _emailController.text.trim(),
+              password: _passwordController.text,
+              data: {
+                'username': _nicknameController.text.trim(),
+                'first_name': _firstNameController.text.trim(),
+                'last_name': _lastNameController.text.trim(),
+                'country': _selectedCountry,
+                'phone': _phoneController.text.trim(),
+                'birth_date': _selectedBirthDate?.toIso8601String(),
+                'latitude': _currentPosition?.latitude,
+                'longitude': _currentPosition?.longitude,
+                // Add other metadata as needed by handle_new_user or just for record
+              },
+            );
+
+            if (response.user == null) {
+              throw Exception('Registration failed: No user returned');
+            }
+            
+            final userId = response.user!.id;
+
+            // 2. Insert into Local DB (Drift) using the Supabase UUID
             await usersDao.createUser(UsersCompanion(
-              username: drift.Value(_nicknameController.text),
-              email: drift.Value(_emailController.text),
-              password: drift.Value(_passwordController.text),
-              firstName: drift.Value(_firstNameController.text),
-              lastName: drift.Value(_lastNameController.text),
-              phone: drift.Value(_phoneController.text),
+              id: drift.Value(userId),
+              username: drift.Value(_nicknameController.text.trim()),
+              email: drift.Value(_emailController.text.trim()),
+              password: drift.Value(''), // Do not store password locally if using Auth
+              firstName: drift.Value(_firstNameController.text.trim()),
+              lastName: drift.Value(_lastNameController.text.trim()),
+              phone: drift.Value(_phoneController.text.trim()),
               country: drift.Value(_selectedCountry),
               birthDate: drift.Value(_selectedBirthDate),
               latitude: drift.Value(_currentPosition?.latitude),
               longitude: drift.Value(_currentPosition?.longitude),
             ));
             
-            // Fetch the created user and set session
-            final createdUser = await usersDao.getUserByEmail(_emailController.text);
+            // 3. Login Session
+            final createdUser = await usersDao.getUserById(userId);
             if (createdUser != null) {
               if (!mounted) return;
               context.read<UserSession>().login(createdUser);
             }
-            if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
+            
+            messenger.showSnackBar(
               const SnackBar(
                 content: Text('Account created successfully!'),
                 backgroundColor: Colors.green,
               ),
             );
-            Navigator.pushAndRemoveUntil(
-              context,
+            
+            navigator.pushAndRemoveUntil(
               MaterialPageRoute(builder: (context) => const GameCatalog()),
               (route) => false,
             );
+          } on supabase.AuthException catch (e) {
+             if (mounted) _showError(e.message);
           } catch (e) {
-            if (!mounted) return;
-            _showError('Error creating account: ${e.toString()}');
+            if (mounted) _showError('Error creating account: ${e.toString()}');
           }
         },
         style: ElevatedButton.styleFrom(

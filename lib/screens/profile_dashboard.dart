@@ -19,9 +19,14 @@ import 'notifications_screen.dart';
 import 'match_history_screen.dart';
 import 'achievements_screen.dart';
 import '../services/gamification_service.dart';
+import '../widgets/language_selector.dart';
+import 'package:app_board_game_hub/l10n/app_localizations.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as package;
+import '../services/supabase_sync_service.dart';
+import '../services/supabase_storage_service.dart';
 
 class ProfileDashboard extends StatefulWidget {
-  final int? userId; // Optional: If null, shows current user's profile
+  final String? userId; // Optional: If null, shows current user's profile
   const ProfileDashboard({super.key, this.userId});
 
   @override
@@ -39,10 +44,6 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
 
   Future<Map<String, dynamic>> _loadData() async {
     final userId = widget.userId; 
-    // We need to access providers. context.read is safe here or in the future execution.
-    // However, we need to know WHO we are loading for.
-    // The previous logic determined 'targetUserId' inside build based on UserSession.
-    // We should replicate that or just fetch it.
     
     final userSession = context.read<UserSession>();
     final currentSessionUser = userSession.currentUser;
@@ -104,12 +105,6 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    // We still watch UserSession to trigger rebuilds on login/logout changes if needed,
-    // but the data loading is now manual/cached. 
-    // Actually, if we just use context.read in _loadData, we might miss session updates.
-    // But for 'pull to refresh', manual is fine.
-    // If user logs out, the parent widget usually handles navigation (ProfileDashboard cheks for null user).
-    
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -124,14 +119,14 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                return const Center(child: CircularProgressIndicator());
             }
             if (snapshot.hasError) {
-               return Center(child: Padding(padding: const EdgeInsets.all(16), child: Text('Error loading profile: ${snapshot.error}', textAlign: TextAlign.center)));
+               return Center(child: Padding(padding: const EdgeInsets.all(16), child: Text(AppLocalizations.of(context)!.error(snapshot.error.toString()), textAlign: TextAlign.center)));
             }
             
             final data = snapshot.data!;
             final user = data['user'] as User?;
             final isMyProfile = data['isMyProfile'] as bool;
             
-            if (user == null) return const Center(child: Text("User not found"));
+            if (user == null) return Center(child: Text(AppLocalizations.of(context)!.error('User not found')));
 
             return Column(
               children: [
@@ -141,8 +136,6 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                     builder: (context, constraints) {
                       if (constraints.maxWidth > 700) {
                         // Tablet: 2-Column Layout
-                        // Note: RefreshIndicator on tablet is tricky with split view. 
-                        // We wrap the Right Column (Content) for now, or implicitely let users use button.
                         return Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -209,20 +202,51 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
     if (pickedFile != null && context.mounted) {
       final userSession = context.read<UserSession>();
       final currentUser = userSession.currentUser!;
+      final storageService = SupabaseStorageService();
       
-      final directory = await getApplicationDocumentsDirectory();
-      final name = 'avatar_${currentUser.id}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final savedImage = await File(pickedFile.path).copy('${directory.path}/$name');
+      // Feedback
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Processing avatar...')));
 
-      final usersDao = context.read<UsersDao>();
-      await usersDao.updateUser(
-        currentUser.id, 
-        UsersCompanion(avatarUrl: drift.Value(savedImage.path))
-      );
+      try {
+         // 0. Clean up old avatar if exists
+         if (currentUser.avatarUrl != null && currentUser.avatarUrl!.startsWith('http')) {
+             await storageService.deleteFile(currentUser.avatarUrl!);
+         }
 
-      final updatedUser = currentUser.copyWith(avatarUrl: drift.Value(savedImage.path));
-      userSession.updateUser(updatedUser); 
-      _refresh(); // Refresh UI to show new avatar
+         // 1. Upload to Supabase
+         final publicUrl = await storageService.uploadAvatar(File(pickedFile.path), currentUser.id);
+         
+         if (publicUrl != null) {
+            // 2. Update Local DB
+            final usersDao = context.read<UsersDao>();
+            await usersDao.updateUser(
+              currentUser.id, 
+              UsersCompanion(avatarUrl: drift.Value(publicUrl))
+            );
+
+            // 3. Update Cloud DB (Ensure sync)
+            final supabase = package.Supabase.instance.client;
+            await supabase.from('profiles').update({
+              'avatar_url': publicUrl
+            }).eq('id', currentUser.id);
+
+            // 4. Update Session & UI
+            final updatedUser = currentUser.copyWith(avatarUrl: drift.Value(publicUrl));
+            userSession.updateUser(updatedUser); 
+            
+            // 5. Force specific UI refresh
+            if (mounted) {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Avatar updated and synced!')));
+              _refresh();
+            }
+         }
+      } catch (e) {
+         if (mounted) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Update failed: $e')));
+         }
+      }
     }
   }
 
@@ -238,10 +262,10 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                onPressed: () => Navigator.pop(context),
              )
           else
-             const SizedBox(width: 48), // Spacer to balance if needed, or just nothing
+             const LanguageSelector(showLabel: false),
 
            Text(
-            isMyProfile ? 'My Profile' : user.username,
+            isMyProfile ? AppLocalizations.of(context)!.profileTitle : user.username,
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, letterSpacing: -0.5, color: theme.colorScheme.onSurface),
           ),
           
@@ -284,7 +308,7 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
               const SizedBox(width: 8),
               IconButton(
                 icon: Icon(Icons.logout, color: theme.colorScheme.onSurface),
-                tooltip: 'Logout',
+                tooltip: AppLocalizations.of(context)!.logoutButton,
                 onPressed: () {
                    context.read<UserSession>().logout();
                    Navigator.of(context).pushAndRemoveUntil(
@@ -300,6 +324,8 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
     );
   }
 
+  // ... (Following methods are the same as original)
+  
   Widget _buildProfileHeader(User user, BuildContext context, bool isMyProfile, String? friendshipStatus, ThemeData theme) {
     final displayName = user.firstName != null && user.lastName != null
         ? '${user.firstName} ${user.lastName}'
@@ -399,7 +425,7 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
               padding: const EdgeInsets.only(bottom: 16.0),
               child: ElevatedButton.icon(
                 icon: const Icon(Icons.stars, color: Colors.amber),
-                label: const Text('PRESTIGE RESET'),
+                label: Text(AppLocalizations.of(context)!.prestigeReset),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.purple.shade900,
                   foregroundColor: Colors.white,
@@ -423,7 +449,7 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
               child: Text(
-                'Edit Profile',
+                AppLocalizations.of(context)!.editProfile,
                 style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold),
               ),
             )
@@ -440,7 +466,7 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
         return OutlinedButton.icon(
            onPressed: () {}, // Maybe unfriend
            icon: Icon(Icons.check, color: theme.primaryColor),
-           label: Text('Friends', style: TextStyle(color: theme.primaryColor)),
+           label: Text(AppLocalizations.of(context)!.friendsButton, style: TextStyle(color: theme.primaryColor)),
            style: OutlinedButton.styleFrom(
                side: BorderSide(color: theme.primaryColor),
                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -449,21 +475,33 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
      } else if (status == 'pending') {
         return OutlinedButton(
            onPressed: null,
-           child: Text('Request Sent', style: TextStyle(color: mutedColor)),
+           child: Text(AppLocalizations.of(context)!.requestSent, style: TextStyle(color: mutedColor)),
         );
      } else {
         return ElevatedButton.icon(
            onPressed: () async {
                final currentUser = context.read<UserSession>().currentUser;
                if (currentUser != null) {
-                  await context.read<FriendshipsDao>().sendFriendRequest(currentUser.id, user.id);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Friend request sent!')));
-                  // Note: To refresh UI, we'd need setState. As this is stateless, simpler to assume user sees feedback.
-                  // Ideally, convert to Stateful.
+                  // Show feedback immediately or via setState if we wanted loading spinner
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sending request...'), duration: Duration(milliseconds: 500)));
+                  
+                  final error = await context.read<SupabaseSyncService>().sendFriendRequest(user.id);
+                  
+                  if (error == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Friend request sent!')));
+                      // Trigger refresh to update button state to "Pending"
+                      // Since parent is Stateful, we can call _refresh if we pass it down, or just re-read via FutureBuilder re-trigger?
+                      // _refresh() is not available here easily unless we pass a callback.
+                      // But this method is inside State, so we can call _refresh()!
+                      // Wait, _buildFriendActionButton is inside _ProfileDashboardState? Yes.
+                      _refresh();
+                  } else {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $error')));
+                  }
                }
            },
            icon: Icon(Icons.person_add, color: theme.colorScheme.onPrimary),
-           label: Text('Add Friend', style: TextStyle(color: theme.colorScheme.onPrimary)),
+           label: Text(AppLocalizations.of(context)!.addFriend, style: TextStyle(color: theme.colorScheme.onPrimary)),
            style: ElevatedButton.styleFrom(
                backgroundColor: theme.primaryColor,
                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -489,11 +527,11 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
        child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-             _buildStatItem('Matches', matches.toString(), theme, mutedColor),
+             _buildStatItem(AppLocalizations.of(context)!.matchesTitle, matches.toString(), theme, mutedColor),
              Container(width: 1, height: 40, color: theme.colorScheme.onSurface.withOpacity(0.1)),
-             _buildStatItem('Wins', wins.toString(), theme, mutedColor),
+             _buildStatItem(AppLocalizations.of(context)!.winsLabel, wins.toString(), theme, mutedColor),
              Container(width: 1, height: 40, color: theme.colorScheme.onSurface.withOpacity(0.1)),
-             _buildStatItem('Win Rate', '$winRate%', theme, mutedColor),
+             _buildStatItem(AppLocalizations.of(context)!.winRateLabel, '$winRate%', theme, mutedColor),
           ],
        ),
     );
@@ -520,8 +558,8 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
              _buildMenuCard(
                 context, 
                 theme,
-                title: 'Achievements',
-                subtitle: 'Badges and milestones',
+                title: AppLocalizations.of(context)!.achievementsLabel,
+                subtitle: AppLocalizations.of(context)!.badgesSubtitle,
                 icon: Icons.emoji_events,
                 color: Colors.amber,
                 onTap: () {
@@ -532,8 +570,8 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
              _buildMenuCard(
                 context, 
                 theme,
-                title: 'My Collection',
-                subtitle: '${stats['collectionCount']} games',
+                title: AppLocalizations.of(context)!.myCollection,
+                subtitle: AppLocalizations.of(context)!.gamesCount(stats['collectionCount']),
                 icon: Icons.category,
                 color: theme.primaryColor,
                 onTap: () {
@@ -557,7 +595,7 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
              _buildMenuCard(
                 context,
                 theme,
-                title: 'Friends',
+                title: AppLocalizations.of(context)!.friendsButton,
                 subtitle: '${stats['friendsCount']} friends',
                 icon: Icons.diversity_3,
                 color: Colors.blueAccent,
@@ -571,8 +609,8 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
              _buildMenuCard(
                 context,
                 theme,
-                title: 'Game History',
-                subtitle: '${stats['matches']} matches played',
+                title: AppLocalizations.of(context)!.matchHistory,
+                subtitle: AppLocalizations.of(context)!.matchesPlayed(stats['matches']),
                 icon: Icons.history,
                 color: Colors.purpleAccent,
                 onTap: () {
@@ -583,8 +621,6 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
         ),
       );
   }
-
-
 
   Widget _buildMenuCard(BuildContext context, ThemeData theme, {
       required String title,
@@ -622,8 +658,8 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                         child: Column(
                            crossAxisAlignment: CrossAxisAlignment.start,
                            children: [
-                              Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
-                              Text(subtitle, style: TextStyle(fontSize: 13, color: mutedColor)),
+                               Text(title, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
+                               Text(subtitle, style: TextStyle(fontSize: 13, color: mutedColor)),
                            ],
                         ),
                       ),
@@ -713,7 +749,7 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                boxShadow: [BoxShadow(color: theme.primaryColor.withValues(alpha: 0.4), blurRadius: 8)],
             ),
             child: Text(
-               'LEVEL $level', 
+               AppLocalizations.of(context)!.levelLabel(level), 
                style: TextStyle(color: theme.colorScheme.onPrimary, fontWeight: FontWeight.bold, fontSize: 12)
             ),
          ),
@@ -733,7 +769,7 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                     '$xp / $nextLevelTotal XP',
+                     AppLocalizations.of(context)!.xpLabel(xp, nextLevelTotal),
                      style: TextStyle(color: mutedColor, fontSize: 10),
                   )
                ],
@@ -747,24 +783,24 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
      return GamificationService.getLevel(xp);
   }
 
-  void _showPrestigeDialog(BuildContext context, int userId, ThemeData theme) {
+  void _showPrestigeDialog(BuildContext context, String userId, ThemeData theme) {
      showDialog(
        context: context, 
        builder: (ctx) => AlertDialog(
          backgroundColor: theme.cardTheme.color,
-         title: const Text('🌟 Prestige Ascension 🌟', style: TextStyle(color: Colors.amber)),
+         title: Text(AppLocalizations.of(context)!.prestigeAscension, style: const TextStyle(color: Colors.amber)),
          content: Text(
-           'Are you sure? This will RESET your level to 1, but you will gain a PRESTIGE STAR and eternal glory.',
+           AppLocalizations.of(context)!.prestigeWarning,
            style: TextStyle(color: theme.colorScheme.onSurface),
          ),
          actions: [
             TextButton(
                onPressed: () => Navigator.pop(ctx), 
-               child: const Text('Cancel', style: TextStyle(color: Colors.grey))
+               child: Text(AppLocalizations.of(context)!.cancel, style: const TextStyle(color: Colors.grey))
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
-              child: const Text('ASCEND', style: TextStyle(color: Colors.black)),
+              child: Text(AppLocalizations.of(context)!.ascendButton, style: const TextStyle(color: Colors.black)),
               onPressed: () async {
                  Navigator.pop(ctx);
                  await context.read<GamificationService>().prestigeUser(userId);

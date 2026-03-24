@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:drift/drift.dart' show Value;
 import '../database/database.dart';
-import '../services/bgg_service.dart';
 import '../providers/user_session.dart';
+import '../services/supabase_sync_service.dart';
 
 class GameDetails extends StatefulWidget {
   final Game game;
@@ -31,7 +31,7 @@ class _GameDetailsState extends State<GameDetails> {
     if (mounted) setState(() => _reviews = results);
   }
 
-  Future<void> _submitReview(double rating, String comment, int userId) async {
+  Future<void> _submitReview(double rating, String comment, String userId) async {
     debugPrint('Submitting review: User $userId, Game ${_currentGame.id}, Rating $rating');
     try {
       final reviewsDao = context.read<ReviewsDao>();
@@ -58,7 +58,6 @@ class _GameDetailsState extends State<GameDetails> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkCollectionStatus();
       _fetchReviews(); // Fetch reviews on load
-      _enrichDataIfNeeded();
     });
   }
 
@@ -78,71 +77,62 @@ class _GameDetailsState extends State<GameDetails> {
      }
   }
 
-  Future<void> _enrichDataIfNeeded({bool force = false}) async {
-    debugPrint('Checking enrichment: isEnriched=${_currentGame.isEnriched}, bggId=${_currentGame.bggId}, force=$force');
-    if ((_currentGame.isEnriched && !force) || _currentGame.bggId == null) return;
-    
-    if (mounted) setState(() => _isLoading = true);
-
-    try {
-        debugPrint('Starting BGG enrichment for ${_currentGame.bggId}');
-        final bggService = context.read<BggService>();
-        final enriched = await bggService.fetchGameDetails(_currentGame.bggId!);
-        
-        if (enriched != null && mounted) {
-           debugPrint('Enrichment successful. Updating DB.');
-           final dao = context.read<GamesDao>();
-           // Fix: Must include the local ID to trigger an update on the correct row
-           // otherwise it tries to insert a new row which conflicts on bgg_id
-           final updateData = enriched.copyWith(id: Value(_currentGame.id));
-           
-           await dao.upsertGame(updateData);
-           
-           final fresh = await dao.getGameById(_currentGame.id);
-           if (fresh != null && mounted) {
-              setState(() => _currentGame = fresh);
-           }
-        } else {
-           debugPrint('Enrichment returned null');
-        }
-    } catch (e) {
-       debugPrint('Error enriching game: $e');
-       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Update failed: $e')));
-    } finally {
-       if (mounted) setState(() => _isLoading = false);
-    }
-  }
 
   Future<void> _toggleWishlist() async {
-      final dao = context.read<UserGameCollectionsDao>();
-      final user = context.read<UserSession>().currentUser;
-      if (user == null) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Login required')));
-          return;
-      }
-
-      if (_isWishlisted) {
-          await dao.removeFromCollection(user.id, _currentGame.id, 'wishlist');
-      } else {
-          await dao.addToWishlist(user.id, _currentGame.id);
-      }
-      await _checkCollectionStatus();
+      await _performCollectionAction(
+          collectionType: 'wishlist',
+          currentState: _isWishlisted,
+          onSuccess: (val) => setState(() => _isWishlisted = val)
+      );
   }
 
   Future<void> _toggleCollection() async {
-      final dao = context.read<UserGameCollectionsDao>();
+      await _performCollectionAction(
+          collectionType: 'owned',
+          currentState: _isOwned,
+          onSuccess: (val) => setState(() => _isOwned = val)
+      );
+  }
+
+  Future<void> _performCollectionAction({
+      required String collectionType,
+      required bool currentState,
+      required Function(bool) onSuccess,
+  }) async {
       final user = context.read<UserSession>().currentUser;
       if (user == null) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Login required')));
           return;
       }
 
-      if (_isOwned) {
-          await dao.removeFromCollection(user.id, _currentGame.id, 'owned');
-      } else {
-          await dao.addToCollection(user.id, _currentGame.id);
+      setState(() => _isLoading = true);
+
+      final service = context.read<SupabaseSyncService>();
+      
+      // Determine action (Add if not currently true, Remove if true)
+      final isAdding = !currentState;
+      
+      final error = await service.toggleCollectionStatus(
+          gameId: _currentGame.id,
+          collectionType: collectionType,
+          addToCollection: isAdding
+      );
+      
+      if (mounted) {
+         setState(() => _isLoading = false);
+         
+         if (error == null) {
+             // Success: Update UI state
+             onSuccess(isAdding);
+             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                 content: Text(isAdding ? 'Added to ${collectionType.toUpperCase()}' : 'Removed from ${collectionType.toUpperCase()}'),
+                 duration: const Duration(seconds: 1),
+             ));
+         } else {
+             // Error
+             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $error')));
+         }
       }
-      await _checkCollectionStatus();
   }
 
   @override
@@ -169,11 +159,6 @@ class _GameDetailsState extends State<GameDetails> {
                             actions: [
                                 if (_isLoading)
                                     Padding(padding: const EdgeInsets.all(12), child: CircularProgressIndicator(color: theme.colorScheme.onSurface, strokeWidth: 2)),
-                                if (!_isLoading)
-                                IconButton(
-                                    icon: Icon(Icons.refresh, color: theme.colorScheme.onSurface, shadows: const [Shadow(color: Colors.black, blurRadius: 10)]),
-                                    onPressed: () => _enrichDataIfNeeded(force: true),
-                                ),
                                 IconButton(
                                     icon: Icon(_isWishlisted ? Icons.bookmark : Icons.bookmark_outline, color: theme.colorScheme.onSurface, shadows: const [Shadow(color: Colors.black, blurRadius: 10)]),
                                     onPressed: _toggleWishlist,

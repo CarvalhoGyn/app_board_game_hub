@@ -10,7 +10,7 @@ import '../providers/user_session.dart';
 import '../services/gamification_service.dart';
 
 class RecordMatchScore extends StatefulWidget {
-  final int matchId;
+  final String matchId;
   const RecordMatchScore({super.key, required this.matchId});
 
   @override
@@ -20,9 +20,9 @@ class RecordMatchScore extends StatefulWidget {
 class _RecordMatchScoreState extends State<RecordMatchScore> {
   MatchWithDetails? _matchDetails;
   List<PlayerWithUser> _matchPlayers = [];
-  Map<int, int> _playerRanks = {};
-  Map<int, double> _playerRatings = {};
-  int? _winnerId;
+  Map<String, int> _playerRanks = {};
+  Map<String, double> _playerRatings = {};
+  String? _winnerId;
 
   bool _coopVictory = false;
 
@@ -52,7 +52,7 @@ class _RecordMatchScoreState extends State<RecordMatchScore> {
            for (var p in players) {
              _playerRanks[p.player.id] = p.player.rank ?? 0;
              if (p.player.isWinner) {
-                _winnerId = p.player.id;
+                _winnerId = p.user.id;
              }
            }
         }
@@ -448,12 +448,12 @@ class _RecordMatchScoreState extends State<RecordMatchScore> {
                         message: _coopVictory 
                             ? 'Complete victory in ${_matchDetails!.game.name}!' 
                             : 'The team was defeated in ${_matchDetails!.game.name}. Only death remains.',
-                        relatedId: widget.matchId,
+                        relatedId: widget.matchId.toString(),
                      );
                   }
                } else {
                    // Find legitimate winner from current state
-                   int? effectiveWinnerId;
+                   String? effectiveWinnerId;
                    for (var p in _matchPlayers) {
                       if (_playerRanks[p.player.id] == 1) {
                          effectiveWinnerId = p.user.id;
@@ -485,7 +485,7 @@ class _RecordMatchScoreState extends State<RecordMatchScore> {
                         type: 'match_result',
                         title: 'Victory!',
                         message: message,
-                        relatedId: widget.matchId,
+                        relatedId: widget.matchId.toString(),
                      );
                   }
                }

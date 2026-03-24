@@ -10,6 +10,9 @@ import '../providers/user_session.dart';
 import '../services/bgg_service.dart';
 import 'profile_dashboard.dart';
 import 'game_catalog.dart';
+import 'package:app_board_game_hub/l10n/app_localizations.dart';
+import '../services/supabase_sync_service.dart';
+import '../services/games_repository.dart';
 
 class CreateMatch extends StatefulWidget {
   const CreateMatch({super.key});
@@ -57,58 +60,62 @@ class _CreateMatchState extends State<CreateMatch> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
-      appBar: _buildAppBar(context, theme),
+      appBar: _buildAppBar(context, theme, l10n),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildGameSelector(theme),
+              _buildGameSelector(theme, l10n),
               const SizedBox(height: 16),
-              if (_selectedGame != null) _buildScoringModeSelector(theme),
+              if (_selectedGame != null) _buildScoringModeSelector(theme, l10n),
               const SizedBox(height: 8),
-              _buildPlayersSection(theme),
+              _buildPlayersSection(theme, l10n),
               const SizedBox(height: 24),
-              _buildRandomizerSection(theme),
+              _buildRandomizerSection(theme, l10n),
               const SizedBox(height: 100), // Space for sticky bottom button
             ],
           ),
         ),
       ),
-      bottomSheet: _buildStickyFooter(context, theme),
+      bottomSheet: _buildStickyFooter(context, theme, l10n),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context, ThemeData theme) {
+  PreferredSizeWidget _buildAppBar(BuildContext context, ThemeData theme, AppLocalizations l10n) {
     return AppBar(
       backgroundColor: theme.scaffoldBackgroundColor.withOpacity(0.8),
       elevation: 0,
-      leadingWidth: 80,
+      leadingWidth: 100, // Increased to accommodate German "Abbrechen"
       leading: TextButton(
         onPressed: () {
           if (Navigator.canPop(context)) {
             Navigator.pop(context);
           } else {
-            // If we are at root (tab navigation), go to Home
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const GameCatalog()));
           }
         },
-        child: Text('Cancel', style: TextStyle(color: theme.primaryColor, fontSize: 16, fontWeight: FontWeight.w500)),
+        child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(l10n.cancel, style: TextStyle(color: theme.primaryColor, fontSize: 16, fontWeight: FontWeight.w500)),
+        ),
       ),
-      title: Text('New Match', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
+      title: Text(l10n.newMatchTitle, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
       centerTitle: true,
       iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
     );
   }
 
-  Widget _buildGameSelector(ThemeData theme) {
+  Widget _buildGameSelector(ThemeData theme, AppLocalizations l10n) {
     final mutedColor = theme.inputDecorationTheme.hintStyle?.color ?? Colors.grey;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Game', style: TextStyle(color: mutedColor, fontSize: 14, fontWeight: FontWeight.w600)),
+        Text(l10n.gameLabel, style: TextStyle(color: mutedColor, fontSize: 14, fontWeight: FontWeight.w600)),
         const SizedBox(height: 12),
         GestureDetector(
           onTap: () {
@@ -163,7 +170,7 @@ class _CreateMatchState extends State<CreateMatch> {
                     children: [
                       Text('SELECTED', style: TextStyle(color: theme.primaryColor, fontSize: 10, fontWeight: FontWeight.w700, letterSpacing: 1)),
                       Text(
-                        _selectedGame?.name ?? 'Select a Game',
+                        _selectedGame?.name ?? l10n.selectGameLabel,
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
                       ),
                     ],
@@ -183,7 +190,7 @@ class _CreateMatchState extends State<CreateMatch> {
   }
 
 
-  Widget _buildScoringModeSelector(ThemeData theme) {
+  Widget _buildScoringModeSelector(ThemeData theme, AppLocalizations l10n) {
      return Container(
        margin: const EdgeInsets.only(bottom: 24),
        padding: const EdgeInsets.all(4),
@@ -194,8 +201,8 @@ class _CreateMatchState extends State<CreateMatch> {
        ),
        child: Row(
           children: [
-             Expanded(child: _buildModeOption('Competitive', 'competitive', Icons.emoji_events, theme)),
-             Expanded(child: _buildModeOption('Cooperative', 'cooperative', Icons.group_work, theme)),
+             Expanded(child: _buildModeOption(l10n.competitive, 'competitive', Icons.emoji_events, theme)),
+             Expanded(child: _buildModeOption(l10n.cooperative, 'cooperative', Icons.group_work, theme)),
           ],
        ),
     );
@@ -245,14 +252,14 @@ class _CreateMatchState extends State<CreateMatch> {
     );
   }
 
-  Widget _buildPlayersSection(ThemeData theme) {
+  Widget _buildPlayersSection(ThemeData theme, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Who's playing?", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
+            Text(l10n.whoIsPlaying, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(color: theme.primaryColor.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
@@ -271,7 +278,7 @@ class _CreateMatchState extends State<CreateMatch> {
               if (index == 0) {
                 return GestureDetector(
                   onTap: _showAddPlayerModal,
-                  child: _buildAddPlayerButton(theme),
+                  child: _buildAddPlayerButton(theme, l10n),
                 );
               }
               final user = _selectedPlayers[index - 1];
@@ -297,7 +304,7 @@ class _CreateMatchState extends State<CreateMatch> {
     );
   }
 
-  Widget _buildAddPlayerButton(ThemeData theme) {
+  Widget _buildAddPlayerButton(ThemeData theme, AppLocalizations l10n) {
     final mutedColor = theme.inputDecorationTheme.hintStyle?.color ?? Colors.grey;
     return Column(
       children: [
@@ -311,7 +318,7 @@ class _CreateMatchState extends State<CreateMatch> {
           child: Icon(Icons.add, color: mutedColor, size: 24),
         ),
         const SizedBox(height: 8),
-        Text('Add', style: TextStyle(color: mutedColor, fontSize: 12, fontWeight: FontWeight.w500)),
+        Text(l10n.add, style: TextStyle(color: mutedColor, fontSize: 12, fontWeight: FontWeight.w500)),
       ],
     );
   }
@@ -366,8 +373,9 @@ class _CreateMatchState extends State<CreateMatch> {
   }
 
   void _rollDice(ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     if (_selectedPlayers.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Add players first!')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.addPlayersWarning)));
       return;
     }
     
@@ -384,11 +392,11 @@ class _CreateMatchState extends State<CreateMatch> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: theme.dialogBackgroundColor,
-        title: Text('Dice Rolled! 🎲', style: TextStyle(color: theme.colorScheme.onSurface)),
+        title: Text(l10n.diceRolled, style: TextStyle(color: theme.colorScheme.onSurface)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('The starting player is:', style: TextStyle(color: mutedColor)),
+            Text(l10n.startingPlayerIs, style: TextStyle(color: mutedColor)),
             const SizedBox(height: 16),
             CircleAvatar(
               radius: 32,
@@ -407,14 +415,14 @@ class _CreateMatchState extends State<CreateMatch> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
+            child: Text(l10n.ok),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildRandomizerSection(ThemeData theme) {
+  Widget _buildRandomizerSection(ThemeData theme, AppLocalizations l10n) {
     final mutedColor = theme.inputDecorationTheme.hintStyle?.color ?? Colors.grey;
     return GestureDetector(
       onTap: () => _rollDice(theme),
@@ -434,9 +442,9 @@ class _CreateMatchState extends State<CreateMatch> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Who starts?', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
+                      Text(l10n.whoStarts, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
                       const SizedBox(height: 4),
-                      Text("Don't argue, let the dice decide your fate.", style: TextStyle(color: mutedColor, fontSize: 14)),
+                      Text(l10n.diceSubtitle, style: TextStyle(color: mutedColor, fontSize: 14)),
                     ],
                   ),
                 ),
@@ -452,7 +460,7 @@ class _CreateMatchState extends State<CreateMatch> {
                       child: const Icon(Icons.casino, color: Colors.white, size: 32),
                     ),
                     const SizedBox(height: 4),
-                    Text('ROLL', style: TextStyle(color: theme.primaryColor, fontSize: 10, fontWeight: FontWeight.bold)),
+                    Text(l10n.rollButton, style: TextStyle(color: theme.primaryColor, fontSize: 10, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ],
@@ -464,7 +472,7 @@ class _CreateMatchState extends State<CreateMatch> {
               children: [
                 Icon(Icons.info_outline, color: mutedColor, size: 16),
                 const SizedBox(width: 8),
-                Text('Tap to pick a random player', style: TextStyle(color: mutedColor, fontSize: 12, fontWeight: FontWeight.w500)),
+                Text(l10n.pickRandomPlayer, style: TextStyle(color: mutedColor, fontSize: 12, fontWeight: FontWeight.w500)),
               ],
             ),
           ],
@@ -474,7 +482,7 @@ class _CreateMatchState extends State<CreateMatch> {
   }
 
 
-  Widget _buildStickyFooter(BuildContext context, ThemeData theme) {
+  Widget _buildStickyFooter(BuildContext context, ThemeData theme, AppLocalizations l10n) {
     return Container(
       color: theme.scaffoldBackgroundColor,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
@@ -482,27 +490,48 @@ class _CreateMatchState extends State<CreateMatch> {
         onPressed: () async {
           if (_selectedGame == null) return;
 
-          final matchesDao = context.read<MatchesDao>();
+          // Show loading
+          showDialog(
+             context: context,
+             barrierDismissible: false,
+             builder: (_) => const Center(child: CircularProgressIndicator()),
+          );
+
           try {
-            // Simplified match creation for now - using a hardcoded user ID for demonstration
-            // In a real app, you'd get the current user's ID
-            final matchId = await matchesDao.createMatch(
-              MatchesCompanion(
+            final service = context.read<SupabaseSyncService>();
+            
+            // Online-First Match Creation
+            final newMatchId = await service.createMatch(
+              match: MatchesCompanion(
                 gameId: drift.Value(_selectedGame!.id),
                 date: drift.Value(DateTime.now()),
                 location: const drift.Value(null),
                 scoringType: drift.Value(_scoringType),
                 creatorId: drift.Value(context.read<UserSession>().currentUser?.id),
               ),
-              _selectedPlayers.map((u) => PlayersCompanion(userId: drift.Value(u.id))).toList(),
+              players: _selectedPlayers.map((u) => PlayersCompanion(userId: drift.Value(u.id))).toList(),
             );
 
             if (!mounted) return;
-            Navigator.push(context, MaterialPageRoute(builder: (context) => RecordMatchScore(matchId: matchId)));
+            Navigator.pop(context); // Dismiss loading
+
+            if (newMatchId != null) {
+               // Success
+               Navigator.push(context, MaterialPageRoute(builder: (context) => RecordMatchScore(matchId: newMatchId)));
+            } else {
+               // Failure (null returned)
+               // Note: createMatch returns null on error (or we could change it to return error string). 
+               // Currently implemented to return null on catch.
+               // Let's assume generic error if null.
+               ScaffoldMessenger.of(context).showSnackBar(
+                 SnackBar(content: Text(l10n.error('Failed to create match online')), backgroundColor: Colors.redAccent),
+               );
+            }
           } catch (e) {
             if (!mounted) return;
+            Navigator.pop(context); // Dismiss loading if error uncaught
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error starting match: $e'), backgroundColor: Colors.redAccent),
+              SnackBar(content: Text(l10n.error(e.toString())), backgroundColor: Colors.redAccent),
             );
           }
         },
@@ -516,7 +545,7 @@ class _CreateMatchState extends State<CreateMatch> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Start Match', style: TextStyle(color: theme.colorScheme.onPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(l10n.startMatch, style: TextStyle(color: theme.colorScheme.onPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(width: 8),
             Icon(Icons.arrow_forward, color: theme.colorScheme.onPrimary, size: 20),
           ],
@@ -562,6 +591,8 @@ class _UserSearchSheetState extends State<_UserSearchSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final mutedColor = theme.inputDecorationTheme.hintStyle?.color ?? Colors.grey;
+    final l10n = AppLocalizations.of(context)!;
+    
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
       padding: const EdgeInsets.all(16),
@@ -582,7 +613,7 @@ class _UserSearchSheetState extends State<_UserSearchSheet> {
             autofocus: true,
             style: theme.textTheme.bodyMedium,
             decoration: InputDecoration(
-              hintText: 'Search player...',
+              hintText: l10n.searchPlaceholder,
               hintStyle: TextStyle(color: mutedColor),
               filled: true,
               fillColor: theme.inputDecorationTheme.fillColor,
@@ -621,6 +652,10 @@ class _UserSearchSheetState extends State<_UserSearchSheet> {
 }
 
 
+
+
+// ... (Existing code)
+
 class _GameSearchSheet extends StatefulWidget {
   final Function(Game) onGameSelected;
 
@@ -632,10 +667,17 @@ class _GameSearchSheet extends StatefulWidget {
 
 class _GameSearchSheetState extends State<_GameSearchSheet> {
   final _searchController = TextEditingController();
-  final _bggService = BggService();
+  late GamesRepository _repository;
   
-  List<dynamic> _searchResults = []; // Can be Game or BggSearchResult
+  List<Game> _searchResults = [];
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final dao = context.read<GamesDao>();
+    _repository = GamesRepository(dao);
+  }
 
   void _search(String query) async {
     if (query.isEmpty) {
@@ -644,56 +686,15 @@ class _GameSearchSheetState extends State<_GameSearchSheet> {
     }
 
     setState(() => _isLoading = true);
-    final gamesDao = context.read<GamesDao>();
     
-    // Parallel search
-    final localFuture = gamesDao.searchGames(query);
-    final remoteFuture = query.length > 2 ? _bggService.searchGames(query) : Future.value(<BggSearchResult>[]);
-    
-    final results = await Future.wait([localFuture, remoteFuture]);
-    final localGames = results[0] as List<Game>;
-    final remoteGames = results[1] as List<BggSearchResult>;
-
-    // Filter remote games that are already in local (by name or BGG ID logic if available, simple name check for now)
-    final existingNames = localGames.map((g) => g.name.toLowerCase()).toSet();
-    final newRemoteGames = remoteGames.where((r) => !existingNames.contains(r.name.toLowerCase())).toList();
+    // Hybrid Search via Repository
+    final results = await _repository.searchGames(query);
 
     if (mounted) {
       setState(() {
-        _searchResults = [...localGames, ...newRemoteGames];
+        _searchResults = results;
         _isLoading = false;
       });
-    }
-  }
-
-  Future<void> _importAndSelect(BggSearchResult result) async {
-    setState(() => _isLoading = true);
-    
-    try {
-      final details = await _bggService.fetchGameDetails(result.id);
-      if (details != null) {
-        final gamesDao = context.read<GamesDao>();
-        // Check if exists by BGG ID
-        final existing = await gamesDao.getGameByBggId(result.id);
-        
-        Game selectedGame;
-        if (existing != null) {
-          selectedGame = existing;
-        } else {
-          final id = await gamesDao.createGame(details);
-          selectedGame = (await gamesDao.getGameById(id))!;
-        }
-        
-        widget.onGameSelected(selectedGame); // Callback handles pop
-      } else {
-         if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to load game details')));
-         setState(() => _isLoading = false);
-      }
-    } catch (e) {
-       if (mounted) {
-         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-         setState(() => _isLoading = false);
-       }
     }
   }
 
@@ -701,6 +702,7 @@ class _GameSearchSheetState extends State<_GameSearchSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final mutedColor = theme.inputDecorationTheme.hintStyle?.color ?? Colors.grey;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
@@ -722,7 +724,7 @@ class _GameSearchSheetState extends State<_GameSearchSheet> {
             autofocus: true,
             style: theme.textTheme.bodyMedium,
             decoration: InputDecoration(
-              hintText: 'Search game...',
+              hintText: l10n.searchPlaceholder,
               hintStyle: TextStyle(color: mutedColor),
               filled: true,
               fillColor: theme.inputDecorationTheme.fillColor,
@@ -739,36 +741,21 @@ class _GameSearchSheetState extends State<_GameSearchSheet> {
                   itemBuilder: (context, index) {
                     final item = _searchResults[index];
                     
-                    if (item is Game) {
-                      return ListTile(
-                        leading: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: item.imageUrl != null 
-                            ? Image.network(item.imageUrl!, width: 48, height: 48, fit: BoxFit.cover)
-                            : Container(width: 48, height: 48, color: theme.colorScheme.surface, child: const Icon(Icons.videogame_asset)),
-                        ),
-                        title: Text(item.name, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
-                        trailing: Icon(Icons.check_circle, color: theme.primaryColor, size: 16),
-                        onTap: () => widget.onGameSelected(item),
-                      );
-                    } else if (item is BggSearchResult) {
-                      return ListTile(
-                        leading: Container(
-                          width: 48, height: 48, 
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surface,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: theme.dividerColor),
-                          ),
-                          child: Icon(Icons.cloud_download, color: mutedColor, size: 20),
-                        ),
-                        title: Text(item.name, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w500)),
-                        subtitle: item.year != null ? Text(item.year!, style: theme.textTheme.bodySmall?.copyWith(color: mutedColor)) : null,
-                        trailing: Icon(Icons.public, color: mutedColor, size: 16),
-                        onTap: () => _importAndSelect(item),
-                      );
-                    }
-                    return const SizedBox.shrink();
+                    return ListTile(
+                      leading: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: item.imageUrl != null 
+                          ? Image.network(item.imageUrl!, width: 48, height: 48, fit: BoxFit.cover)
+                          : Container(width: 48, height: 48, color: theme.colorScheme.surface, child: const Icon(Icons.videogame_asset)),
+                      ),
+                      title: Text(item.name, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
+                      trailing: Icon(Icons.check_circle_outline, color: theme.primaryColor, size: 20),
+                      onTap: () async {
+                        // Cache and Select
+                        await _repository.cacheGame(item);
+                        widget.onGameSelected(item);
+                      },
+                    );
                   },
                 ),
           ),

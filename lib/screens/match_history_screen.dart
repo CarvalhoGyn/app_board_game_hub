@@ -4,9 +4,11 @@ import '../database/database.dart';
 import 'record_match_score.dart';
 import '../widgets/staggered_slide_fade.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
+import 'package:app_board_game_hub/l10n/app_localizations.dart';
 
 class MatchHistoryScreen extends StatefulWidget {
-  final int userId;
+  final String userId;
   const MatchHistoryScreen({super.key, required this.userId});
 
   @override
@@ -20,6 +22,7 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
 
   int? _selectedYear;
   int? _selectedMonth;
+  StreamSubscription<List<MatchWithDetails>>? _subscription;
 
   @override
   void initState() {
@@ -27,20 +30,23 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
     _loadMatches();
   }
 
-  Future<void> _loadMatches() async {
+  void _loadMatches() {
     final matchesDao = context.read<MatchesDao>();
-    final matches = await matchesDao.getMatchesForUser(widget.userId);
-    
-    // Sort by date desc
-    matches.sort((a, b) => b.match.date.compareTo(a.match.date));
+    _subscription = matchesDao.watchMatchesForUser(widget.userId).listen((matches) {
+      if (mounted) {
+        setState(() {
+          _allMatches = matches;
+          _isLoading = false;
+          _applyFilters();
+        });
+      }
+    });
+  }
 
-    if (mounted) {
-      setState(() {
-        _allMatches = matches;
-        _isLoading = false;
-        _applyFilters();
-      });
-    }
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
   }
 
   void _applyFilters() {
@@ -70,15 +76,15 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
     return years;
   }
 
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final mutedColor = theme.inputDecorationTheme.hintStyle?.color ?? Colors.grey;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Match History', style: TextStyle(color: theme.colorScheme.onSurface)),
+        title: Text(l10n.matchHistory, style: TextStyle(color: theme.colorScheme.onSurface)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
@@ -108,6 +114,7 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
   }
 
   Widget _buildFilters(ThemeData theme, Color mutedColor) {
+    final l10n = AppLocalizations.of(context)!;
     final years = _getAvailableYears();
     
     return Container(
@@ -121,7 +128,7 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
           Expanded(
             child: _buildDropdown<int>(
               value: _selectedYear,
-              hint: 'Year',
+              hint: l10n.historyYear,
               items: years,
               labelBuilder: (y) => y.toString(),
               onChanged: (val) {
@@ -137,9 +144,9 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
           Expanded(
             child: _buildDropdown<int>(
               value: _selectedMonth,
-              hint: 'Month',
+              hint: l10n.historyMonth,
               items: List.generate(12, (i) => i + 1),
-              labelBuilder: (m) => DateFormat('MMMM').format(DateTime(2024, m)),
+              labelBuilder: (m) => DateFormat('MMMM', Localizations.localeOf(context).languageCode).format(DateTime(2024, m)),
               onChanged: (val) {
                 setState(() => _selectedMonth = val);
                 _applyFilters();
@@ -199,13 +206,14 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
   }
 
   Widget _buildEmptyState(Color mutedColor) {
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.history_toggle_off, size: 64, color: mutedColor.withValues(alpha:0.5)),
           const SizedBox(height: 16),
-          Text('No matches found for this filter.', style: TextStyle(color: mutedColor)),
+          Text(l10n.historyNoMatches, style: TextStyle(color: mutedColor)),
         ],
       ),
     );
@@ -214,6 +222,7 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
   Widget _buildMatchItem(MatchWithDetails matchData, ThemeData theme, Color mutedColor) {
      final match = matchData.match;
      final game = matchData.game;
+     final l10n = AppLocalizations.of(context)!;
      
      return GestureDetector(
         onTap: () {
@@ -245,7 +254,7 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
                           Text(game.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: theme.colorScheme.onSurface)),
                           const SizedBox(height: 4),
                           Text(
-                             DateFormat('EEE, MMM d, yyyy').format(match.date),
+                             DateFormat('EEE, MMM d, yyyy', Localizations.localeOf(context).languageCode).format(match.date),
                              style: TextStyle(color: mutedColor, fontSize: 13),
                           ),
                           Row(
@@ -257,7 +266,7 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                match.scoringType == 'cooperative' ? 'Co-op' : 'Competitive',
+                                match.scoringType == 'cooperative' ? l10n.cooperative : l10n.competitive,
                                 style: TextStyle(color: theme.primaryColor, fontSize: 12),
                               ),
                             ],

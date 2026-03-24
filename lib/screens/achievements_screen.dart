@@ -6,7 +6,7 @@ import '../database/database.dart';
 import 'package:intl/intl.dart';
 
 class AchievementsScreen extends StatelessWidget {
-  final int userId;
+  final String userId;
   final bool isMyProfile;
   
   const AchievementsScreen({super.key, required this.userId, this.isMyProfile = false});
