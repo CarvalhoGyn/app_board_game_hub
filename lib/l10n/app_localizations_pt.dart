@@ -607,4 +607,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get submitReview => 'Enviar Avaliação';
+
+  @override
+  String get syncCompleted => 'Sincronização concluída';
+
+  @override
+  String get recordMatch => 'Registrar Partida';
 }

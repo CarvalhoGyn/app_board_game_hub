@@ -174,5 +174,13 @@
   "lvl47Title": "Hôte Suprême",
   "lvl48Title": "Designer de l'Ombre",
   "lvl49Title": "Meeple Doré Incarné",
-  "lvl50Title": "Divinité des Pièces en Bois"
+  "lvl50Title": "Divinité des Pièces en Bois",
+  "reviewGame": "Évaluer le jeu",
+  "rateThisGame": "Évaluez ce jeu :",
+  "communityReviews": "Avis de la communauté",
+  "ratingsCount": "{count} Évaluations",
+  "reviewHint": "Écrivez vos pensées (Optionnel)...",
+  "submitReview": "Envoyer l'avis",
+  "syncCompleted": "Synchronisation terminée",
+  "recordMatch": "Enregistrer match"
 }

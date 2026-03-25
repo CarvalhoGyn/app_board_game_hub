@@ -5,6 +5,7 @@ import '../database/database.dart';
 import '../providers/user_session.dart';
 import '../services/supabase_sync_service.dart';
 import '../l10n/app_localizations.dart';
+import 'create_match.dart';
 
 class GameDetails extends StatefulWidget {
   final Game game;
@@ -599,17 +600,50 @@ class _GameDetailsState extends State<GameDetails> {
             colors: [theme.scaffoldBackgroundColor, theme.scaffoldBackgroundColor.withValues(alpha:0)],
           ),
         ),
-        child: ElevatedButton.icon(
-          onPressed: () => _showReviewDialog(theme), // Linked to Review Dialog
-          icon: Icon(Icons.rate_review, color: theme.colorScheme.onPrimary),
-          label: Text(AppLocalizations.of(context)!.reviewGame, style: TextStyle(color: theme.colorScheme.onPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: theme.primaryColor,
-            minimumSize: const Size(double.infinity, 56),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-            elevation: 8,
-            shadowColor: theme.primaryColor.withValues(alpha:0.4),
-          ),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 4,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => CreateMatch(initialGame: _currentGame)));
+                },
+                icon: Icon(Icons.play_circle_fill, color: theme.colorScheme.onPrimary),
+                label: Text(
+                  AppLocalizations.of(context)!.recordMatch,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: theme.colorScheme.onPrimary, fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.primaryColor,
+                  minimumSize: const Size(0, 56),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                  elevation: 8,
+                  shadowColor: theme.primaryColor.withValues(alpha:0.4),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 3,
+              child: ElevatedButton.icon(
+                onPressed: () => _showReviewDialog(theme),
+                icon: Icon(Icons.rate_review, color: theme.primaryColor),
+                label: Text(
+                  AppLocalizations.of(context)!.reviewGame,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: theme.primaryColor, fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.cardTheme.color,
+                  minimumSize: const Size(0, 56),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                  side: BorderSide(color: theme.primaryColor, width: 2),
+                  elevation: 0,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

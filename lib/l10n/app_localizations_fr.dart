@@ -587,22 +587,28 @@ class AppLocalizationsFr extends AppLocalizations {
   String get lvl50Title => 'Divinité des Pièces en Bois';
 
   @override
-  String get reviewGame => 'Review Game';
+  String get reviewGame => 'Évaluer le jeu';
 
   @override
-  String get rateThisGame => 'Rate this game:';
+  String get rateThisGame => 'Évaluez ce jeu :';
 
   @override
-  String get communityReviews => 'Community Reviews';
+  String get communityReviews => 'Avis de la communauté';
 
   @override
   String ratingsCount(Object count) {
-    return '$count Ratings';
+    return '$count Évaluations';
   }
 
   @override
-  String get reviewHint => 'Write your thoughts (Optional)...';
+  String get reviewHint => 'Écrivez vos pensées (Optionnel)...';
 
   @override
-  String get submitReview => 'Submit Review';
+  String get submitReview => 'Envoyer l\'avis';
+
+  @override
+  String get syncCompleted => 'Synchronisation terminée';
+
+  @override
+  String get recordMatch => 'Enregistrer match';
 }

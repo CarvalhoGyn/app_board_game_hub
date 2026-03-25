@@ -71,20 +71,27 @@ class _SyncToastState extends State<SyncToast> with SingleTickerProviderStateMix
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.7),
+              color: theme.primaryColor.withOpacity(0.8),
               borderRadius: BorderRadius.circular(30),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.sync_done, color: Colors.white, size: 20),
+                const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
                 const SizedBox(width: 12),
                 Text(
                   widget.message,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ],

@@ -174,5 +174,13 @@
   "lvl47Title": "Oberster Gastgeber",
   "lvl48Title": "Schatten-Designer",
   "lvl49Title": "Goldener Meeple",
-  "lvl50Title": "Gottheit der Holzfiguren"
+  "lvl50Title": "Gottheit der Holzfiguren",
+  "reviewGame": "Spiel bewerten",
+  "rateThisGame": "Bewerte dieses Spiel:",
+  "communityReviews": "Community-Bewertungen",
+  "ratingsCount": "{count} Bewertungen",
+  "reviewHint": "Schreibe deine Gedanken (Optional)...",
+  "submitReview": "Bewertung absenden",
+  "syncCompleted": "Synchronisation abgeschlossen",
+  "recordMatch": "Match aufzeichnen"
 }

@@ -1,0 +1,29 @@
+# MeepleSync Development Rules
+
+Este arquivo contém as regras de ouro para o desenvolvimento do MeepleSync. Siga-as rigorosamente em todas as interações.
+
+## 🌍 Internacionalização (i18n)
+
+O aplicativo suporta **4 idiomas**. Sempre que adicionar ou modificar uma chave de tradução, ela DEVE ser replicada nos seguintes arquivos:
+
+1. `lib/l10n/app_pt.arb` (Português - Principal)
+2. `lib/l10n/app_en.arb` (Inglês)
+3. `lib/l10n/app_de.arb` (Alemão)
+4. `lib/l10n/app_fr.arb` (Francês)
+
+**Importante**: Após alterar os arquivos `.arb`, execute `flutter gen-l10n` para regenerar as classes de localização.
+
+## ☁️ Arquitetura Cloud-First
+
+O MeepleSync prioriza a consistência dos dados na nuvem (Supabase) antes da persistência local (Drift/SQLite).
+
+1. **Escrita**: Sempre tente persistir no Supabase primeiro.
+2. **Sincronização**: Use o `SyncQueue` para operações que falharem offline.
+3. **Integridade**: IDs remotos (UUIDs do Supabase) são a fonte da verdade. Evite IDs sequenciais locais para entidades compartilhadas.
+
+## 🛠️ Build & Code Gen
+
+O projeto gera códigos via `build_runner` e `flutter_gen`.
+
+- Sempre verifique imports de localização em `lib/l10n/` (Geração local via `l10n.yaml`).
+- Rode `dart run build_runner build --delete-conflicting-outputs` se houver mudanças no banco de dados.

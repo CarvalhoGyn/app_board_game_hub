@@ -1199,6 +1199,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Submit Review'**
   String get submitReview;
+
+  /// No description provided for @syncCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync completed'**
+  String get syncCompleted;
+
+  /// No description provided for @recordMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Record Match'**
+  String get recordMatch;
 }
 
 class _AppLocalizationsDelegate

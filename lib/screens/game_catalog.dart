@@ -30,6 +30,7 @@ class _GameCatalogState extends State<GameCatalog> {
   bool _isLoading = true;
   bool _wasSyncing = false;
   OverlayEntry? _syncOverlayEntry;
+  late SupabaseSyncService _syncService;
 
   @override
   void initState() {
@@ -41,14 +42,14 @@ class _GameCatalogState extends State<GameCatalog> {
   }
 
   void _setupSyncListener() {
-    final syncService = context.read<SupabaseSyncService>();
-    _wasSyncing = syncService.isSyncing.value;
-    syncService.isSyncing.addListener(_onSyncChanged);
+    _syncService = context.read<SupabaseSyncService>();
+    _wasSyncing = _syncService.isSyncing.value;
+    _syncService.isSyncing.addListener(_onSyncChanged);
   }
 
   void _onSyncChanged() {
     if (!mounted) return;
-    final isSyncing = context.read<SupabaseSyncService>().isSyncing.value;
+    final isSyncing = _syncService.isSyncing.value;
     
     // Detect transition from true to false
     if (_wasSyncing && !isSyncing) {
@@ -116,7 +117,7 @@ class _GameCatalogState extends State<GameCatalog> {
 
   @override
   void dispose() {
-    context.read<SupabaseSyncService>().isSyncing.removeListener(_onSyncChanged);
+    _syncService.isSyncing.removeListener(_onSyncChanged);
     _syncOverlayEntry?.remove();
     super.dispose();
   }

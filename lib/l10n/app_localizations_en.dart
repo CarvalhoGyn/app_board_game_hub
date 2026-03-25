@@ -602,4 +602,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get submitReview => 'Submit Review';
+
+  @override
+  String get syncCompleted => 'Sync completed';
+
+  @override
+  String get recordMatch => 'Record Match';
 }

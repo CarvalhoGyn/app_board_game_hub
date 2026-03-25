@@ -583,22 +583,28 @@ class AppLocalizationsDe extends AppLocalizations {
   String get lvl50Title => 'Gottheit der Holzfiguren';
 
   @override
-  String get reviewGame => 'Review Game';
+  String get reviewGame => 'Spiel bewerten';
 
   @override
-  String get rateThisGame => 'Rate this game:';
+  String get rateThisGame => 'Bewerte dieses Spiel:';
 
   @override
-  String get communityReviews => 'Community Reviews';
+  String get communityReviews => 'Community-Bewertungen';
 
   @override
   String ratingsCount(Object count) {
-    return '$count Ratings';
+    return '$count Bewertungen';
   }
 
   @override
-  String get reviewHint => 'Write your thoughts (Optional)...';
+  String get reviewHint => 'Schreibe deine Gedanken (Optional)...';
 
   @override
-  String get submitReview => 'Submit Review';
+  String get submitReview => 'Bewertung absenden';
+
+  @override
+  String get syncCompleted => 'Synchronisation abgeschlossen';
+
+  @override
+  String get recordMatch => 'Match aufzeichnen';
 }

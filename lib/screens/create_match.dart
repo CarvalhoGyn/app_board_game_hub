@@ -15,7 +15,8 @@ import '../services/supabase_sync_service.dart';
 import '../services/games_repository.dart';
 
 class CreateMatch extends StatefulWidget {
-  const CreateMatch({super.key});
+  final Game? initialGame;
+  const CreateMatch({super.key, this.initialGame});
 
   @override
   State<CreateMatch> createState() => _CreateMatchState();
@@ -47,7 +48,15 @@ class _CreateMatchState extends State<CreateMatch> {
     if (mounted) {
       setState(() {
         _availableGames = games;
-        if (games.isNotEmpty) {
+        _availableGames = games;
+        if (widget.initialGame != null) {
+          _selectedGame = widget.initialGame;
+          // Auto-detect scoring type
+          if (widget.initialGame!.mechanics?.toLowerCase().contains('cooperative') == true || 
+              widget.initialGame!.mechanics?.toLowerCase().contains('co-op') == true) {
+            _scoringType = 'cooperative';
+          }
+        } else if (games.isNotEmpty) {
           _selectedGame = games.first;
         }
         if (currentUser != null) {

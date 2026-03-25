@@ -182,5 +182,6 @@
   "ratingsCount": "{count} Ratings",
   "reviewHint": "Write your thoughts (Optional)...",
   "submitReview": "Submit Review",
-  "syncCompleted": "Sync completed"
+  "syncCompleted": "Sync completed",
+  "recordMatch": "Record Match"
 }

@@ -182,5 +182,6 @@
   "ratingsCount": "{count} Avaliações",
   "reviewHint": "Escreva seu comentário (Opcional)...",
   "submitReview": "Enviar Avaliação",
-  "syncCompleted": "Sincronização concluída"
+  "syncCompleted": "Sincronização concluída",
+  "recordMatch": "Registrar Partida"
 }
