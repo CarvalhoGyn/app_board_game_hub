@@ -611,4 +611,53 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get recordMatch => 'Enregistrer match';
+
+  @override
+  String get notifications => 'Notifications';
+
+  @override
+  String get noNotifications => 'Aucune notification';
+
+  @override
+  String get notifLevelUpTitle => 'Niveau supérieur !';
+
+  @override
+  String notifLevelUpMsg(Object level, Object rank) {
+    return 'Vous avez atteint le niveau $level : $rank !';
+  }
+
+  @override
+  String get notifAchievementTitle => 'Succès débloqué !';
+
+  @override
+  String notifAchievementMsg(Object title) {
+    return 'Vous avez débloqué : $title';
+  }
+
+  @override
+  String get notifPrestigeTitle => 'PRESTIGE DÉBLOQUÉ ! ⭐';
+
+  @override
+  String get notifPrestigeMsg =>
+      'Vous avez atteint le sommet ! Votre niveau a été réinitialisé, mais votre gloire grandit.';
+
+  @override
+  String get notifFriendRequestTitle => 'Nouvelle demande d\'ami';
+
+  @override
+  String notifFriendRequestMsg(Object name) {
+    return '$name veut être votre ami !';
+  }
+
+  @override
+  String get notifMatchVictoryTitle => 'VICTOIRE !';
+
+  @override
+  String get notifMatchVictoryMsg => 'Résultat du match : VICTOIRE !';
+
+  @override
+  String get notifMatchDefeatTitle => 'DÉFAITE';
+
+  @override
+  String get notifMatchDefeatMsg => 'Résultat du match : DÉFAITE';
 }

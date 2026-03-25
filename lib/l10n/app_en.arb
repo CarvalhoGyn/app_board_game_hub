@@ -183,5 +183,19 @@
   "reviewHint": "Write your thoughts (Optional)...",
   "submitReview": "Submit Review",
   "syncCompleted": "Sync completed",
-  "recordMatch": "Record Match"
+  "recordMatch": "Record Match",
+  "notifications": "Notifications",
+  "noNotifications": "No notifications",
+  "notifLevelUpTitle": "Level Up!",
+  "notifLevelUpMsg": "You reached Level {level}: {rank}!",
+  "notifAchievementTitle": "Achievement Unlocked!",
+  "notifAchievementMsg": "You unlocked: {title}",
+  "notifPrestigeTitle": "PRESTIGE UNLOCKED! ⭐",
+  "notifPrestigeMsg": "You have ascended! Your level is reset, but your glory grows.",
+  "notifFriendRequestTitle": "New Friend Request",
+  "notifFriendRequestMsg": "{name} wants to be your friend!",
+  "notifMatchVictoryTitle": "VICTORY!",
+  "notifMatchVictoryMsg": "Match result: VICTORY!",
+  "notifMatchDefeatTitle": "DEFEAT",
+  "notifMatchDefeatMsg": "Match result: DEFEAT"
 }

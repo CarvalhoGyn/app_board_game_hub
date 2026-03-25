@@ -173,7 +173,7 @@ class GamificationService {
        await db.notificationsDao.createNotification(
           userId: userId,
           type: 'system',
-          title: 'Level Up!',
+          title: 'LEVEL UP! ⬆️', // Changed title
           message: 'You reached Level $newLevel: ${_getRankTitle(newLevel)}!',
        );
     }

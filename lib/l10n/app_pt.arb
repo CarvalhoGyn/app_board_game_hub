@@ -183,5 +183,19 @@
   "reviewHint": "Escreva seu comentário (Opcional)...",
   "submitReview": "Enviar Avaliação",
   "syncCompleted": "Sincronização concluída",
-  "recordMatch": "Registrar Partida"
+  "recordMatch": "Registrar Partida",
+  "notifications": "Notificações",
+  "noNotifications": "Nenhuma notificação",
+  "notifLevelUpTitle": "Nível Subiu!",
+  "notifLevelUpMsg": "Você alcançou o Nível {level}: {rank}!",
+  "notifAchievementTitle": "Conquista Desbloqueada!",
+  "notifAchievementMsg": "Você desbloqueou: {title}",
+  "notifPrestigeTitle": "PRESTÍGIO DESBLOQUEADO! ⭐",
+  "notifPrestigeMsg": "Você ascendeu! Seu nível foi resetado, mas sua glória cresce.",
+  "notifFriendRequestTitle": "Novo Pedido de Amizade",
+  "notifFriendRequestMsg": "{name} quer ser seu amigo!",
+  "notifMatchVictoryTitle": "VITÓRIA!",
+  "notifMatchVictoryMsg": "Resultado da partida: VITÓRIA!",
+  "notifMatchDefeatTitle": "DERROTA",
+  "notifMatchDefeatMsg": "Resultado da partida: DERROTA"
 }

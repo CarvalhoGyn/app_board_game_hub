@@ -182,5 +182,19 @@
   "reviewHint": "Écrivez vos pensées (Optionnel)...",
   "submitReview": "Envoyer l'avis",
   "syncCompleted": "Synchronisation terminée",
-  "recordMatch": "Enregistrer match"
+  "recordMatch": "Enregistrer match",
+  "notifications": "Notifications",
+  "noNotifications": "Aucune notification",
+  "notifLevelUpTitle": "Niveau supérieur !",
+  "notifLevelUpMsg": "Vous avez atteint le niveau {level} : {rank} !",
+  "notifAchievementTitle": "Succès débloqué !",
+  "notifAchievementMsg": "Vous avez débloqué : {title}",
+  "notifPrestigeTitle": "PRESTIGE DÉBLOQUÉ ! ⭐",
+  "notifPrestigeMsg": "Vous avez atteint le sommet ! Votre niveau a été réinitialisé, mais votre gloire grandit.",
+  "notifFriendRequestTitle": "Nouvelle demande d'ami",
+  "notifFriendRequestMsg": "{name} veut être votre ami !",
+  "notifMatchVictoryTitle": "VICTOIRE !",
+  "notifMatchVictoryMsg": "Résultat du match : VICTOIRE !",
+  "notifMatchDefeatTitle": "DÉFAITE",
+  "notifMatchDefeatMsg": "Résultat du match : DÉFAITE"
 }

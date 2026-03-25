@@ -1211,6 +1211,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Record Match'**
   String get recordMatch;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @noNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'No notifications'**
+  String get noNotifications;
+
+  /// No description provided for @notifLevelUpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Level Up!'**
+  String get notifLevelUpTitle;
+
+  /// No description provided for @notifLevelUpMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'You reached Level {level}: {rank}!'**
+  String notifLevelUpMsg(Object level, Object rank);
+
+  /// No description provided for @notifAchievementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Achievement Unlocked!'**
+  String get notifAchievementTitle;
+
+  /// No description provided for @notifAchievementMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'You unlocked: {title}'**
+  String notifAchievementMsg(Object title);
+
+  /// No description provided for @notifPrestigeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'PRESTIGE UNLOCKED! ⭐'**
+  String get notifPrestigeTitle;
+
+  /// No description provided for @notifPrestigeMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'You have ascended! Your level is reset, but your glory grows.'**
+  String get notifPrestigeMsg;
+
+  /// No description provided for @notifFriendRequestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New Friend Request'**
+  String get notifFriendRequestTitle;
+
+  /// No description provided for @notifFriendRequestMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} wants to be your friend!'**
+  String notifFriendRequestMsg(Object name);
+
+  /// No description provided for @notifMatchVictoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'VICTORY!'**
+  String get notifMatchVictoryTitle;
+
+  /// No description provided for @notifMatchVictoryMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Match result: VICTORY!'**
+  String get notifMatchVictoryMsg;
+
+  /// No description provided for @notifMatchDefeatTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'DEFEAT'**
+  String get notifMatchDefeatTitle;
+
+  /// No description provided for @notifMatchDefeatMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Match result: DEFEAT'**
+  String get notifMatchDefeatMsg;
 }
 
 class _AppLocalizationsDelegate

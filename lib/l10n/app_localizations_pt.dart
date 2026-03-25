@@ -613,4 +613,53 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get recordMatch => 'Registrar Partida';
+
+  @override
+  String get notifications => 'Notificações';
+
+  @override
+  String get noNotifications => 'Nenhuma notificação';
+
+  @override
+  String get notifLevelUpTitle => 'Nível Subiu!';
+
+  @override
+  String notifLevelUpMsg(Object level, Object rank) {
+    return 'Você alcançou o Nível $level: $rank!';
+  }
+
+  @override
+  String get notifAchievementTitle => 'Conquista Desbloqueada!';
+
+  @override
+  String notifAchievementMsg(Object title) {
+    return 'Você desbloqueou: $title';
+  }
+
+  @override
+  String get notifPrestigeTitle => 'PRESTÍGIO DESBLOQUEADO! ⭐';
+
+  @override
+  String get notifPrestigeMsg =>
+      'Você ascendeu! Seu nível foi resetado, mas sua glória cresce.';
+
+  @override
+  String get notifFriendRequestTitle => 'Novo Pedido de Amizade';
+
+  @override
+  String notifFriendRequestMsg(Object name) {
+    return '$name quer ser seu amigo!';
+  }
+
+  @override
+  String get notifMatchVictoryTitle => 'VITÓRIA!';
+
+  @override
+  String get notifMatchVictoryMsg => 'Resultado da partida: VITÓRIA!';
+
+  @override
+  String get notifMatchDefeatTitle => 'DERROTA';
+
+  @override
+  String get notifMatchDefeatMsg => 'Resultado da partida: DERROTA';
 }

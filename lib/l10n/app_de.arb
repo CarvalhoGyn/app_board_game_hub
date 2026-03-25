@@ -182,5 +182,19 @@
   "reviewHint": "Schreibe deine Gedanken (Optional)...",
   "submitReview": "Bewertung absenden",
   "syncCompleted": "Synchronisation abgeschlossen",
-  "recordMatch": "Match aufzeichnen"
+  "recordMatch": "Match aufzeichnen",
+  "notifications": "Benachrichtigungen",
+  "noNotifications": "Keine Benachrichtigungen",
+  "notifLevelUpTitle": "Level Up!",
+  "notifLevelUpMsg": "Du hast Level {level} erreicht: {rank}!",
+  "notifAchievementTitle": "Errungenschaft freigeschaltet!",
+  "notifAchievementMsg": "Du hast freigeschaltet: {title}",
+  "notifPrestigeTitle": "PRESTIGE FREIGESCHALTET! ⭐",
+  "notifPrestigeMsg": "Du bist aufgestiegen! Dein Level wurde zurückgesetzt, aber dein Ruhm wächst.",
+  "notifFriendRequestTitle": "Neue Freundschaftsanfrage",
+  "notifFriendRequestMsg": "{name} möchte dein Freund sein!",
+  "notifMatchVictoryTitle": "SIEG!",
+  "notifMatchVictoryMsg": "Spielergebnis: SIEG!",
+  "notifMatchDefeatTitle": "NIEDERLAGE",
+  "notifMatchDefeatMsg": "Spielergebnis: NIEDERLAGE"
 }

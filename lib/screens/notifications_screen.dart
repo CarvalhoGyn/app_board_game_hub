@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/gamification_service.dart';
 import '../services/supabase_realtime_service.dart';
 import '../services/supabase_sync_service.dart';
+import '../l10n/app_localizations.dart';
 import 'package:intl/intl.dart';
 import '../database/database.dart';
 import '../providers/user_session.dart';
@@ -141,15 +142,75 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  String _getLocalizedTitle(Notification notification, AppLocalizations l10n) {
+    if (notification.type == 'system') {
+      final title = notification.title.toUpperCase();
+      if (title.contains('LEVEL UP')) return l10n.notifLevelUpTitle;
+      if (title.contains('ACHIEVEMENT')) return l10n.notifAchievementTitle;
+      if (title.contains('PRESTIGE')) return l10n.notifPrestigeTitle;
+    }
+    if (notification.type == 'friend_request') return l10n.notifFriendRequestTitle;
+    if (notification.type == 'match_result') {
+      final title = notification.title.toLowerCase();
+      bool isDefeat = title.contains('failed') || 
+                      title.contains('defeat') ||
+                      title.contains('lost');
+      return isDefeat ? l10n.notifMatchDefeatTitle : l10n.notifMatchVictoryTitle;
+    }
+    return notification.title;
+  }
+
+  String _getLocalizedMessage(Notification notification, AppLocalizations l10n) {
+    final title = notification.title.toUpperCase();
+    if (notification.type == 'system') {
+      if (title.contains('LEVEL UP')) {
+        final reg = RegExp(r'Level (\d+): (.+)!', caseSensitive: false);
+        final match = reg.firstMatch(notification.message);
+        if (match != null) {
+          return l10n.notifLevelUpMsg(match.group(1)!, match.group(2)!);
+        }
+      }
+      if (title.contains('ACHIEVEMENT')) {
+        final reg = RegExp(r'You unlocked: (.+)', caseSensitive: false);
+        final match = reg.firstMatch(notification.message);
+        if (match != null) {
+          return l10n.notifAchievementMsg(match.group(1)!);
+        }
+      }
+      if (title.contains('PRESTIGE')) return l10n.notifPrestigeMsg;
+    }
+    if (notification.type == 'friend_request') {
+      final reg1 = RegExp(r'(.+) wants to be your friend!', caseSensitive: false);
+      final match1 = reg1.firstMatch(notification.message);
+      if (match1 != null) {
+        return l10n.notifFriendRequestMsg(match1.group(1)!.trim());
+      }
+      final reg2 = RegExp(r'(.+) sent you a friend request.', caseSensitive: false);
+      final match2 = reg2.firstMatch(notification.message);
+      if (match2 != null) {
+        return l10n.notifFriendRequestMsg(match2.group(1)!.trim());
+      }
+    }
+    if (notification.type == 'match_result') {
+      final titleLower = notification.title.toLowerCase();
+      bool isDefeat = titleLower.contains('failed') || 
+                      titleLower.contains('defeat') ||
+                      titleLower.contains('lost');
+      return isDefeat ? l10n.notifMatchDefeatMsg : l10n.notifMatchVictoryMsg;
+    }
+    return notification.message;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     final mutedColor = theme.inputDecorationTheme.hintStyle?.color ?? Colors.grey;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Notifications', style: TextStyle(color: theme.colorScheme.onSurface)),
+        title: Text(l10n.notifications, style: TextStyle(color: theme.colorScheme.onSurface)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
@@ -164,33 +225,36 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: theme.primaryColor))
           : _notifications.isEmpty
-              ? _buildEmptyState(mutedColor)
+              ? _buildEmptyState(mutedColor, l10n)
               : ListView.builder(
                   itemCount: _notifications.length,
                   itemBuilder: (context, index) {
-                    return _buildNotificationItem(_notifications[index], theme, mutedColor);
+                    return _buildNotificationItem(_notifications[index], theme, mutedColor, l10n);
                   },
                 ),
     );
   }
 
-  Widget _buildEmptyState(Color mutedColor) {
+  Widget _buildEmptyState(Color mutedColor, AppLocalizations l10n) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.notifications_none, size: 64, color: mutedColor.withValues(alpha:0.5)),
           const SizedBox(height: 16),
-          Text('No notifications', style: TextStyle(color: mutedColor, fontSize: 18)),
+          Text(l10n.noNotifications, style: TextStyle(color: mutedColor, fontSize: 18)),
         ],
       ),
     );
   }
 
-  void _showNotificationDialog(Notification notification, ThemeData theme) {
+  void _showNotificationDialog(Notification notification, ThemeData theme, AppLocalizations l10n) {
     IconData icon;
     Color color;
     String headerText = 'NOTIFICATION';
+
+    final localizedTitle = _getLocalizedTitle(notification, l10n);
+    final localizedMessage = _getLocalizedMessage(notification, l10n);
 
     bool isDefeat = notification.title.toLowerCase().contains('failed') || 
                     notification.title.toLowerCase().contains('defeat') ||
@@ -271,13 +335,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   child: Column(
                      children: [
                         Text(
-                           notification.title,
+                           localizedTitle,
                            textAlign: TextAlign.center,
                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
                         ),
                         const SizedBox(height: 12),
                         Text(
-                           notification.message,
+                           localizedMessage,
                            textAlign: TextAlign.center,
                            style: TextStyle(fontSize: 14, height: 1.5, color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
                         ),
@@ -317,9 +381,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _buildNotificationItem(Notification notification, ThemeData theme, Color mutedColor) {
+  Widget _buildNotificationItem(Notification notification, ThemeData theme, Color mutedColor, AppLocalizations l10n) {
     IconData icon;
     Color color;
+
+    final localizedTitle = _getLocalizedTitle(notification, l10n);
+    final localizedMessage = _getLocalizedMessage(notification, l10n);
 
     bool isDefeat = notification.title.toLowerCase().contains('failed') || 
                     notification.title.toLowerCase().contains('defeat') ||
@@ -358,7 +425,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             child: Icon(icon, color: color, size: 20),
           ),
           title: Text(
-            notification.title,
+            localizedTitle,
             style: TextStyle(
               color: theme.colorScheme.onSurface,
               fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
@@ -369,7 +436,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             children: [
               const SizedBox(height: 4),
               Text(
-                notification.message,
+                localizedMessage,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(color: notification.isRead ? mutedColor : theme.colorScheme.onSurface.withValues(alpha: 0.7)),
@@ -413,7 +480,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           onTap: () async {
             await _markAsRead(notification);
             if (!context.mounted) return;
-            _showNotificationDialog(notification, theme);
+            _showNotificationDialog(notification, theme, l10n);
           },
         ),
       ),
