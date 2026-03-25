@@ -171,6 +171,9 @@ class Reviews extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   
   @override
+  Set<Column> get primaryKey => {id};
+
+  @override
   List<Set<Column>> get uniqueKeys => [{userId, gameId}];
 }
 
@@ -182,7 +185,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 15;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration {
@@ -239,6 +242,10 @@ class AppDatabase extends _$AppDatabase {
             // or we accept potential breakage of existing local data.
             // Ideally: Create new tables, copy data transforming IDs, drop old, rename new.
             // For now, implementing basic column Alter if possible or assuming clean slate/reinstall.
+         }
+         if (from < 16) {
+           await m.deleteTable('reviews');
+           await m.createTable(reviews);
          }
       }
     );
@@ -321,16 +328,32 @@ class NotificationsDao extends DatabaseAccessor<AppDatabase> with _$Notification
         .then((value) => value ?? 0);
   }
 
-  Future<void> markAsRead(String notificationId) {
-    return (update(notifications)
-      ..where((n) => n.id.equals(notificationId))
-    ).write(const NotificationsCompanion(isRead: Value(true)));
+  Future<void> markAsRead(String notificationId) async {
+    await (update(notifications)..where((n) => n.id.equals(notificationId)))
+        .write(const NotificationsCompanion(isRead: Value(true)));
+
+    final row = await (select(notifications)..where((n) => n.id.equals(notificationId))).getSingleOrNull();
+    if (row != null) {
+      await db.syncQueueDao.enqueue(
+        entity: 'notifications',
+        action: 'UPDATE',
+        payload: jsonEncode(row.toJson()),
+      );
+    }
   }
-  
-  Future<void> markAllAsRead(String userId) {
-    return (update(notifications)
-      ..where((n) => n.userId.equals(userId))
-    ).write(const NotificationsCompanion(isRead: Value(true)));
+
+  Future<void> markAllAsRead(String userId) async {
+    await (update(notifications)..where((n) => n.userId.equals(userId)))
+        .write(const NotificationsCompanion(isRead: Value(true)));
+
+    final all = await (select(notifications)..where((n) => n.userId.equals(userId))).get();
+    for (var row in all) {
+      await db.syncQueueDao.enqueue(
+        entity: 'notifications',
+        action: 'UPDATE',
+        payload: jsonEncode(row.toJson()),
+      );
+    }
   }
 }
 
@@ -925,13 +948,67 @@ class MatchesDao extends DatabaseAccessor<AppDatabase> with _$MatchesDaoMixin {
     
     return results.take(maxCount).toList();
   }
+
+  Future<List<GameStats>> getTopPlayedGames(int limit) async {
+    final matchCountExp = matches.id.count(distinct: true);
+    final totalPlayersExp = players.id.count();
+
+    final query = selectOnly(matches).join([
+      innerJoin(games, games.id.equalsExp(matches.gameId)),
+      innerJoin(players, players.matchId.equalsExp(matches.id)),
+    ])
+      ..addColumns([games.id, matchCountExp, totalPlayersExp])
+      ..groupBy([games.id])
+      ..orderBy([OrderingTerm.desc(matchCountExp)])
+      ..limit(limit);
+
+    final results = await query.get();
+    
+    // We also need the game data. Since selectOnly with join and group by 
+    // can be tricky with full table reads, we'll fetch stats and then the games or join carefully.
+    // In Drift, readTable only works if the table is added to columns.
+    
+    // Alternative approach:
+    List<GameStats> stats = [];
+    for (final row in results) {
+      final gId = row.read(games.id); // This will work if games.id is added
+      if (gId == null) continue;
+      
+      final game = await (select(games)..where((g) => g.id.equals(gId))).getSingle();
+      stats.add(GameStats(
+        game: game,
+        matchCount: row.read(matchCountExp) ?? 0,
+        totalPlayers: row.read(totalPlayersExp) ?? 0,
+      ));
+    }
+    return stats;
+  }
 }
 
 @DriftAccessor(tables: [Reviews, Users])
 class ReviewsDao extends DatabaseAccessor<AppDatabase> with _$ReviewsDaoMixin {
   ReviewsDao(super.db);
 
-  Future<void> addReview(ReviewsCompanion review) => into(reviews).insertOnConflictUpdate(review);
+  Future<void> saveLocalReview(Review review) async {
+    await into(reviews).insertOnConflictUpdate(review);
+  }
+
+  Future<void> addReview(ReviewsCompanion review) async {
+    // Standard offline-first fallback if needed, but primary is via SupabaseSyncService
+    return transaction(() async {
+      await into(reviews).insertOnConflictUpdate(review);
+      
+      final row = await (select(reviews)
+        ..where((r) => r.userId.equals(review.userId.value) & r.gameId.equals(review.gameId.value))
+      ).getSingle();
+
+      await db.syncQueueDao.enqueue(
+        entity: 'reviews',
+        action: 'INSERT',
+        payload: jsonEncode(row.toJson()),
+      );
+    });
+  }
   
   Future<List<ReviewWithUser>> getReviewsForGame(String gameId) async {
     final query = select(reviews).join([
@@ -1002,6 +1079,18 @@ class PlayerWithUser {
   final User user;
 
   PlayerWithUser({required this.player, required this.user});
+}
+
+class GameStats {
+  final Game game;
+  final int matchCount;
+  final int totalPlayers;
+
+  GameStats({
+    required this.game,
+    required this.matchCount,
+    required this.totalPlayers,
+  });
 }
 
 class FriendshipWithUser {

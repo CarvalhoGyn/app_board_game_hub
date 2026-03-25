@@ -21,6 +21,7 @@
   "welcomeBack": "Welcome back,",
   "trendingGames": "Trending Games",
   "seeAll": "See All",
+  "seeDetails": "Details",
   "noTrendingGames": "No Trends Yet",
   "noTrendingSubtitle": "Play matches to see what's hot among your group.",
   "startMatch": "Start Match",
@@ -174,5 +175,12 @@
   "lvl47Title": "Supreme Host",
   "lvl48Title": "Shadow Designer",
   "lvl49Title": "Golden Meeple Incarnate",
-  "lvl50Title": "Deity of Wooden Pieces"
+  "lvl50Title": "Deity of Wooden Pieces",
+  "reviewGame": "Review Game",
+  "rateThisGame": "Rate this game:",
+  "communityReviews": "Community Reviews",
+  "ratingsCount": "{count} Ratings",
+  "reviewHint": "Write your thoughts (Optional)...",
+  "submitReview": "Submit Review",
+  "syncCompleted": "Sync completed"
 }

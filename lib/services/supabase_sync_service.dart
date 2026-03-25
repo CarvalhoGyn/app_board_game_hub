@@ -12,6 +12,8 @@ class SupabaseSyncService {
   static const String _kLastSyncKey = 'last_sync_timestamp';
   static const String _kLastGamesSyncKey = 'last_games_sync_timestamp_v1';
   static const String _kIdsAlignedKey = 'ids_aligned_v1';
+  
+  final ValueNotifier<bool> isSyncing = ValueNotifier(false);
 
   SupabaseSyncService(this._db) : _supabase = Supabase.instance.client;
 
@@ -358,11 +360,54 @@ class SupabaseSyncService {
       return newMatchId; // Return ID on success (or we could return null and pass ID separately, but returning ID is useful)
     } catch (e) {
       debugPrint('OnlineSync (CreateMatch) Error: $e');
-      return null; // Null indicates failure here? Or we should return String? 
-      // Signature returns String? (Error message). 
-      // But caller needs the Match ID to navigate!
-      // I should change signature to return Future<{String? error, String? matchId}> or simplify.
-      throw e; // Let's throw for now so caller catches.
+      return null; 
+      throw e; 
+    }
+  }
+
+  /// CLOUD-FIRST: Submit Game Review
+  Future<String?> submitReview({
+    required String gameId,
+    required double rating,
+    required String? comment,
+  }) async {
+    try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) return 'Not logged in to Supabase';
+
+      // 1. Ensure Game Synced JIT
+      final remoteGameId = await _ensureGameSynced(gameId);
+      if (remoteGameId == null) return 'Game verification failed';
+
+      // 2. Prepare Payload
+      final payload = {
+        'user_id': user.id,
+        'game_id': remoteGameId,
+        'rating': rating,
+        'comment': comment,
+        'created_at': DateTime.now().toIso8601String(),
+      };
+
+      debugPrint('CloudFirst: Submitting Review: $payload');
+
+      // 3. Upsert to Supabase
+      // We already configured 'onConflict': 'user_id,game_id' in pushChanges,
+      // let's apply it here too.
+      final response = await _supabase
+          .from('reviews')
+          .upsert(payload, onConflict: 'user_id,game_id')
+          .select()
+          .single();
+
+      // 4. Save to Local DB
+      // Convert response back to local format (camelCase and proper types)
+      final camelData = _toCamelCaseMap(response);
+      await _db.reviewsDao.saveLocalReview(Review.fromJson(camelData));
+
+      return null; // Success
+    } catch (e) {
+      debugPrint('CloudFirst (SubmitReview) Error: $e');
+      return e.toString();
     }
   }
 
@@ -381,6 +426,7 @@ class SupabaseSyncService {
     }
 
     try {
+      isSyncing.value = true;
       debugPrint('>>> STARTING SYNC for User: ${user.id} <<<');
       
       await _db.syncQueueDao.retryFailedItems();
@@ -410,6 +456,8 @@ class SupabaseSyncService {
     } catch (e, stack) {
       debugPrint('>>> SYNC FAILED: $e <<<');
       debugPrintStack(stackTrace: stack);
+    } finally {
+      isSyncing.value = false;
     }
   }
 
@@ -438,6 +486,11 @@ class SupabaseSyncService {
         camelItem['password'] ??= 'auth_external';
         camelItem['xp'] ??= 0;
         camelItem['prestige'] ??= 0;
+
+        // Resolve Avatar URL to Public URL
+        if (camelItem['avatarUrl'] != null) {
+          camelItem['avatarUrl'] = _resolveAvatarUrl(camelItem['avatarUrl'] as String);
+        }
         
         final user = User.fromJson(camelItem);
         // Cache locally so we can reference them (foreign keys)
@@ -532,6 +585,9 @@ class SupabaseSyncService {
            if (table == 'user_collections') {
                snakePayload.remove('id'); // RESTORED: Server authority for IDs
                onConflict = 'user_id,game_id,collection_type';
+           } else if (table == 'reviews') {
+               snakePayload.remove('id'); // Server authority for IDs
+               onConflict = 'user_id,game_id';
            } else if (table == 'games') {
                snakePayload.remove('id'); // Allow server to generate/match ID
                // Check if bgg_id is present for Unique Constraint
@@ -605,6 +661,9 @@ class SupabaseSyncService {
             
             // Perform the update by ID
             if (updatePayload.isNotEmpty) {
+               if (table == 'notifications') {
+                 debugPrint('Sync: Updating Notification ${snakePayload['id']} - is_read: ${updatePayload['is_read']}');
+               }
                await _supabase.from(table).update(updatePayload).eq('id', snakePayload['id']);
             }
          } else if (item.action == 'DELETE') {
@@ -947,15 +1006,6 @@ class SupabaseSyncService {
        await _db.into(_db.matches).insertOnConflictUpdate(MatchRow.fromJson(camelData));
     }, timestampColumn: 'date'); // REMOVED userId: _supabase.auth.currentUser?.id, userIdColumn: 'creator_id'
     
-    await _pullTable('reviews', lastSync, (data) async {
-       final camelData = _toCamelCaseMap(data);
-       // Ensure Reviewer exists
-       if (camelData.containsKey('userId')) {
-           await _ensureLocalUser(camelData['userId']);
-       }
-       await _db.into(_db.reviews).insertOnConflictUpdate(Review.fromJson(camelData));
-    }, timestampColumn: 'created_at', userId: _supabase.auth.currentUser?.id);
-    
     // UserCollections uses 'added_at'
     await _pullTable('user_collections', lastSync, (data) async {
        final camelData = _toCamelCaseMap(data);
@@ -988,7 +1038,7 @@ class SupabaseSyncService {
        }
        
        await _db.into(_db.userGameCollections).insertOnConflictUpdate(row);
-    }, timestampColumn: 'added_at', userId: _supabase.auth.currentUser?.id);
+    }, timestampColumn: 'added_at');
     
     // Friendships: needs special OR filter (user is sender OR receiver)
     final currentUserId = _supabase.auth.currentUser!.id;
@@ -1056,7 +1106,7 @@ class SupabaseSyncService {
        }
        
        await _db.into(_db.notifications).insertOnConflictUpdate(Notification.fromJson(camelData));
-    }, timestampColumn: 'created_at', userId: _supabase.auth.currentUser?.id);
+    }, timestampColumn: 'created_at');
 
     // RECONCILE DELETIONS: Friendships
     await _reconcileFriendships(_supabase.auth.currentUser!.id);
@@ -1122,6 +1172,11 @@ class SupabaseSyncService {
               camelData['password'] = ''; // Placeholder for synced users
            }
            
+           // Resolve Avatar URL to Public URL if needed
+           if (camelData['avatarUrl'] != null) {
+              camelData['avatarUrl'] = _resolveAvatarUrl(camelData['avatarUrl'] as String);
+           }
+           
            await _db.into(_db.users).insertOnConflictUpdate(User.fromJson(camelData));
            debugPrint('Sync Restore: User $userId restored.');
         } else {
@@ -1158,6 +1213,13 @@ class SupabaseSyncService {
               query = query.or('user_id.eq.$userId,friend_id.eq.$userId');
            } else {
               query = query.eq(userIdColumn, userId);
+           }
+
+           // [NEW] Historical Cleanup: Only pull last 30 days for notifications in Restore Mode
+           if (tableName == 'notifications') {
+              final thirtyDaysAgo = DateTime.now().subtract(const Duration(days: 30)).toIso8601String();
+              query = query.gt(timestampColumn, thirtyDaysAgo);
+              debugPrint('Sync: Filtering notifications to last 30 days (since $thirtyDaysAgo)');
            }
            
            final response = await query;
@@ -1335,5 +1397,35 @@ class SupabaseSyncService {
     return snake.replaceAllMapped(RegExp(r'_([a-z])'), (match) {
       return match.group(1)!.toUpperCase();
     });
+  }
+
+  String? _resolveAvatarUrl(String? url) {
+    if (url == null || url.isEmpty) return null;
+    if (url.startsWith('http')) return url;
+    // Assume it's a file path in the 'profile_images' bucket
+    return _supabase.storage.from('profile_images').getPublicUrl(url);
+  }
+
+  Future<void> pullGameReviews(String gameId) async {
+    try {
+      debugPrint('Sync: Pulling reviews for game $gameId');
+      final response = await _supabase
+          .from('reviews')
+          .select()
+          .eq('game_id', gameId);
+          
+      final rows = response as List<dynamic>;
+      for (final row in rows) {
+        if (row is Map<String, dynamic>) {
+          final camelData = _toCamelCaseMap(row);
+          if (camelData.containsKey('userId')) {
+            await _ensureLocalUser(camelData['userId']);
+          }
+          await _db.into(_db.reviews).insertOnConflictUpdate(Review.fromJson(camelData));
+        }
+      }
+    } catch (e) {
+      debugPrint('Sync Error pulling game reviews: $e');
+    }
   }
 }

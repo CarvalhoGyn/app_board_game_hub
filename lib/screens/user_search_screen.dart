@@ -97,6 +97,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
                   leading: CircleAvatar(
                     backgroundImage: imageProvider,
                     backgroundColor: theme.colorScheme.surface,
+                    onBackgroundImageError: imageProvider != null ? (e, s) => debugPrint('Search Avatar Error: $e') : null,
                     child: imageProvider == null ? Text(
                        user.username.length > 1 ? user.username.substring(0, 2).toUpperCase() : user.username.toUpperCase(), 
                        style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold)

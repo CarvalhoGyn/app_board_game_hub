@@ -13,6 +13,9 @@ import '../providers/user_session.dart';
 import 'notifications_screen.dart';
 import '../widgets/staggered_slide_fade.dart';
 import 'package:app_board_game_hub/l10n/app_localizations.dart';
+import 'package:app_board_game_hub/services/supabase_sync_service.dart';
+import 'package:app_board_game_hub/widgets/sync_toast.dart';
+import 'top_games_screen.dart';
 
 class GameCatalog extends StatefulWidget {
   const GameCatalog({super.key});
@@ -25,13 +28,54 @@ class _GameCatalogState extends State<GameCatalog> {
   List<Game> _trendingGames = [];
   List<Game> _recommendedGames = [];
   bool _isLoading = true;
+  bool _wasSyncing = false;
+  OverlayEntry? _syncOverlayEntry;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
+      _setupSyncListener();
     });
+  }
+
+  void _setupSyncListener() {
+    final syncService = context.read<SupabaseSyncService>();
+    _wasSyncing = syncService.isSyncing.value;
+    syncService.isSyncing.addListener(_onSyncChanged);
+  }
+
+  void _onSyncChanged() {
+    if (!mounted) return;
+    final isSyncing = context.read<SupabaseSyncService>().isSyncing.value;
+    
+    // Detect transition from true to false
+    if (_wasSyncing && !isSyncing) {
+      _showSyncToast();
+    }
+    
+    _wasSyncing = isSyncing;
+  }
+
+  void _showSyncToast() {
+    if (_syncOverlayEntry != null) {
+      _syncOverlayEntry!.remove();
+      _syncOverlayEntry = null;
+    }
+
+    final l10n = AppLocalizations.of(context)!;
+    _syncOverlayEntry = OverlayEntry(
+      builder: (context) => SyncToast(
+        message: l10n.syncCompleted,
+        onDismiss: () {
+           _syncOverlayEntry?.remove();
+           _syncOverlayEntry = null;
+        },
+      ),
+    );
+
+    Overlay.of(context).insert(_syncOverlayEntry!);
   }
 
   Future<void> _loadData() async {
@@ -68,6 +112,13 @@ class _GameCatalogState extends State<GameCatalog> {
         });
       }
     }
+  }
+
+  @override
+  void dispose() {
+    context.read<SupabaseSyncService>().isSyncing.removeListener(_onSyncChanged);
+    _syncOverlayEntry?.remove();
+    super.dispose();
   }
 
   @override
@@ -260,7 +311,10 @@ class _GameCatalogState extends State<GameCatalog> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(l10n.trendingGames, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
-              TextButton(onPressed: () {}, child: Text(l10n.seeAll, style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold))),
+              TextButton(
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const TopGamesScreen())), 
+                child: Text(l10n.seeDetails, style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold)),
+              ),
             ],
           ),
         ),

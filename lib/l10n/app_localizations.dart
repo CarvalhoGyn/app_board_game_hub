@@ -234,6 +234,12 @@ abstract class AppLocalizations {
   /// **'See All'**
   String get seeAll;
 
+  /// No description provided for @seeDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get seeDetails;
+
   /// No description provided for @noTrendingGames.
   ///
   /// In en, this message translates to:
@@ -1157,6 +1163,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Deity of Wooden Pieces'**
   String get lvl50Title;
+
+  /// No description provided for @reviewGame.
+  ///
+  /// In en, this message translates to:
+  /// **'Review Game'**
+  String get reviewGame;
+
+  /// No description provided for @rateThisGame.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate this game:'**
+  String get rateThisGame;
+
+  /// No description provided for @communityReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'Community Reviews'**
+  String get communityReviews;
+
+  /// No description provided for @ratingsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Ratings'**
+  String ratingsCount(Object count);
+
+  /// No description provided for @reviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Write your thoughts (Optional)...'**
+  String get reviewHint;
+
+  /// No description provided for @submitReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Review'**
+  String get submitReview;
 }
 
 class _AppLocalizationsDelegate

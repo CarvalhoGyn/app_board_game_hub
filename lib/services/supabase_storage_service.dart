@@ -3,6 +3,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:path/path.dart' as p;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
+import '../env/env.dart';
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 class SupabaseStorageService {
   final SupabaseClient _supabase;
@@ -24,23 +27,52 @@ class SupabaseStorageService {
       );
 
       final fileToUpload = compressedFile != null ? File(compressedFile.path) : file;
-      final fileExt = p.extension(fileToUpload.path);
-      final fileName = '$userId${DateTime.now().millisecondsSinceEpoch}$fileExt';
+      final fileExt = p.extension(fileToUpload.path).toLowerCase();
       
-      // Upload file to 'avatars' bucket
-      await _supabase.storage.from('avatars').upload(
-        fileName,
-        fileToUpload,
-        fileOptions: const FileOptions(cacheControl: '3600', upsert: false),
+      final extensionWithoutDot = fileExt.replaceFirst('.', '');
+      final contentType = extensionWithoutDot == 'jpg' || extensionWithoutDot == 'jpeg' 
+          ? 'image/jpeg' 
+          : 'image/$extensionWithoutDot';
+
+      final fileName = '$userId${DateTime.now().millisecondsSinceEpoch}$fileExt';
+      final bucketName = 'profile_images';
+      
+      // Manual HTTP Upload using 'http' package to bypass SDK 404 bugs on iOS
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${Env.supabaseUrl}/storage/v1/object/$bucketName/$fileName'),
       );
 
+      request.headers.addAll({
+        'apikey': Env.supabaseAnonKey,
+        'Authorization': 'Bearer ${_supabase.auth.currentSession?.accessToken ?? Env.supabaseAnonKey}',
+        'x-upsert': 'false',
+      });
+
+      request.files.add(await http.MultipartFile.fromPath(
+        'file',
+        fileToUpload.path,
+        contentType: MediaType.parse(contentType),
+      ));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode != 200) {
+        print('Manual Upload Failed: ${response.statusCode} - ${response.body}');
+        throw Exception('Upload failed with status ${response.statusCode}');
+      }
+      
+      print('Manual Upload successful: $fileName');
+
       // Get Public URL
-      final publicUrl = _supabase.storage.from('avatars').getPublicUrl(fileName);
-      return publicUrl;
+      final publicUrl = '${Env.supabaseUrl}/storage/v1/object/public/$bucketName/$fileName';
+      
+      // Append timestamp to force refresh on UI
+      return '$publicUrl?v=${DateTime.now().millisecondsSinceEpoch}';
       
     } catch (e) {
-      // If we can't upload, we return null or throw. 
-      // For now let's rethrow so UI can show error.
+      print('General Upload Error: $e');
       throw Exception('Upload failed: $e');
     }
   }
@@ -59,7 +91,7 @@ class SupabaseStorageService {
 
       if (fileName.isNotEmpty) {
         print('Deleting old avatar: $fileName');
-        final res = await _supabase.storage.from('avatars').remove([fileName]);
+        final res = await _supabase.storage.from('profile_images').remove([fileName]);
         // Note: remove returns List<FileObject> of deleted items.
         // If list is empty, deletion failed or file didn't exist.
         if (res.isEmpty) {

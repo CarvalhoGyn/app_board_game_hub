@@ -215,12 +215,7 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Processing avatar...')));
 
       try {
-         // 0. Clean up old avatar if exists
-         if (currentUser.avatarUrl != null && currentUser.avatarUrl!.startsWith('http')) {
-             await storageService.deleteFile(currentUser.avatarUrl!);
-         }
-
-         // 1. Upload to Supabase
+         // 1. Upload to Supabase (Upsert handles cleaning up the old file implicitly by using same name)
          final publicUrl = await storageService.uploadAvatar(File(pickedFile.path), currentUser.id);
          
          if (publicUrl != null) {
@@ -368,27 +363,26 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                     shape: BoxShape.circle,
                     border: Border.all(color: theme.scaffoldBackgroundColor, width: 4),
                     color: theme.cardTheme.color,
-                     image: user.avatarUrl != null 
+                    image: (user.avatarUrl != null && user.avatarUrl!.isNotEmpty)
                         ? DecorationImage(
-                            image: user.avatarUrl!.startsWith('http') 
-                                ? NetworkImage(user.avatarUrl!) 
-                            : (File(user.avatarUrl!).existsSync() 
-                                    ? FileImage(File(user.avatarUrl!)) as ImageProvider
-                                    : const NetworkImage('https://i.pravatar.cc/150')),
+                            image: NetworkImage(user.avatarUrl!),
                             fit: BoxFit.cover,
+                            onError: (e, s) => debugPrint('Dashboard Avatar Error: $e'),
                           )
                         : null,
                   ),
-                  child: user.avatarUrl == null ? Center(
-                    child: Text(
-                      user.username.substring(0, 2).toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 48,
-                        fontWeight: FontWeight.bold,
-                        color: theme.primaryColor,
-                      ),
-                    ),
-                  ) : null,
+                  child: (user.avatarUrl == null || user.avatarUrl!.isEmpty) 
+                    ? Center(
+                        child: Text(
+                          user.username.substring(0, user.username.length > 1 ? 2 : 1).toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.bold,
+                            color: theme.primaryColor,
+                          ),
+                        ),
+                      ) 
+                    : null,
                 ),
               ),
               if (isMyProfile)
@@ -714,6 +708,8 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
         height: 32,
         child: Stack(
            children: List.generate(display.length, (index) {
+              final friend = display[index];
+              final hasAvatar = friend.avatarUrl != null && friend.avatarUrl!.isNotEmpty;
               return Positioned(
                  left: index * 20.0,
                  child: Container(
@@ -721,17 +717,21 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                     decoration: BoxDecoration(
                        shape: BoxShape.circle,
                        border: Border.all(color: theme.cardTheme.color ?? Colors.grey, width: 2),
-                       image: DecorationImage(
-                         image: display[index].avatarUrl != null 
-                           ? (display[index].avatarUrl!.startsWith('http') 
-                               ? NetworkImage(display[index].avatarUrl!) 
-                               : (File(display[index].avatarUrl!).existsSync() 
-                                   ? FileImage(File(display[index].avatarUrl!)) as ImageProvider
-                                   : NetworkImage('https://i.pravatar.cc/150?u=${display[index].id}')))
-                           : NetworkImage('https://i.pravatar.cc/150?u=${display[index].id}'),
-                         fit: BoxFit.cover,
-                       ),
+                       color: theme.cardTheme.color,
+                       image: hasAvatar 
+                           ? DecorationImage(
+                               image: NetworkImage(friend.avatarUrl!),
+                               fit: BoxFit.cover,
+                               onError: (e, s) => debugPrint('Preview Avatar Error: $e'),
+                             )
+                           : null,
                     ),
+                    child: !hasAvatar ? Center(
+                       child: Text(
+                          friend.username.substring(0, friend.username.length > 1 ? 2 : 1).toUpperCase(),
+                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: theme.primaryColor),
+                       ),
+                    ) : null,
                  ),
               );
            }),

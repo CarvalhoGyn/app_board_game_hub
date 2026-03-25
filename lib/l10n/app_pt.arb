@@ -21,6 +21,7 @@
   "welcomeBack": "Bem-vindo de volta,",
   "trendingGames": "Jogos em Alta",
   "seeAll": "Ver Todos",
+  "seeDetails": "Detalhar",
   "noTrendingGames": "Sem Tendências Ainda",
   "noTrendingSubtitle": "Jogue partidas para ver o que está em alta no seu grupo.",
   "startMatch": "Iniciar Partida",
@@ -174,5 +175,12 @@
   "lvl47Title": "Host Supremo",
   "lvl48Title": "O Designer de Sombras",
   "lvl49Title": "O Meeple Dourado Encarnado",
-  "lvl50Title": "Divindade das Peças de Madeira"
+  "lvl50Title": "Divindade das Peças de Madeira",
+  "reviewGame": "Avaliar Jogo",
+  "rateThisGame": "Dê sua nota:",
+  "communityReviews": "Avaliações da Comunidade",
+  "ratingsCount": "{count} Avaliações",
+  "reviewHint": "Escreva seu comentário (Opcional)...",
+  "submitReview": "Enviar Avaliação",
+  "syncCompleted": "Sincronização concluída"
 }

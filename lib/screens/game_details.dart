@@ -1,10 +1,10 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:drift/drift.dart' show Value;
 import '../database/database.dart';
 import '../providers/user_session.dart';
 import '../services/supabase_sync_service.dart';
+import '../l10n/app_localizations.dart';
 
 class GameDetails extends StatefulWidget {
   final Game game;
@@ -25,6 +25,16 @@ class _GameDetailsState extends State<GameDetails> {
 
   Future<void> _fetchReviews() async {
     debugPrint('Fetching reviews for game ${_currentGame.id}');
+    
+    // 1. Pull on-demand from Supabase
+    try {
+      final syncService = context.read<SupabaseSyncService>();
+      await syncService.pullGameReviews(_currentGame.id);
+    } catch (e) {
+      debugPrint('Sync: Error pulling reviews: $e');
+    }
+
+    // 2. Load from Local DB
     final reviewsDao = context.read<ReviewsDao>();
     final results = await reviewsDao.getReviewsForGame(_currentGame.id);
     debugPrint('Fetched ${results.length} reviews');
@@ -32,22 +42,34 @@ class _GameDetailsState extends State<GameDetails> {
   }
 
   Future<void> _submitReview(double rating, String comment, String userId) async {
-    debugPrint('Submitting review: User $userId, Game ${_currentGame.id}, Rating $rating');
+    debugPrint('Submitting review (Cloud-First): User $userId, Game ${_currentGame.id}, Rating $rating');
     try {
-      final reviewsDao = context.read<ReviewsDao>();
-      await reviewsDao.addReview(ReviewsCompanion(
-        userId: Value(userId),
-        gameId: Value(_currentGame.id),
-        rating: Value(rating),
-        comment: Value(comment),
-        createdAt: Value(DateTime.now()),
-      ));
-      debugPrint('Review submitted successfully');
-      await _fetchReviews(); // Refresh list
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Review submitted!')));
+      setState(() => _isLoading = true);
+      final service = context.read<SupabaseSyncService>();
+      
+      final error = await service.submitReview(
+        gameId: _currentGame.id,
+        rating: rating,
+        comment: comment.isEmpty ? null : comment,
+      );
+
+      if (mounted) {
+        setState(() => _isLoading = false);
+        if (error == null) {
+          debugPrint('Review submitted successfully via Cloud-First');
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Review submitted!')));
+          await _fetchReviews(); // Refresh list from local DB (which was updated by service)
+        } else {
+          debugPrint('Error from Cloud-First Review: $error');
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $error')));
+        }
+      }
     } catch (e) {
       debugPrint('Error submitting review: $e');
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
 
@@ -428,19 +450,20 @@ class _GameDetailsState extends State<GameDetails> {
   }
 
   Widget _buildReviewsSection(ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-            Text('Community Reviews', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
+            Text(l10n.communityReviews, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
             const SizedBox(height: 16),
             _buildReviewSummary(theme),
             const SizedBox(height: 16),
             if (_reviews.isEmpty)
                 Center(child: Padding(padding: const EdgeInsets.all(16), child: Text('No reviews yet. Be the first!', style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha:0.54)))))
             else
-                Column(children: _reviews.map((r) => _buildReviewCard(r, theme)).toList()),
+                Column(children: _reviews.take(5).map((r) => _buildReviewCard(r, theme)).toList()),
         ],
       ),
     );
@@ -476,7 +499,7 @@ class _GameDetailsState extends State<GameDetails> {
                 )),
               ),
               const SizedBox(height: 4),
-              Text('$count Ratings', style: TextStyle(color: mutedColor, fontSize: 10)),
+              Text(AppLocalizations.of(context)!.ratingsCount(count), style: TextStyle(color: mutedColor, fontSize: 10)),
             ],
           ),
           const SizedBox(width: 16),
@@ -535,7 +558,7 @@ class _GameDetailsState extends State<GameDetails> {
             children: [
               Row(
                 children: [
-                   CircleAvatar(radius: 16, backgroundColor: theme.primaryColor, child: Text(u.username[0].toUpperCase(), style: TextStyle(color: theme.colorScheme.onPrimary))),
+                   _buildUserAvatar(u, theme),
                    const SizedBox(width: 12),
                    Text(u.username, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: theme.colorScheme.onSurface)),
                 ],
@@ -579,7 +602,7 @@ class _GameDetailsState extends State<GameDetails> {
         child: ElevatedButton.icon(
           onPressed: () => _showReviewDialog(theme), // Linked to Review Dialog
           icon: Icon(Icons.rate_review, color: theme.colorScheme.onPrimary),
-          label: Text('Review Game', style: TextStyle(color: theme.colorScheme.onPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
+          label: Text(AppLocalizations.of(context)!.reviewGame, style: TextStyle(color: theme.colorScheme.onPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
           style: ElevatedButton.styleFrom(
             backgroundColor: theme.primaryColor,
             minimumSize: const Size(double.infinity, 56),
@@ -614,9 +637,9 @@ class _GameDetailsState extends State<GameDetails> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Review Game', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
+              Text(AppLocalizations.of(context)!.reviewGame, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
               const SizedBox(height: 16),
-              Text('Rate this game:', style: TextStyle(color: mutedColor)),
+              Text(AppLocalizations.of(context)!.rateThisGame, style: TextStyle(color: mutedColor)),
               Slider(
                 value: currentRating,
                 min: 1, max: 5, divisions: 4,
@@ -636,7 +659,7 @@ class _GameDetailsState extends State<GameDetails> {
                 controller: commentController,
                 style: TextStyle(color: theme.colorScheme.onSurface),
                 decoration: InputDecoration(
-                  hintText: 'Write your thoughts (Optional)...',
+                  hintText: AppLocalizations.of(context)!.reviewHint,
                   hintStyle: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha:0.5)),
                   filled: true,
                   fillColor: theme.colorScheme.surface,
@@ -654,13 +677,36 @@ class _GameDetailsState extends State<GameDetails> {
                     Navigator.pop(context);
                     await _submitReview(currentRating, commentController.text, userSession.currentUser!.id);
                   },
-                  child: Text('Submit Review', style: TextStyle(color: theme.colorScheme.onPrimary, fontWeight: FontWeight.bold)),
+                  child: Text(AppLocalizations.of(context)!.submitReview, style: TextStyle(color: theme.colorScheme.onPrimary, fontWeight: FontWeight.bold)),
                 ),
               ),
               const SizedBox(height: 24),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildUserAvatar(User user, ThemeData theme) {
+    if (user.avatarUrl != null && user.avatarUrl!.isNotEmpty) {
+      return CircleAvatar(
+        radius: 16,
+        backgroundColor: theme.primaryColor,
+        backgroundImage: NetworkImage(user.avatarUrl!),
+        onBackgroundImageError: (exception, stackTrace) {
+           debugPrint('Avatar Load Error: $exception');
+        },
+        child: null, 
+      );
+    }
+    
+    return CircleAvatar(
+      radius: 16,
+      backgroundColor: theme.primaryColor,
+      child: Text(
+        user.username[0].toUpperCase(),
+        style: TextStyle(color: theme.colorScheme.onPrimary, fontSize: 12),
       ),
     );
   }

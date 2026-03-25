@@ -78,6 +78,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get seeAll => 'Alle ansehen';
 
   @override
+  String get seeDetails => 'Details';
+
+  @override
   String get noTrendingGames => 'Noch keine Trends';
 
   @override
@@ -578,4 +581,24 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get lvl50Title => 'Gottheit der Holzfiguren';
+
+  @override
+  String get reviewGame => 'Review Game';
+
+  @override
+  String get rateThisGame => 'Rate this game:';
+
+  @override
+  String get communityReviews => 'Community Reviews';
+
+  @override
+  String ratingsCount(Object count) {
+    return '$count Ratings';
+  }
+
+  @override
+  String get reviewHint => 'Write your thoughts (Optional)...';
+
+  @override
+  String get submitReview => 'Submit Review';
 }

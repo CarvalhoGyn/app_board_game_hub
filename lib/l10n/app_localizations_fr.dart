@@ -78,6 +78,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get seeAll => 'Voir Tout';
 
   @override
+  String get seeDetails => 'Détails';
+
+  @override
   String get noTrendingGames => 'Pas encore de tendances';
 
   @override
@@ -582,4 +585,24 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get lvl50Title => 'Divinité des Pièces en Bois';
+
+  @override
+  String get reviewGame => 'Review Game';
+
+  @override
+  String get rateThisGame => 'Rate this game:';
+
+  @override
+  String get communityReviews => 'Community Reviews';
+
+  @override
+  String ratingsCount(Object count) {
+    return '$count Ratings';
+  }
+
+  @override
+  String get reviewHint => 'Write your thoughts (Optional)...';
+
+  @override
+  String get submitReview => 'Submit Review';
 }
