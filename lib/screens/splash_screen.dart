@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_session.dart';
 import '../services/supabase_sync_service.dart';
+import '../services/supabase_realtime_service.dart';
 import 'login_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
+import '../env/env.dart';
+import '../database/database.dart';
+import 'game_catalog.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -30,27 +35,61 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _controller.forward();
     
-    _initializeApp();
+    // Ensure the very first frame paints BEFORE we trigger complex init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeApp();
+    });
   }
   
   Future<void> _initializeApp() async {
-    // Wait for animation + minimum time
-    await Future.delayed(const Duration(seconds: 3));
+    // 1. Initialize heavy backend services here while animation plays
+    try {
+        await Supabase.initialize(
+          url: Env.supabaseUrl,
+          anonKey: Env.supabaseAnonKey,
+        );
+    } catch (e) {
+        debugPrint('Splash: Supabase init error: $e');
+    }
+
+    // 2. Padding delay to let the animation show for at least 1-1.5 seconds smoothly
+    await Future.delayed(const Duration(milliseconds: 1500));
     
     if (!mounted) return;
 
     final userSession = context.read<UserSession>();
     
     // Check if we have a persisted session or auto-login logic
-    // Usually Supabase handles this via auth state change, but UserSession might need init.
-    // For now, we just navigate to LoginScreen which handles "Already Logged In" check or shows Login UI.
-    // Ideally, LoginScreen's check should be here to skip LoginScreen UI flash.
+    final session = Supabase.instance.client.auth.currentSession;
+    if (session != null) {
+        try {
+           final authUser = session.user;
+           final usersDao = context.read<UsersDao>();
+           var localUser = await usersDao.getUserById(authUser.id);
+           
+           if (localUser != null) {
+              userSession.login(localUser);
+              context.read<SupabaseSyncService>().sync();
+              // Start Realtime subscription
+              context.read<SupabaseRealtimeService>().subscribe(authUser.id);
+              
+              if (!mounted) return;
+              Navigator.of(context).pushReplacement(
+                PageRouteBuilder(
+                  pageBuilder: (_, __, ___) => const GameCatalog(),
+                  transitionsBuilder: (_, animation, __, child) => FadeTransition(opacity: animation, child: child),
+                  transitionDuration: const Duration(milliseconds: 800),
+                ),
+              );
+              return; 
+           }
+        } catch (e) {
+           debugPrint('Auto-login failed: $e');
+        }
+    }
     
-    // Let's assume LoginScreen handles it or we check session:
-    // final session = supabase.auth.currentSession;
-    // if (session != null) ...
-    
-    // Navigate
+    if (!mounted) return;
+    // Navigate to Login if session fails
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => const LoginScreen(),
@@ -79,22 +118,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-               width: 120,
-               height: 120,
-               decoration: BoxDecoration(
-                  color: theme.primaryColor,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                     BoxShadow(
-                        color: theme.primaryColor.withOpacity(0.4),
-                        blurRadius: 20,
-                        spreadRadius: 5
-                     )
-                  ]
-               ),
-               child: const Icon(Icons.casino, size: 64, color: Colors.white), // Placeholder BoardGame Icon
-            ),
+            // Icon removed as requested to keep a minimal beige layout
             const SizedBox(height: 32),
             AnimatedBuilder(
               animation: _controller,
@@ -107,12 +131,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               child: Column(
                 children: [
                    Text(
-                    'Board Game Hub',
+                    'MeepleSync',
                     style: TextStyle(
-                       fontSize: 24, 
+                       fontSize: 28, 
                        fontWeight: FontWeight.bold,
                        color: theme.colorScheme.onSurface,
-                       letterSpacing: 1.2
+                       letterSpacing: 2.0
                     ),
                   ),
                   const SizedBox(height: 16),

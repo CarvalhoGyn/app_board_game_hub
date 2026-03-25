@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../services/gamification_service.dart';
 import '../database/database.dart';
 import 'package:intl/intl.dart';
+import 'package:app_board_game_hub/l10n/app_localizations.dart';
 
 class AchievementsScreen extends StatelessWidget {
   final String userId;
@@ -19,7 +20,7 @@ class AchievementsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Achievements', style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
+        title: Text(AppLocalizations.of(context)!.achievementsLabel, style: TextStyle(fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
@@ -75,7 +76,7 @@ class AchievementsScreen extends StatelessWidget {
                        ),
                        const SizedBox(height: 12),
                        Text(
-                         achievement.title,
+                         GamificationLocalizer.getAchievementTitle(AppLocalizations.of(context)!, achievement.id),
                          textAlign: TextAlign.center,
                          style: TextStyle(
                             fontSize: 12, 
@@ -120,12 +121,12 @@ class AchievementsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                       achievement.title,
+                       GamificationLocalizer.getAchievementTitle(AppLocalizations.of(context)!, achievement.id),
                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                       isUnlocked ? 'Unlocked' : 'Locked',
+                       isUnlocked ? AppLocalizations.of(context)!.unlockedLabel : AppLocalizations.of(context)!.lockedLabel,
                        style: TextStyle(
                           color: isUnlocked ? theme.primaryColor : mutedColor,
                           fontWeight: FontWeight.bold,
@@ -134,14 +135,14 @@ class AchievementsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                       achievement.description,
+                       GamificationLocalizer.getAchievementDesc(AppLocalizations.of(context)!, achievement.id),
                        textAlign: TextAlign.center,
                        style: TextStyle(fontSize: 16, color: theme.colorScheme.onSurface.withOpacity(0.7)),
                     ),
                     if (isUnlocked && date != null) ...[
                        const SizedBox(height: 24),
                        Text(
-                          'Unlocked on ${DateFormat.yMMMd().format(date)}',
+                          AppLocalizations.of(context)!.unlockedOnDate(DateFormat.yMMMd().format(date)),
                           style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withOpacity(0.5)),
                        ),
                     ],
@@ -152,7 +153,7 @@ class AchievementsScreen extends StatelessWidget {
                           backgroundColor: theme.cardTheme.color,
                           foregroundColor: theme.colorScheme.onSurface,
                        ),
-                       child: const Text('Close'),
+                       child: Text(AppLocalizations.of(context)!.closeButton),
                     )
                  ],
               ),

@@ -500,6 +500,17 @@ class _CreateMatchState extends State<CreateMatch> {
           try {
             final service = context.read<SupabaseSyncService>();
             
+            // Validate IDs
+            for (var p in _selectedPlayers) {
+              if (p.id.isEmpty) {
+                 Navigator.pop(context); // Dismiss loading
+                 ScaffoldMessenger.of(context).showSnackBar(
+                   const SnackBar(content: Text('Error: One or more players have an invalid ID.'), backgroundColor: Colors.redAccent),
+                 );
+                 return;
+              }
+            }
+
             // Online-First Match Creation
             final newMatchId = await service.createMatch(
               match: MatchesCompanion(
@@ -509,7 +520,9 @@ class _CreateMatchState extends State<CreateMatch> {
                 scoringType: drift.Value(_scoringType),
                 creatorId: drift.Value(context.read<UserSession>().currentUser?.id),
               ),
-              players: _selectedPlayers.map((u) => PlayersCompanion(userId: drift.Value(u.id))).toList(),
+              players: _selectedPlayers.map((u) {
+                return PlayersCompanion(userId: drift.Value(u.id));
+              }).toList(),
             );
 
             if (!mounted) return;
@@ -517,6 +530,7 @@ class _CreateMatchState extends State<CreateMatch> {
 
             if (newMatchId != null) {
                // Success
+               context.read<SupabaseSyncService>().sync();
                Navigator.push(context, MaterialPageRoute(builder: (context) => RecordMatchScore(matchId: newMatchId)));
             } else {
                // Failure (null returned)
@@ -576,8 +590,8 @@ class _UserSearchSheetState extends State<_UserSearchSheet> {
     }
 
     setState(() => _isLoading = true);
-    final usersDao = context.read<UsersDao>();
-    final results = await usersDao.searchUsersByNickname(query);
+    final syncService = context.read<SupabaseSyncService>();
+    final results = await syncService.searchGlobalUsers(query);
     
     if (mounted) {
       setState(() {

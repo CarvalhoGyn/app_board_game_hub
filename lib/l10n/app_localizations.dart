@@ -545,6 +545,618 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No matches found for this filter.'**
   String get historyNoMatches;
+
+  /// No description provided for @unlockedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocked'**
+  String get unlockedLabel;
+
+  /// No description provided for @lockedLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Locked'**
+  String get lockedLabel;
+
+  /// No description provided for @unlockedOnDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlocked on {date}'**
+  String unlockedOnDate(Object date);
+
+  /// No description provided for @closeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get closeButton;
+
+  /// No description provided for @myWishlistTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My Wishlist'**
+  String get myWishlistTitle;
+
+  /// No description provided for @emptyWishlist.
+  ///
+  /// In en, this message translates to:
+  /// **'Your wishlist is empty'**
+  String get emptyWishlist;
+
+  /// No description provided for @exploreToAddToWishlist.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore games to add them here'**
+  String get exploreToAddToWishlist;
+
+  /// No description provided for @removedFromWishlist.
+  ///
+  /// In en, this message translates to:
+  /// **'{game} removed from wishlist'**
+  String removedFromWishlist(Object game);
+
+  /// No description provided for @emptyCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Your collection is empty'**
+  String get emptyCollection;
+
+  /// No description provided for @exploreToAddToCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark games as owned to see them here'**
+  String get exploreToAddToCollection;
+
+  /// No description provided for @removedFromCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'{game} removed from collection'**
+  String removedFromCollection(Object game);
+
+  /// No description provided for @myFriendsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'My Friends'**
+  String get myFriendsTab;
+
+  /// No description provided for @friendRequestsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Requests'**
+  String get friendRequestsTab;
+
+  /// No description provided for @friendRequestsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Requests ({count})'**
+  String friendRequestsCount(Object count);
+
+  /// No description provided for @acceptedFriendRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted friend request from {user} (+10 XP)'**
+  String acceptedFriendRequest(Object user);
+
+  /// No description provided for @noFriendsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No friends yet'**
+  String get noFriendsYet;
+
+  /// No description provided for @findFriendsButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Find Friends'**
+  String get findFriendsButton;
+
+  /// No description provided for @noPendingRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending requests'**
+  String get noPendingRequests;
+
+  /// No description provided for @sentFriendRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent you a friend request'**
+  String get sentFriendRequest;
+
+  /// No description provided for @rankReachLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reach Level {level}'**
+  String rankReachLevel(Object level);
+
+  /// No description provided for @achFirstMatchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'First Steps'**
+  String get achFirstMatchTitle;
+
+  /// No description provided for @achFirstMatchDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Record your first match result.'**
+  String get achFirstMatchDesc;
+
+  /// No description provided for @achFirstWinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Champion'**
+  String get achFirstWinTitle;
+
+  /// No description provided for @achFirstWinDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Win your first competitive match.'**
+  String get achFirstWinDesc;
+
+  /// No description provided for @achVeteranTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Veteran'**
+  String get achVeteranTitle;
+
+  /// No description provided for @achVeteranDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Play 100 matches.'**
+  String get achVeteranDesc;
+
+  /// No description provided for @achSocialTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Social Butterfly'**
+  String get achSocialTitle;
+
+  /// No description provided for @achSocialDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Add 5 friends.'**
+  String get achSocialDesc;
+
+  /// No description provided for @friendsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} friends'**
+  String friendsCount(Object count);
+
+  /// No description provided for @appearanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get appearanceLabel;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get themeSystem;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
+  /// No description provided for @firstNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First Name'**
+  String get firstNameLabel;
+
+  /// No description provided for @lastNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last Name'**
+  String get lastNameLabel;
+
+  /// No description provided for @phoneNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Number'**
+  String get phoneNumberLabel;
+
+  /// No description provided for @countryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get countryLabel;
+
+  /// No description provided for @selectBirthDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Birth Date'**
+  String get selectBirthDateLabel;
+
+  /// No description provided for @locationUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Location Updated: {lat}, {lng}'**
+  String locationUpdated(Object lat, Object lng);
+
+  /// No description provided for @locationCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current: {lat}, {lng}'**
+  String locationCurrent(Object lat, Object lng);
+
+  /// No description provided for @updateLocationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Location (Tap to fetch)'**
+  String get updateLocationLabel;
+
+  /// No description provided for @saveChangesButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get saveChangesButton;
+
+  /// No description provided for @profileUpdatedSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated successfully'**
+  String get profileUpdatedSuccess;
+
+  /// No description provided for @profileUpdatedError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error updating profile: {error}'**
+  String profileUpdatedError(Object error);
+
+  /// No description provided for @locationDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Location services are disabled.'**
+  String get locationDisabled;
+
+  /// No description provided for @locationDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permissions are denied'**
+  String get locationDenied;
+
+  /// No description provided for @locationPermDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Location permissions are permanently denied.'**
+  String get locationPermDenied;
+
+  /// No description provided for @locationUpdateSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Location updated! Press Save to persist.'**
+  String get locationUpdateSuccess;
+
+  /// No description provided for @locationUpdateError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error getting location: {error}'**
+  String locationUpdateError(Object error);
+
+  /// No description provided for @imageUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Image uploaded!'**
+  String get imageUploaded;
+
+  /// No description provided for @imageUploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload failed: {error}'**
+  String imageUploadFailed(Object error);
+
+  /// No description provided for @lvl0Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Unranked'**
+  String get lvl0Title;
+
+  /// No description provided for @lvl1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Board Game Recruit'**
+  String get lvl1Title;
+
+  /// No description provided for @lvl2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Dice Roller'**
+  String get lvl2Title;
+
+  /// No description provided for @lvl3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Card Buyer'**
+  String get lvl3Title;
+
+  /// No description provided for @lvl4Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup Specialist'**
+  String get lvl4Title;
+
+  /// No description provided for @lvl5Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Rulebook Reader'**
+  String get lvl5Title;
+
+  /// No description provided for @lvl6Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Meeple Mover'**
+  String get lvl6Title;
+
+  /// No description provided for @lvl7Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Token Keeper'**
+  String get lvl7Title;
+
+  /// No description provided for @lvl8Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Mechanics Explorer'**
+  String get lvl8Title;
+
+  /// No description provided for @lvl9Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Gateway Gamer'**
+  String get lvl9Title;
+
+  /// No description provided for @lvl10Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Cardboard Baron'**
+  String get lvl10Title;
+
+  /// No description provided for @lvl11Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Combo Hunter'**
+  String get lvl11Title;
+
+  /// No description provided for @lvl12Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleeve Defender'**
+  String get lvl12Title;
+
+  /// No description provided for @lvl13Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Box Organizer'**
+  String get lvl13Title;
+
+  /// No description provided for @lvl14Title.
+  ///
+  /// In en, this message translates to:
+  /// **'VP Counter'**
+  String get lvl14Title;
+
+  /// No description provided for @lvl15Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Tuesday Strategist'**
+  String get lvl15Title;
+
+  /// No description provided for @lvl16Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Tiebreaker Champion'**
+  String get lvl16Title;
+
+  /// No description provided for @lvl17Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Deckbuilding Mage'**
+  String get lvl17Title;
+
+  /// No description provided for @lvl18Title.
+  ///
+  /// In en, this message translates to:
+  /// **'AP Victim'**
+  String get lvl18Title;
+
+  /// No description provided for @lvl19Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Bluff King'**
+  String get lvl19Title;
+
+  /// No description provided for @lvl20Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Scoring Titan'**
+  String get lvl20Title;
+
+  /// No description provided for @lvl21Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Worker Placement Specialist'**
+  String get lvl21Title;
+
+  /// No description provided for @lvl22Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Turf Dominator'**
+  String get lvl22Title;
+
+  /// No description provided for @lvl23Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Area Control General'**
+  String get lvl23Title;
+
+  /// No description provided for @lvl24Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn Optimizer'**
+  String get lvl24Title;
+
+  /// No description provided for @lvl25Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Master Rule Breaker'**
+  String get lvl25Title;
+
+  /// No description provided for @lvl26Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Kingmaker Punisher'**
+  String get lvl26Title;
+
+  /// No description provided for @lvl27Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Board Mathematician'**
+  String get lvl27Title;
+
+  /// No description provided for @lvl28Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Eurogame Emperor'**
+  String get lvl28Title;
+
+  /// No description provided for @lvl29Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Ameritrash Legend'**
+  String get lvl29Title;
+
+  /// No description provided for @lvl30Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Board Architect'**
+  String get lvl30Title;
+
+  /// No description provided for @lvl31Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Expansion Expert'**
+  String get lvl31Title;
+
+  /// No description provided for @lvl32Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Miniature Painter'**
+  String get lvl32Title;
+
+  /// No description provided for @lvl33Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Kickstarter Backer'**
+  String get lvl33Title;
+
+  /// No description provided for @lvl34Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Promo Finder'**
+  String get lvl34Title;
+
+  /// No description provided for @lvl35Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Shelf Curator'**
+  String get lvl35Title;
+
+  /// No description provided for @lvl36Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Shelf of Shame Owner'**
+  String get lvl36Title;
+
+  /// No description provided for @lvl37Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Crowdfunding Oracle'**
+  String get lvl37Title;
+
+  /// No description provided for @lvl38Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Campaign Hoarder'**
+  String get lvl38Title;
+
+  /// No description provided for @lvl39Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection Monarch'**
+  String get lvl39Title;
+
+  /// No description provided for @lvl40Title.
+  ///
+  /// In en, this message translates to:
+  /// **'The Completionist'**
+  String get lvl40Title;
+
+  /// No description provided for @lvl41Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sacred Beta Tester'**
+  String get lvl41Title;
+
+  /// No description provided for @lvl42Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Obscure Tactics Creator'**
+  String get lvl42Title;
+
+  /// No description provided for @lvl43Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules Encyclopedia'**
+  String get lvl43Title;
+
+  /// No description provided for @lvl44Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Impartial Referee'**
+  String get lvl44Title;
+
+  /// No description provided for @lvl45Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sage of the Board'**
+  String get lvl45Title;
+
+  /// No description provided for @lvl46Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Seer of Moves'**
+  String get lvl46Title;
+
+  /// No description provided for @lvl47Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Supreme Host'**
+  String get lvl47Title;
+
+  /// No description provided for @lvl48Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Shadow Designer'**
+  String get lvl48Title;
+
+  /// No description provided for @lvl49Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Golden Meeple Incarnate'**
+  String get lvl49Title;
+
+  /// No description provided for @lvl50Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Deity of Wooden Pieces'**
+  String get lvl50Title;
 }
 
 class _AppLocalizationsDelegate

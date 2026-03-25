@@ -247,4 +247,336 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get historyNoMatches => 'No matches found for this filter.';
+
+  @override
+  String get unlockedLabel => 'Unlocked';
+
+  @override
+  String get lockedLabel => 'Locked';
+
+  @override
+  String unlockedOnDate(Object date) {
+    return 'Unlocked on $date';
+  }
+
+  @override
+  String get closeButton => 'Close';
+
+  @override
+  String get myWishlistTitle => 'My Wishlist';
+
+  @override
+  String get emptyWishlist => 'Your wishlist is empty';
+
+  @override
+  String get exploreToAddToWishlist => 'Explore games to add them here';
+
+  @override
+  String removedFromWishlist(Object game) {
+    return '$game removed from wishlist';
+  }
+
+  @override
+  String get emptyCollection => 'Your collection is empty';
+
+  @override
+  String get exploreToAddToCollection => 'Mark games as owned to see them here';
+
+  @override
+  String removedFromCollection(Object game) {
+    return '$game removed from collection';
+  }
+
+  @override
+  String get myFriendsTab => 'My Friends';
+
+  @override
+  String get friendRequestsTab => 'Requests';
+
+  @override
+  String friendRequestsCount(Object count) {
+    return 'Requests ($count)';
+  }
+
+  @override
+  String acceptedFriendRequest(Object user) {
+    return 'Accepted friend request from $user (+10 XP)';
+  }
+
+  @override
+  String get noFriendsYet => 'No friends yet';
+
+  @override
+  String get findFriendsButton => 'Find Friends';
+
+  @override
+  String get noPendingRequests => 'No pending requests';
+
+  @override
+  String get sentFriendRequest => 'Sent you a friend request';
+
+  @override
+  String rankReachLevel(Object level) {
+    return 'Reach Level $level';
+  }
+
+  @override
+  String get achFirstMatchTitle => 'First Steps';
+
+  @override
+  String get achFirstMatchDesc => 'Record your first match result.';
+
+  @override
+  String get achFirstWinTitle => 'Champion';
+
+  @override
+  String get achFirstWinDesc => 'Win your first competitive match.';
+
+  @override
+  String get achVeteranTitle => 'Veteran';
+
+  @override
+  String get achVeteranDesc => 'Play 100 matches.';
+
+  @override
+  String get achSocialTitle => 'Social Butterfly';
+
+  @override
+  String get achSocialDesc => 'Add 5 friends.';
+
+  @override
+  String friendsCount(Object count) {
+    return '$count friends';
+  }
+
+  @override
+  String get appearanceLabel => 'Appearance';
+
+  @override
+  String get themeSystem => 'System';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get firstNameLabel => 'First Name';
+
+  @override
+  String get lastNameLabel => 'Last Name';
+
+  @override
+  String get phoneNumberLabel => 'Phone Number';
+
+  @override
+  String get countryLabel => 'Country';
+
+  @override
+  String get selectBirthDateLabel => 'Select Birth Date';
+
+  @override
+  String locationUpdated(Object lat, Object lng) {
+    return 'Location Updated: $lat, $lng';
+  }
+
+  @override
+  String locationCurrent(Object lat, Object lng) {
+    return 'Current: $lat, $lng';
+  }
+
+  @override
+  String get updateLocationLabel => 'Update Location (Tap to fetch)';
+
+  @override
+  String get saveChangesButton => 'Save Changes';
+
+  @override
+  String get profileUpdatedSuccess => 'Profile updated successfully';
+
+  @override
+  String profileUpdatedError(Object error) {
+    return 'Error updating profile: $error';
+  }
+
+  @override
+  String get locationDisabled => 'Location services are disabled.';
+
+  @override
+  String get locationDenied => 'Location permissions are denied';
+
+  @override
+  String get locationPermDenied =>
+      'Location permissions are permanently denied.';
+
+  @override
+  String get locationUpdateSuccess =>
+      'Location updated! Press Save to persist.';
+
+  @override
+  String locationUpdateError(Object error) {
+    return 'Error getting location: $error';
+  }
+
+  @override
+  String get imageUploaded => 'Image uploaded!';
+
+  @override
+  String imageUploadFailed(Object error) {
+    return 'Upload failed: $error';
+  }
+
+  @override
+  String get lvl0Title => 'Unranked';
+
+  @override
+  String get lvl1Title => 'Board Game Recruit';
+
+  @override
+  String get lvl2Title => 'Dice Roller';
+
+  @override
+  String get lvl3Title => 'Card Buyer';
+
+  @override
+  String get lvl4Title => 'Setup Specialist';
+
+  @override
+  String get lvl5Title => 'Rulebook Reader';
+
+  @override
+  String get lvl6Title => 'Meeple Mover';
+
+  @override
+  String get lvl7Title => 'Token Keeper';
+
+  @override
+  String get lvl8Title => 'Mechanics Explorer';
+
+  @override
+  String get lvl9Title => 'Gateway Gamer';
+
+  @override
+  String get lvl10Title => 'Cardboard Baron';
+
+  @override
+  String get lvl11Title => 'Combo Hunter';
+
+  @override
+  String get lvl12Title => 'Sleeve Defender';
+
+  @override
+  String get lvl13Title => 'Box Organizer';
+
+  @override
+  String get lvl14Title => 'VP Counter';
+
+  @override
+  String get lvl15Title => 'Tuesday Strategist';
+
+  @override
+  String get lvl16Title => 'Tiebreaker Champion';
+
+  @override
+  String get lvl17Title => 'Deckbuilding Mage';
+
+  @override
+  String get lvl18Title => 'AP Victim';
+
+  @override
+  String get lvl19Title => 'Bluff King';
+
+  @override
+  String get lvl20Title => 'Scoring Titan';
+
+  @override
+  String get lvl21Title => 'Worker Placement Specialist';
+
+  @override
+  String get lvl22Title => 'Turf Dominator';
+
+  @override
+  String get lvl23Title => 'Area Control General';
+
+  @override
+  String get lvl24Title => 'Turn Optimizer';
+
+  @override
+  String get lvl25Title => 'Master Rule Breaker';
+
+  @override
+  String get lvl26Title => 'Kingmaker Punisher';
+
+  @override
+  String get lvl27Title => 'Board Mathematician';
+
+  @override
+  String get lvl28Title => 'Eurogame Emperor';
+
+  @override
+  String get lvl29Title => 'Ameritrash Legend';
+
+  @override
+  String get lvl30Title => 'Board Architect';
+
+  @override
+  String get lvl31Title => 'Expansion Expert';
+
+  @override
+  String get lvl32Title => 'Miniature Painter';
+
+  @override
+  String get lvl33Title => 'Kickstarter Backer';
+
+  @override
+  String get lvl34Title => 'Promo Finder';
+
+  @override
+  String get lvl35Title => 'Shelf Curator';
+
+  @override
+  String get lvl36Title => 'Shelf of Shame Owner';
+
+  @override
+  String get lvl37Title => 'Crowdfunding Oracle';
+
+  @override
+  String get lvl38Title => 'Campaign Hoarder';
+
+  @override
+  String get lvl39Title => 'Collection Monarch';
+
+  @override
+  String get lvl40Title => 'The Completionist';
+
+  @override
+  String get lvl41Title => 'Sacred Beta Tester';
+
+  @override
+  String get lvl42Title => 'Obscure Tactics Creator';
+
+  @override
+  String get lvl43Title => 'Rules Encyclopedia';
+
+  @override
+  String get lvl44Title => 'Impartial Referee';
+
+  @override
+  String get lvl45Title => 'Sage of the Board';
+
+  @override
+  String get lvl46Title => 'Seer of Moves';
+
+  @override
+  String get lvl47Title => 'Supreme Host';
+
+  @override
+  String get lvl48Title => 'Shadow Designer';
+
+  @override
+  String get lvl49Title => 'Golden Meeple Incarnate';
+
+  @override
+  String get lvl50Title => 'Deity of Wooden Pieces';
 }

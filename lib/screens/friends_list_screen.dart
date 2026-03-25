@@ -7,6 +7,8 @@ import 'user_search_screen.dart';
 import 'profile_dashboard.dart';
 import 'dart:io';
 import '../services/supabase_sync_service.dart';
+import '../services/supabase_realtime_service.dart';
+import 'package:app_board_game_hub/l10n/app_localizations.dart';
 
 class FriendsListScreen extends StatefulWidget {
   const FriendsListScreen({super.key});
@@ -26,16 +28,45 @@ class _FriendsListScreenState extends State<FriendsListScreen> with SingleTicker
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _loadData();
+    // Listen to Realtime updates and reload automatically
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SupabaseRealtimeService>().addListener(_onRealtimeUpdate);
+    });
   }
 
-  Future<void> _loadData() async {
+  void _onRealtimeUpdate() {
+    if (mounted) {
+      try {
+        _loadData();
+      } catch (_) {
+        // Widget may have been disposed between mounted check and read
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    context.read<SupabaseRealtimeService>().removeListener(_onRealtimeUpdate);
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadData({bool syncFirst = false}) async {
+    if (!mounted) return;
+    // Capture all context-dependent references BEFORE any await
     final userSession = context.read<UserSession>();
+    final friendshipsDao = context.read<FriendshipsDao>();
+    final syncService = context.read<SupabaseSyncService>();
     final currentUser = userSession.currentUser;
     if (currentUser == null) return;
 
+    if (!mounted) return;
     setState(() => _isLoading = true);
 
-    final friendshipsDao = context.read<FriendshipsDao>();
+    if (syncFirst) {
+      await syncService.sync();
+    }
+
     final friends = await friendshipsDao.getFriends(currentUser.id);
     final pending = await friendshipsDao.getPendingRequests(currentUser.id);
 
@@ -54,22 +85,28 @@ class _FriendsListScreenState extends State<FriendsListScreen> with SingleTicker
     final gamificationService = context.read<GamificationService>();
     final userSession = context.read<UserSession>();
     
-    final error = await service.respondToFriendRequest(request.friendship.id, true);
+    final friendshipId = request.friendship.id;
+    final senderId = request.friendship.userId; // sender = who sent the request
+    final error = await service.respondToFriendRequest(friendshipId, true, senderId: senderId);
     
     if (error == null) {
-      // Gamification Hook: +10 XP for Friend
       if (userSession.currentUser != null) {
          await gamificationService.addXp(userSession.currentUser!.id, 10);
       }
-      
-      await _loadData(); // Reload all data
+      await _loadData();
       if (mounted) {
+        // DEBUG: mostra o ID para comparar com Supabase
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Accepted friend request from ${request.user.username} (+10 XP)')),
+          SnackBar(
+            content: Text('✅ Aceito! ID usado: $friendshipId'),
+            duration: const Duration(seconds: 10),
+          ),
         );
       }
     } else {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $error')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $error'), duration: const Duration(seconds: 12))
+        );
         setState(() => _isLoading = false);
     }
   }
@@ -96,7 +133,7 @@ class _FriendsListScreenState extends State<FriendsListScreen> with SingleTicker
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Friends', style: TextStyle(color: theme.colorScheme.onSurface)),
+        title: Text(AppLocalizations.of(context)!.friendsTitle, style: TextStyle(color: theme.colorScheme.onSurface)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
@@ -117,20 +154,18 @@ class _FriendsListScreenState extends State<FriendsListScreen> with SingleTicker
           labelColor: theme.primaryColor,
           unselectedLabelColor: mutedColor,
           tabs: [
-            const Tab(text: 'My Friends'),
-            Tab(text: _pendingRequests.isNotEmpty ? 'Requests (${_pendingRequests.length})' : 'Requests'),
+            Tab(text: AppLocalizations.of(context)!.myFriendsTab),
+            Tab(text: _pendingRequests.isNotEmpty ? AppLocalizations.of(context)!.friendRequestsCount(_pendingRequests.length.toString()) : AppLocalizations.of(context)!.friendRequestsTab),
           ],
         ),
       ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: theme.primaryColor))
-          : TabBarView(
-              controller: _tabController,
-              children: [
-                _buildFriendsList(theme, mutedColor),
-                _buildRequestsList(theme, mutedColor),
-              ],
-            ),
+      body: TabBarView(
+          controller: _tabController,
+          children: [
+            _buildFriendsList(context, theme, mutedColor),
+            _buildRequestsList(context, theme, mutedColor),
+          ],
+        ),
     );
   }
 
@@ -175,102 +210,114 @@ class _FriendsListScreenState extends State<FriendsListScreen> with SingleTicker
     );
   }
 
-  Widget _buildFriendsList(ThemeData theme, Color mutedColor) {
+  Widget _buildFriendsList(BuildContext context, ThemeData theme, Color mutedColor) {
     if (_friends.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      return RefreshIndicator(
+        onRefresh: () => _loadData(syncFirst: true),
+        child: ListView(
           children: [
-            Icon(Icons.people_outline, size: 64, color: mutedColor.withValues(alpha:0.5)),
+            const SizedBox(height: 80),
+            Icon(Icons.people_outline, size: 64, color: mutedColor.withValues(alpha: 0.5)),
             const SizedBox(height: 16),
-            Text('No friends yet', style: TextStyle(color: mutedColor, fontSize: 18)),
+            Center(child: Text(AppLocalizations.of(context)!.noFriendsYet, style: TextStyle(color: mutedColor, fontSize: 18))),
             const SizedBox(height: 8),
-            TextButton.icon(
-              onPressed: () {
-                 Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const UserSearchScreen()),
-                ).then((_) => _loadData());
-              },
-              icon: Icon(Icons.search, color: theme.primaryColor),
-              label: Text('Find Friends', style: TextStyle(color: theme.primaryColor)),
+            Center(
+              child: TextButton.icon(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const UserSearchScreen())).then((_) => _loadData());
+                },
+                icon: Icon(Icons.search, color: theme.primaryColor),
+                label: Text(AppLocalizations.of(context)!.findFriendsButton, style: TextStyle(color: theme.primaryColor)),
+              ),
             ),
           ],
         ),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _friends.length,
-      itemBuilder: (context, index) {
-        final friend = _friends[index];
-        return ListTile(
-          onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileDashboard(userId: friend.id)));
-          },
-          leading: _buildAvatar(friend, theme),
-          title: Text(
-            friend.username,
-            style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold),
-          ),
-          subtitle: friend.firstName != null
-              ? Text('${friend.firstName} ${friend.lastName ?? ""}', style: TextStyle(color: mutedColor))
-              : null,
-        );
-      },
+    return RefreshIndicator(
+      onRefresh: () => _loadData(syncFirst: true),
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _friends.length,
+        itemBuilder: (context, index) {
+          final friend = _friends[index];
+          return ListTile(
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileDashboard(userId: friend.id)));
+            },
+            leading: _buildAvatar(friend, theme),
+            title: Text(
+              friend.username,
+              style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold),
+            ),
+            subtitle: friend.firstName != null
+                ? Text('${friend.firstName} ${friend.lastName ?? ""}', style: TextStyle(color: mutedColor))
+                : null,
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildRequestsList(ThemeData theme, Color mutedColor) {
+  Widget _buildRequestsList(BuildContext context, ThemeData theme, Color mutedColor) {
     if (_pendingRequests.isEmpty) {
-      return Center(
-        child: Text('No pending requests', style: TextStyle(color: mutedColor)),
+      return RefreshIndicator(
+        onRefresh: () => _loadData(syncFirst: true),
+        child: ListView(
+          children: [
+            const SizedBox(height: 80),
+            Center(child: Text(AppLocalizations.of(context)!.noPendingRequests, style: TextStyle(color: mutedColor))),
+          ],
+        ),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _pendingRequests.length,
-      itemBuilder: (context, index) {
-        final request = _pendingRequests[index];
-        return Card(
-          color: theme.cardTheme.color,
-          margin: const EdgeInsets.only(bottom: 12),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                _buildAvatar(request.user, theme),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        request.user.username,
-                        style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                      Text(
-                        'Sent you a friend request',
-                        style: TextStyle(color: mutedColor, fontSize: 12),
-                      ),
-                    ],
+    return RefreshIndicator(
+      onRefresh: () => _loadData(syncFirst: true),
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _pendingRequests.length,
+        itemBuilder: (context, index) {
+          final request = _pendingRequests[index];
+          return Card(
+            color: theme.cardTheme.color,
+            margin: const EdgeInsets.only(bottom: 12),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  _buildAvatar(request.user, theme),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          request.user.username,
+                          style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        Text(
+                          AppLocalizations.of(context)!.sentFriendRequest,
+                          style: TextStyle(color: mutedColor, fontSize: 12),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.check_circle, color: Colors.green),
-                  onPressed: () => _acceptRequest(request),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.cancel, color: Colors.redAccent),
-                  onPressed: () => _rejectRequest(request),
-                ),
-              ],
+                  IconButton(
+                    icon: const Icon(Icons.check_circle, color: Colors.green),
+                    onPressed: () => _acceptRequest(request),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.cancel, color: Colors.redAccent),
+                    onPressed: () => _rejectRequest(request),
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

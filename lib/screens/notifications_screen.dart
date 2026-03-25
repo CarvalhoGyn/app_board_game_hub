@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart' hide Notification;
 import 'package:provider/provider.dart';
 import '../services/gamification_service.dart';
+import '../services/supabase_realtime_service.dart';
+import '../services/supabase_sync_service.dart';
 import 'package:intl/intl.dart';
 import '../database/database.dart';
 import '../providers/user_session.dart';
@@ -20,16 +22,40 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void initState() {
     super.initState();
     _loadNotifications();
+    // Listen to Realtime updates
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SupabaseRealtimeService>().addListener(_onRealtimeUpdate);
+    });
+  }
+
+  void _onRealtimeUpdate() {
+    if (mounted) {
+      // Capture context synchronously before any async gap
+      try {
+        _loadNotifications();
+      } catch (_) {
+        // Widget may have been disposed between mounted check and read
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    context.read<SupabaseRealtimeService>().removeListener(_onRealtimeUpdate);
+    super.dispose();
   }
 
   Future<void> _loadNotifications() async {
+    if (!mounted) return;
+    // Capture all context-dependent references BEFORE any await
     final userSession = context.read<UserSession>();
+    final notificationsDao = context.read<NotificationsDao>();
     final currentUser = userSession.currentUser;
     if (currentUser == null) return;
 
+    if (!mounted) return;
     setState(() => _isLoading = true);
     
-    final notificationsDao = context.read<NotificationsDao>();
     final list = await notificationsDao.getNotifications(currentUser.id);
 
     if (mounted) {
@@ -37,8 +63,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         _notifications = list;
         _isLoading = false;
       });
-      // Mark all as read when opening screen
-      // notificationsDao.markAllAsRead(currentUser.id);
     }
   }
   
@@ -79,37 +103,47 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final currentUser = userSession.currentUser;
     if (currentUser == null || notification.relatedId == null) return;
 
-    final friendshipsDao = context.read<FriendshipsDao>();
-    final gamificationService = context.read<GamificationService>(); // Moved up
+    final syncService = context.read<SupabaseSyncService>(); 
+    final gamificationService = context.read<GamificationService>(); 
+    
+    setState(() => _isLoading = true);
     
     try {
-      final pendingRequests = await friendshipsDao.getPendingRequests(currentUser.id);
-      final request = pendingRequests.firstWhere(
-        (r) => r.user.id == notification.relatedId, 
-      );
+      final friendshipId = notification.relatedId!;
 
-      if (accept) {
-        await friendshipsDao.acceptFriendRequest(request.friendship.id);
+      final error = await syncService.respondToFriendRequest(friendshipId, accept);
+
+      if (error == null) {
         
         // Gamification Hook: +10 XP
         if (mounted) {
           await gamificationService.addXp(currentUser.id, 10);
         }
 
-         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Friend request accepted! (+10 XP)'), backgroundColor: Colors.green));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(accept ? 'Friend request accepted! (+10 XP)' : 'Friend request rejected'),
+              backgroundColor: accept ? Colors.green : Colors.orange,
+            )
+          );
         }
+        await _markAsRead(notification);
       } else {
-        await friendshipsDao.rejectFriendRequest(request.friendship.id);
-         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Friend request rejected')));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $error'), backgroundColor: Colors.red)
+          );
         }
       }
-      await _markAsRead(notification);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Request not found or already handled')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to process request. Please try again.'))
+        );
       }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

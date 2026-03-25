@@ -5,6 +5,8 @@ import '../theme/app_theme.dart';
 import 'create_match.dart';
 import '../widgets/shared_bottom_nav.dart';
 import 'record_match_score.dart';
+import '../providers/user_session.dart';
+import '../services/supabase_realtime_service.dart';
 
 class MatchesScreen extends StatefulWidget {
   const MatchesScreen({super.key});
@@ -21,11 +23,30 @@ class _MatchesScreenState extends State<MatchesScreen> {
   void initState() {
     super.initState();
     _loadMatches();
+    // Listen to Realtime updates (e.g. new match invitations)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SupabaseRealtimeService>().addListener(_onRealtimeUpdate);
+    });
+  }
+
+  @override
+  void dispose() {
+    context.read<SupabaseRealtimeService>().removeListener(_onRealtimeUpdate);
+    super.dispose();
+  }
+
+  void _onRealtimeUpdate() {
+    if (mounted) _loadMatches();
   }
 
   Future<void> _loadMatches() async {
     final matchesDao = context.read<MatchesDao>();
-    final matches = await matchesDao.getRecentMatches();
+    final userSession = context.read<UserSession>();
+    final currentUser = userSession.currentUser;
+    
+    if (currentUser == null) return;
+
+    final matches = await matchesDao.getMatchesForUser(currentUser.id);
     if (mounted) {
       setState(() {
         _matches = matches;

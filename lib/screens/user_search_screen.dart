@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:provider/provider.dart';
 import '../database/database.dart';
 import '../providers/user_session.dart';
+import '../services/supabase_sync_service.dart';
 import 'profile_dashboard.dart';
 
 class UserSearchScreen extends StatefulWidget {
@@ -30,8 +31,8 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
       return;
     }
 
-    final usersDao = context.read<UsersDao>();
-    final results = await usersDao.searchUsersByNickname(query);
+    final syncService = context.read<SupabaseSyncService>();
+    final results = await syncService.searchGlobalUsers(query);
     setState(() {
       _searchResults = results;
     });

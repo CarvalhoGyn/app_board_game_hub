@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:drift/drift.dart';
 import '../database/database.dart';
-
+import 'gamification_service.dart';
 class SupabaseSyncService {
   final AppDatabase _db;
   final SupabaseClient _supabase;
@@ -14,6 +14,18 @@ class SupabaseSyncService {
   static const String _kIdsAlignedKey = 'ids_aligned_v1';
 
   SupabaseSyncService(this._db) : _supabase = Supabase.instance.client;
+
+  /// Public proxy for _toCamelCaseMap — used by SupabaseRealtimeService.
+  Map<String, dynamic> toCamelCaseMapPublic(Map<String, dynamic> input) => _toCamelCaseMap(input);
+
+  /// Public proxy for _ensureLocalUser — used by SupabaseRealtimeService.
+  Future<void> ensureLocalUserPublic(String userId) => _ensureLocalUser(userId);
+
+  /// Public proxy for _ensureLocalMatch — used by SupabaseRealtimeService.
+  Future<bool> ensureLocalMatchPublic(String matchId) => _ensureLocalMatch(matchId);
+
+  /// Public proxy for _ensureLocalGame — used by SupabaseRealtimeService.
+  Future<bool> ensureLocalGamePublic(String gameId) => _ensureLocalGame(gameId);
 
   /// ONLINE-FIRST: Toggle Wishlist or Collection Status
   /// Returns NULL on success, or Error Message on failure.
@@ -153,12 +165,23 @@ class SupabaseSyncService {
         'requested_at': DateTime.now().toIso8601String(),
       };
       
-      // 1. Insert to Supabase
+      // 1. Insert to Supabase (Friendship)
       final response = await _supabase.from('friendships').insert(payload).select().single();
+      final friendshipId = response['id'] as String;
       
-      // 2. Insert to Local DB
+      // 2. Insert to Supabase (Notification for friend)
+      await _supabase.from('notifications').insert({
+        'user_id': friendId,
+        'type': 'friend_request',
+        'title': 'New Friend Request',
+        'message': '${user.userMetadata?['username'] ?? 'Someone'} wants to be your friend!',
+        'related_id': friendshipId,
+        'created_at': DateTime.now().toIso8601String(),
+      });
+
+      // 3. Insert to Local DB
       await _db.friendshipsDao.saveLocalFriendship(Friendship(
-         id: response['id'] as String,
+         id: friendshipId,
          userId: user.id,
          friendId: friendId,
          status: 'pending',
@@ -174,7 +197,9 @@ class SupabaseSyncService {
   }
 
   /// ONLINE-FIRST: Respond to Friend Request
-  Future<String?> respondToFriendRequest(String friendshipId, bool accept) async {
+  /// [friendshipId] is the local DB id (may differ from Supabase)
+  /// [senderId] is the user_id of the person who sent the request
+  Future<String?> respondToFriendRequest(String friendshipId, bool accept, {String? senderId}) async {
     try {
       final user = _supabase.auth.currentUser;
       if (user == null) return 'Not logged in to Supabase';
@@ -182,41 +207,55 @@ class SupabaseSyncService {
       final status = accept ? 'accepted' : 'rejected';
       final now = DateTime.now();
 
-      // 1. Update Supabase
-      final response = await _supabase
-          .from('friendships')
-          .update({'status': status, 'responded_at': now.toIso8601String()})
-          .eq('id', friendshipId)
-          .select()
-          .single();
-          
-      // 2. Update Local DB
-      await _db.friendshipsDao.updateLocalFriendshipStatus(friendshipId, status, now);
+      debugPrint('RespondFriend: user=${user.id} friendshipId=$friendshipId senderId=$senderId status=$status');
+
+      List<Map<String, dynamic>> updated;
+
+      if (senderId != null && senderId.isNotEmpty) {
+        // Reliable filter: match by the USER PAIR, not by a possibly mismatched local ID
+        updated = await _supabase
+            .from('friendships')
+            .update({'status': status, 'responded_at': now.toUtc().toIso8601String()})
+            .eq('friend_id', user.id)
+            .eq('user_id', senderId)
+            .eq('status', 'pending')
+            .select();
+        debugPrint('RespondFriend: pair-filter returned ${updated.length} row(s)');
+      } else {
+        // Fallback: try by local ID
+        updated = await _supabase
+            .from('friendships')
+            .update({'status': status, 'responded_at': now.toUtc().toIso8601String()})
+            .eq('id', friendshipId)
+            .select();
+        debugPrint('RespondFriend: id-filter returned ${updated.length} row(s)');
+      }
       
-      if (accept) {
-         // If accepted, typically we want the reverse friendship locally too.
-         // On Supabase, this might be handled by a Trigger or we insert it.
-         // For now, let's just ensure we have the FRIEND row locally.
-         // We might simply rely on Pull Sync for the reverse row, or manually create it.
-         // Manual creation is instant feedback.
-         final original = await (_db.select(_db.friendships)..where((f) => f.id.equals(friendshipId))).getSingle();
-         
-         // Insert Reverse local
-         await _db.friendshipsDao.saveLocalFriendship(Friendship(
-            id: 'local_reverse_${original.friendId}_${original.userId}', // Temp ID until sync?
-            // Actually, best to wait for sync or just show "Accepted".
-            // If we create a fake ID, sync might duplicate.
-            // Let's just update the status.
-            userId: original.friendId,
-            friendId: original.userId,
-            status: 'accepted',
-            requestedAt: original.requestedAt,
-            respondedAt: now
-         ));
-         // Actually, do we have the reverse ID? No.
-         // Let's NOT insert reverse locally to avoid ID conflict. 
-         // The user cares about THEIR list (userId = me). The updated row puts it in "accepted" list.
-         // So `getFriends` will work.
+      if (updated.isEmpty) {
+        // Orphan handling: if it was an ID search and it failed, the local ID is probably invalid/deleted from cloud
+        if (senderId == null || senderId.isEmpty) {
+           debugPrint('RespondFriend: Deleting orphan local friendship $friendshipId');
+           await (_db.delete(_db.friendships)..where((f) => f.id.equals(friendshipId))).go();
+        }
+        return 'Solicitação não encontrada no servidor. O registro local foi removido.';
+      }
+
+      // Use the SUPABASE id (from updated row) to sync local DB
+      final updatedRow = updated.first;
+      final supabaseId = updatedRow['id'] as String? ?? friendshipId;
+      
+      // Ensure both users exist locally to avoid empty joins in UI
+      if (updatedRow.containsKey('user_id')) {
+        await ensureLocalUserPublic(updatedRow['user_id'] as String);
+      }
+      if (updatedRow.containsKey('friend_id')) {
+        await ensureLocalUserPublic(updatedRow['friend_id'] as String);
+      }
+
+      await _db.friendshipsDao.updateLocalFriendshipStatus(supabaseId, status, now);
+      // Also update by local id in case they differ
+      if (supabaseId != friendshipId) {
+        await _db.friendshipsDao.updateLocalFriendshipStatus(friendshipId, status, now);
       }
       
       return null;
@@ -243,9 +282,9 @@ class SupabaseSyncService {
       // 2. Prepare Payloads
       final matchPayload = {
          'game_id': remoteGameId,
-         'date': match.date.value.toIso8601String(),
-         'location': match.location.value,
-         'scoring_type': match.scoringType.value,
+         'date': match.date.present ? match.date.value.toIso8601String() : DateTime.now().toIso8601String(),
+         'location': match.location.present ? match.location.value : null,
+         'scoring_type': match.scoringType.present ? match.scoringType.value : 'competitive',
          'creator_id': user.id,
       };
       
@@ -253,39 +292,66 @@ class SupabaseSyncService {
       final matchResponse = await _supabase.from('matches').insert(matchPayload).select().single();
       final newMatchId = matchResponse['id'] as String;
       
-      // 4. Insert Players to Supabase
-      final playersPayload = players.map((p) => {
-         'match_id': newMatchId,
-         'user_id': p.userId.value,
-         'score': p.score.value,
-         'rank': p.rank.value,
-         'match_rating': p.matchRating.value,
-         'is_winner': p.isWinner.value,
-      }).toList();
+      // 4. Insert Players to Supabase (Individual inserts to avoid scope shadowing/triggers issues)
+      final List<Map<String, dynamic>> playersResponse = [];
+      final Set<String> seenUserIds = {};
       
-      final playersResponse = await _supabase.from('match_players').insert(playersPayload).select();
+      for (var p in players) {
+         final playerId = p.userId.present ? p.userId.value : null;
+         if (playerId == null) {
+            throw Exception('Cannot create match player with null user ID.');
+         }
+         
+         if (seenUserIds.contains(playerId)) {
+            // Already added this user to this match
+            continue; 
+         }
+         seenUserIds.add(playerId);
+         
+         final pPayload = {
+            'match_id': newMatchId,
+            'user_id': playerId,
+            'score': p.score.present ? p.score.value : null,
+            'rank': p.rank.present ? p.rank.value : null,
+            'match_rating': p.matchRating.present ? p.matchRating.value : null,
+            'is_winner': p.isWinner.present ? p.isWinner.value : false,
+         };
+         
+         final pResponse = await _supabase.from('match_players').insert(pPayload).select().single();
+         playersResponse.add(pResponse);
+      }
+
+      // 4.5. Detect Server-side substitution (Triggers/RLS)
+      final Set<String> responseUserIds = {};
+      for (var r in (playersResponse as List)) {
+         final String rid = r['user_id'] as String;
+         if (responseUserIds.contains(rid)) {
+            throw Exception('Supabase server-side logic (Trigger/RLS) appears to be overriding player IDs with a single user ID ($rid).');
+         }
+         responseUserIds.add(rid);
+      }
       
       // 5. Save Local (Using Remote Objects)
-      // We reconstruct the Drift objects from the Response to ensure IDs match.
-      
-      final localMatch = MatchRow(
+      final MatchRow localMatch = MatchRow(
          id: newMatchId,
-         gameId: remoteGameId,
-         date: DateTime.parse(matchResponse['date']),
-         location: matchResponse['location'],
-         scoringType: matchResponse['scoring_type'],
+         gameId: match.gameId.value,
+         date: match.date.value,
+         location: match.location.value,
+         scoringType: match.scoringType.value,
          creatorId: matchResponse['creator_id'],
       );
       
-      final localPlayers = (playersResponse as List).map((p) => Player(
-         id: p['id'],
-         matchId: newMatchId,
-         userId: p['user_id'],
-         score: p['score'],
-         rank: p['rank'],
-         matchRating: p['match_rating'] != null ? (p['match_rating'] as num).toDouble() : null,
-         isWinner: p['is_winner'] ?? false,
-      )).toList();
+      final localPlayers = (playersResponse as List).map((p) {
+          return Player(
+            id: p['id'] as String,
+            matchId: newMatchId,
+            userId: p['user_id'] as String,
+            score: p['score'] as int?,
+            rank: p['rank'] as int?,
+            matchRating: (p['match_rating'] as num?)?.toDouble(),
+            isWinner: p['is_winner'] as bool? ?? false,
+          );
+      }).toList();
       
       await _db.matchesDao.saveLocalMatch(localMatch, localPlayers);
       
@@ -294,8 +360,6 @@ class SupabaseSyncService {
       debugPrint('OnlineSync (CreateMatch) Error: $e');
       return null; // Null indicates failure here? Or we should return String? 
       // Signature returns String? (Error message). 
-      // Let's change signature or throw.
-      // Wait, I defined it as Future<String?> above meaning Error Message.
       // But caller needs the Match ID to navigate!
       // I should change signature to return Future<{String? error, String? matchId}> or simplify.
       throw e; // Let's throw for now so caller catches.
@@ -338,10 +402,52 @@ class SupabaseSyncService {
          await pullChanges(isRestoreMode: false);
       }
 
+      // Check achievements after a sync loop
+      debugPrint('Sync: Re-calculating local achievements (Restore Mode)...');
+      await GamificationService(_db).checkAchievements(user.id, isRestore: true);
+
       debugPrint('>>> SYNC COMPLETED <<<');
     } catch (e, stack) {
       debugPrint('>>> SYNC FAILED: $e <<<');
       debugPrintStack(stackTrace: stack);
+    }
+  }
+
+  /// SEARCH: Global User Search (Supabase -> Local Cache)
+  Future<List<User>> searchGlobalUsers(String query) async {
+    try {
+      if (query.isEmpty) return [];
+
+      final response = await _supabase
+          .from('profiles')
+          .select()
+          .ilike('username', '%$query%')
+          .limit(20);
+
+      final List<User> results = [];
+      for (var item in response) {
+        // Supabase returns snake_case, Drift expects camelCase
+        final camelItem = _toCamelCaseMap(item);
+        
+        // Robust ID mapping: Ensure 'id' exists even if returned as 'uid' or missing
+        if (camelItem['id'] == null && item['id'] != null) camelItem['id'] = item['id'];
+        if (camelItem.containsKey('uid')) camelItem['id'] = camelItem['uid']; // Fallback if Supabase uses uid
+        
+        // Ensure mandatory local fields exist for User.fromJson
+        camelItem['email'] ??= '${camelItem['username'] ?? 'user_${DateTime.now().millisecondsSinceEpoch}'}@meeple.sync';
+        camelItem['password'] ??= 'auth_external';
+        camelItem['xp'] ??= 0;
+        camelItem['prestige'] ??= 0;
+        
+        final user = User.fromJson(camelItem);
+        // Cache locally so we can reference them (foreign keys)
+        await _db.usersDao.upsertUser(user);
+        results.add(user);
+      }
+      return results;
+    } catch (e) {
+      debugPrint('SearchGlobalUsers Error: $e');
+      return [];
     }
   }
 
@@ -486,9 +592,22 @@ class SupabaseSyncService {
                    }
                }
            }
-        } else if (item.action == 'UPDATE') {
-           await _supabase.from(table).update(snakePayload).eq('id', snakePayload['id']);
-        } else if (item.action == 'DELETE') {
+         } else if (item.action == 'UPDATE') {
+            // NEVER update immutable mapping fields via Sync to prevent shadowing/corruption
+            // We only want to sync scores, ranks, statuses, etc.
+            final Map<String, dynamic> updatePayload = Map<String, dynamic>.from(snakePayload);
+            
+            // Remove FKs and Metadata that should not change after creation
+            final forbidden = ['user_id', 'friend_id', 'match_id', 'creator_id', 'game_id', 'created_at', 'requested_at'];
+            for (var key in forbidden) {
+               updatePayload.remove(key);
+            }
+            
+            // Perform the update by ID
+            if (updatePayload.isNotEmpty) {
+               await _supabase.from(table).update(updatePayload).eq('id', snakePayload['id']);
+            }
+         } else if (item.action == 'DELETE') {
            await _supabase.from(table).delete().eq('id', snakePayload['id']);
         }
         
@@ -786,22 +905,39 @@ class SupabaseSyncService {
     // --- USER DATA SYNC (Global Timestamp) ---
     // Matches, Players, Reviews
     
-    // Players: Restore by User ID (Gets everything I played)
-    await _pullTable('match_players', lastSync, (data) async {
-       final camelData = _toCamelCaseMap(data);
-       // Ensure Match exists for this player entry
-       if (camelData.containsKey('matchId')) {
-          final matchExists = await _ensureLocalMatch(camelData['matchId']);
-          if (!matchExists) throw Exception('Dependent match missing');
-       }
-       // Ensure User exists (friend or me)
-       if (camelData.containsKey('userId')) {
-          await _ensureLocalUser(camelData['userId']);
-       }
-       await _db.into(_db.players).insertOnConflictUpdate(Player.fromJson(camelData));
-    }, userId: _supabase.auth.currentUser?.id);
+    // Players: Fetch all players for matches the user participates in
+     await _pullTable('match_players', lastSync, (data) async {
+        final camelData = _toCamelCaseMap(data);
+        // Ensure Match exists for this player entry
+        if (camelData.containsKey('matchId')) {
+           final matchExists = await _ensureLocalMatch(camelData['matchId']);
+           if (!matchExists) return;
+        }
+        // Ensure User exists
+        if (camelData.containsKey('userId')) {
+           await _ensureLocalUser(camelData['userId']);
+        }
+        
+        // INTEGRITY GUARD: Never let sync change a player's userId if it already exists
+        // This prevents local corruption from spreading back to Supabase
+        if (camelData.containsKey('id')) {
+           final existing = await (_db.select(_db.players)..where((p) => p.id.equals(camelData['id']))).getSingleOrNull();
+           if (existing != null && existing.userId != camelData['userId']) {
+              debugPrint('CRITICAL INTEGRITY: Blocking userId change for player ${existing.id} from ${existing.userId} to ${camelData['userId']}');
+              // Force keep local valid ID if remote looks suspicious or shadowed
+              // However, if Remote is the truth, we should trust it, UNLESS we suspect RLS shadowing
+              // Since the user says it shadows to Creator, we block if it tries to become the Creator but wasn't.
+              if (camelData['userId'] == _supabase.auth.currentUser?.id && existing.userId != _supabase.auth.currentUser?.id) {
+                 return; // Discard this update record as it's likely a shadowed RLS result
+              }
+           }
+        }
+        
+        await _db.into(_db.players).insertOnConflictUpdate(Player.fromJson(camelData));
+     });
 
-    // Matches: Restore by Creator ID (Matches I created)
+    // Matches: Fetch any match updated recently that I can see
+    // We remove the strict creatorId filter to allow participants to sync matches they didn't create
     await _pullTable('matches', lastSync, (data) async {
        final camelData = _toCamelCaseMap(data);
        // Ensure Creator exists
@@ -809,7 +945,7 @@ class SupabaseSyncService {
            await _ensureLocalUser(camelData['creatorId']);
        }
        await _db.into(_db.matches).insertOnConflictUpdate(MatchRow.fromJson(camelData));
-    }, timestampColumn: 'date', userId: _supabase.auth.currentUser?.id, userIdColumn: 'creator_id'); 
+    }, timestampColumn: 'date'); // REMOVED userId: _supabase.auth.currentUser?.id, userIdColumn: 'creator_id'
     
     await _pullTable('reviews', lastSync, (data) async {
        final camelData = _toCamelCaseMap(data);
@@ -818,7 +954,7 @@ class SupabaseSyncService {
            await _ensureLocalUser(camelData['userId']);
        }
        await _db.into(_db.reviews).insertOnConflictUpdate(Review.fromJson(camelData));
-    }, userId: _supabase.auth.currentUser?.id);
+    }, timestampColumn: 'created_at', userId: _supabase.auth.currentUser?.id);
     
     // UserCollections uses 'added_at'
     await _pullTable('user_collections', lastSync, (data) async {
@@ -854,19 +990,107 @@ class SupabaseSyncService {
        await _db.into(_db.userGameCollections).insertOnConflictUpdate(row);
     }, timestampColumn: 'added_at', userId: _supabase.auth.currentUser?.id);
     
-    // Friendships
-    await _pullTable('friendships', lastSync, (data) async {
-      final camelData = _toCamelCaseMap(data);
-      // Ensure Friends exist?
-      // user_id is sender (me), friend_id is receiver.
-      if (camelData.containsKey('friendId')) {
-         await _ensureLocalUser(camelData['friendId']);
+    // Friendships: needs special OR filter (user is sender OR receiver)
+    final currentUserId = _supabase.auth.currentUser!.id;
+    try {
+      List<dynamic> friendshipRows;
+      if (lastSync.millisecondsSinceEpoch == 0) {
+        // Restore Mode: fetch ALL friendships for this user (both directions)
+        debugPrint('Sync: Fetching ALL friendships for $currentUserId (Restore Mode)');
+        final response = await _supabase
+            .from('friendships')
+            .select()
+            .or('user_id.eq.$currentUserId,friend_id.eq.$currentUserId');
+        friendshipRows = response as List<dynamic>;
+      } else {
+        // Incremental Mode: fetch friendships changed since last sync (both directions)
+        debugPrint('Sync: Fetching incremental friendships for $currentUserId');
+        final sinceStr = lastSync.toIso8601String();
+        final response = await _supabase
+            .from('friendships')
+            .select()
+            .or('user_id.eq.$currentUserId,friend_id.eq.$currentUserId')
+            .or('requested_at.gt.$sinceStr,responded_at.gt.$sinceStr');
+        friendshipRows = response as List<dynamic>;
       }
-      await _db.into(_db.friendships).insertOnConflictUpdate(Friendship.fromJson(camelData));
-    }, userId: _supabase.auth.currentUser?.id);
+
+      debugPrint('Sync: friendships returned ${friendshipRows.length} rows.');
+      for (final row in friendshipRows) {
+        if (row is Map<String, dynamic>) {
+          try {
+            final camelData = _toCamelCaseMap(row);
+            // Ensure both users exist locally
+            if (camelData.containsKey('userId')) await _ensureLocalUser(camelData['userId']);
+            if (camelData.containsKey('friendId')) await _ensureLocalUser(camelData['friendId']);
+            await _db.into(_db.friendships).insertOnConflictUpdate(Friendship.fromJson(camelData));
+          } catch (e) {
+            debugPrint('Sync ERROR processing friendship row: $e');
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Sync ERROR pulling friendships: $e');
+    }
+    
+    // Notifications — with deduplication by (user_id, type, related_id)
+    await _pullTable('notifications', lastSync, (data) async {
+       final camelData = _toCamelCaseMap(data);
+       final relatedId = camelData['relatedId'] as String?;
+       final type = camelData['type'] as String?;
+       final userId = camelData['userId'] as String?;
+       
+       // Check for existing local notification with same relatedId + type to avoid duplicates
+       if (relatedId != null && type != null && userId != null) {
+         final existing = await (_db.select(_db.notifications)
+           ..where((n) => n.relatedId.equals(relatedId) & n.type.equals(type) & n.userId.equals(userId)))
+           .getSingleOrNull();
+         if (existing != null) {
+           // Already have it locally — update in case content changed but don't duplicate
+           await (_db.update(_db.notifications)..where((n) => n.id.equals(existing.id)))
+               .write(NotificationsCompanion(
+                 title: Value(camelData['title'] as String? ?? existing.title),
+                 message: Value(camelData['message'] as String? ?? existing.message),
+               ));
+           return;
+         }
+       }
+       
+       await _db.into(_db.notifications).insertOnConflictUpdate(Notification.fromJson(camelData));
+    }, timestampColumn: 'created_at', userId: _supabase.auth.currentUser?.id);
+
+    // RECONCILE DELETIONS: Friendships
+    await _reconcileFriendships(_supabase.auth.currentUser!.id);
 
     // Save global sync time
     await prefs.setString(_kLastSyncKey, now.toIso8601String());
+  }
+
+  /// RECONCILE: Fetch full list of friendship IDs from Cloud to identify local orphans.
+  Future<void> _reconcileFriendships(String userId) async {
+      try {
+         debugPrint('Sync: Reconciling friendships for $userId...');
+         // 1. Fetch current remote IDs
+         final response = await _supabase
+            .from('friendships')
+            .select('id')
+            .or('user_id.eq.$userId,friend_id.eq.$userId');
+            
+         final Set<String> remoteIds = (response as List).map((r) => r['id'] as String).toSet();
+         
+         // 2. Fetch current local IDs
+         final localFriendships = await (_db.select(_db.friendships)..where((f) => f.userId.equals(userId) | f.friendId.equals(userId))).get();
+         final localIds = localFriendships.map((f) => f.id).toList();
+         
+         // 3. Delete orphans
+         for (final id in localIds) {
+            if (!remoteIds.contains(id)) {
+               debugPrint('Sync: Deleting orphan local friendship $id');
+               await (_db.delete(_db.friendships)..where((f) => f.id.equals(id))).go();
+            }
+         }
+      } catch (e) {
+         debugPrint('Sync ERROR reconciling friendships: $e');
+      }
   }
 
   // ... (existing _pullTable, _ensureLocalGame, _ensureLocalMatch)
@@ -917,6 +1141,7 @@ class SupabaseSyncService {
       Function(Map<String, dynamic>) onRow, 
       {
         String timestampColumn = 'updated_at', 
+        String? timestampColumn2,
         String? userId, // If provided and Restore Mode, we query by this User ID
         String userIdColumn = 'user_id' // Column name to filter by User ID
       }
@@ -927,18 +1152,27 @@ class SupabaseSyncService {
         
         if (isRestoreMode && userId != null) {
            debugPrint('Sync: Fetching ALL $tableName for User $userId (Restore Mode)');
-           final response = await _supabase
-              .from(tableName)
-              .select()
-              .eq(userIdColumn, userId); // Fetch ALL for user
+           var query = _supabase.from(tableName).select();
+           
+           if (tableName == 'friendships') {
+              query = query.or('user_id.eq.$userId,friend_id.eq.$userId');
+           } else {
+              query = query.eq(userIdColumn, userId);
+           }
+           
+           final response = await query;
            rows = response as List<dynamic>;
         } else {
            // Incremental Sync (Timestamp based)
-           final response = await _supabase
-              .from(tableName)
-              .select()
-              .gt(timestampColumn, lastSync.toIso8601String())
-              .limit(1000); // Pagination safety
+           var query = _supabase.from(tableName).select();
+           
+           if (timestampColumn2 != null) {
+               query = query.or('$timestampColumn.gt.${lastSync.toIso8601String()},$timestampColumn2.gt.${lastSync.toIso8601String()}');
+           } else {
+               query = query.gt(timestampColumn, lastSync.toIso8601String());
+           }
+           
+           final response = await query.limit(1000); // Pagination safety
            rows = response as List<dynamic>;
         }
 
@@ -969,8 +1203,8 @@ class SupabaseSyncService {
               
               await onRow(row);
               successCount++;
-           } catch (e) {
-              debugPrint('Sync ERROR processing $tableName row ${row['id']}: $e');
+           } catch (e, stack) {
+              debugPrint('Sync ERROR processing $tableName row ${row['id']}: $e\n$stack');
               failCount++;
            }
         }
@@ -999,11 +1233,13 @@ class SupabaseSyncService {
          if (remoteGame != null) {
              final camelData = _toCamelCaseMap(remoteGame);
              await _db.into(_db.games).insertOnConflictUpdate(Game.fromJson(camelData));
+             debugPrint('Sync Restore: Game $gameId manually restored and inserted.');
              return true;
          }
+         debugPrint('Sync ERROR: Game $gameId NOT FOUND ON SUPABASE (Or Request Blocked)');
          return false;
-      } catch (e) {
-         debugPrint('Error fetching game $gameId: $e');
+      } catch (e, stack) {
+         debugPrint('Sync CRITICAL Error fetching game $gameId: $e\n$stack');
          return false;
       }
   }
@@ -1032,9 +1268,10 @@ class SupabaseSyncService {
            debugPrint('Sync Restore: Match $matchId restored.');
            return true;
         }
+        debugPrint('Sync ERROR: Match $matchId NOT FOUND ON SUPABASE (Or Request Blocked)');
         return false;
-     } catch (e) {
-        debugPrint('Error fetching match $matchId: $e');
+     } catch (e, stack) {
+        debugPrint('Sync CRITICAL Error fetching match $matchId: $e\n$stack');
         return false;
      }
   }

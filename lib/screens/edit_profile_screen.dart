@@ -10,7 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 import '../services/supabase_storage_service.dart';
-
+import 'package:app_board_game_hub/l10n/app_localizations.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final User user;
@@ -76,8 +76,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         context.read<UserSession>().updateUser(newUser);
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile updated successfully'),
+           SnackBar(
+            content: Text(AppLocalizations.of(context)!.profileUpdatedSuccess),
             backgroundColor: Colors.green,
           ),
         );
@@ -86,7 +86,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error updating profile: $e'),
+            content: Text(AppLocalizations.of(context)!.profileUpdatedError(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -123,7 +123,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location services are disabled.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.locationDisabled)));
       return;
     }
 
@@ -131,13 +131,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location permissions are denied')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.locationDenied)));
         return;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location permissions are permanently denied.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.locationPermDenied)));
       return;
     }
 
@@ -148,10 +148,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _currentPosition = position;
         _isLoading = false;
       });
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Location updated! Press Save to persist.')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.locationUpdateSuccess)));
     } catch (e) {
       setState(() => _isLoading = false);
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error getting location: $e')));
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.locationUpdateError(e.toString()))));
     }
     }
   
@@ -175,14 +175,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                _avatarUrl = url;
                _isLoading = false;
              });
-             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Image uploaded!')));
+             ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.imageUploaded)));
          }
        } catch (e) {
           setState(() {
              _pickedImageFile = null; 
              _isLoading = false;
           });
-          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
+          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.imageUploadFailed(e.toString()))));
        }
     }
   }
@@ -198,7 +198,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Edit Profile', style: TextStyle(color: theme.colorScheme.onSurface)),
+        title: Text(AppLocalizations.of(context)!.editProfile, style: TextStyle(color: theme.colorScheme.onSurface)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
@@ -218,24 +218,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                     Text('Appearance', style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold)),
+                     Text(AppLocalizations.of(context)!.appearanceLabel, style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold)),
                      const SizedBox(height: 12),
                      SegmentedButton<ThemeMode>(
-                        segments: const [
+                        segments: [
                            ButtonSegment(
                               value: ThemeMode.system, 
-                              label: Text('System'), 
-                              icon: Icon(Icons.settings_brightness)
+                              label: FittedBox(fit: BoxFit.scaleDown, child: Text(AppLocalizations.of(context)!.themeSystem)), 
+                              icon: const Icon(Icons.settings_brightness)
                            ),
                            ButtonSegment(
                               value: ThemeMode.light, 
-                              label: Text('Light'), 
-                              icon: Icon(Icons.light_mode)
+                              label: FittedBox(fit: BoxFit.scaleDown, child: Text(AppLocalizations.of(context)!.themeLight)), 
+                              icon: const Icon(Icons.light_mode)
                            ),
                            ButtonSegment(
                               value: ThemeMode.dark, 
-                              label: Text('Dark'), 
-                              icon: Icon(Icons.dark_mode)
+                              label: FittedBox(fit: BoxFit.scaleDown, child: Text(AppLocalizations.of(context)!.themeDark)), 
+                              icon: const Icon(Icons.dark_mode)
                            ),
                         ],
                         selected: {themeProvider.themeMode},
@@ -301,21 +301,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
             _buildTextField(
               controller: _firstNameController,
-              label: 'First Name',
+              label: AppLocalizations.of(context)!.firstNameLabel,
               icon: Icons.person_outline,
               theme: theme,
             ),
             const SizedBox(height: 16),
             _buildTextField(
               controller: _lastNameController,
-              label: 'Last Name',
+              label: AppLocalizations.of(context)!.lastNameLabel,
               icon: Icons.person_outline,
               theme: theme,
             ),
             const SizedBox(height: 16),
             _buildTextField(
               controller: _phoneController,
-              label: 'Phone Number',
+              label: AppLocalizations.of(context)!.phoneNumberLabel,
               icon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
               theme: theme,
@@ -323,7 +323,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 16),
             _buildTextField(
               controller: _countryController,
-              label: 'Country',
+              label: AppLocalizations.of(context)!.countryLabel,
               icon: Icons.public,
               theme: theme,
             ),
@@ -344,7 +344,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     Text(
                       _selectedBirthDate != null
                           ? '${_selectedBirthDate!.day}/${_selectedBirthDate!.month}/${_selectedBirthDate!.year}'
-                          : 'Select Birth Date',
+                          : AppLocalizations.of(context)!.selectBirthDateLabel,
                       style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 16),
                     ),
                   ],
@@ -368,10 +368,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     Expanded(
                       child: Text(
                         _currentPosition != null
-                            ? 'Location Updated: ${_currentPosition!.latitude.toStringAsFixed(4)}, ${_currentPosition!.longitude.toStringAsFixed(4)}'
+                            ? AppLocalizations.of(context)!.locationUpdated(_currentPosition!.latitude.toStringAsFixed(4), _currentPosition!.longitude.toStringAsFixed(4))
                             : (widget.user.latitude != null 
-                                ? 'Current: ${widget.user.latitude!.toStringAsFixed(4)}, ${widget.user.longitude!.toStringAsFixed(4)}' 
-                                : 'Update Location (Tap to fetch)'),
+                                ? AppLocalizations.of(context)!.locationCurrent(widget.user.latitude!.toStringAsFixed(4), widget.user.longitude!.toStringAsFixed(4)) 
+                                : AppLocalizations.of(context)!.updateLocationLabel),
                         style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 16),
                       ),
                     ),
@@ -395,9 +395,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 child: _isLoading 
                   ? CircularProgressIndicator(color: theme.colorScheme.onPrimary)
-                  : const Text(
-                      'Save Changes',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  : Text(
+                      AppLocalizations.of(context)!.saveChangesButton,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
               ),
             ),

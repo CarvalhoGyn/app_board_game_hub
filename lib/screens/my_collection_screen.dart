@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../database/database.dart';
 import '../providers/user_session.dart';
 import 'game_details.dart';
+import 'package:app_board_game_hub/l10n/app_localizations.dart';
 
 class MyCollectionScreen extends StatefulWidget {
   const MyCollectionScreen({super.key});
@@ -49,7 +50,7 @@ class _MyCollectionScreenState extends State<MyCollectionScreen> {
     
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${game.name} removed from collection')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.removedFromCollection(game.name))),
       );
     }
   }
@@ -62,7 +63,7 @@ class _MyCollectionScreenState extends State<MyCollectionScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('My Collection', style: TextStyle(color: theme.colorScheme.onSurface)),
+        title: Text(AppLocalizations.of(context)!.myCollection, style: TextStyle(color: theme.colorScheme.onSurface)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
@@ -70,7 +71,7 @@ class _MyCollectionScreenState extends State<MyCollectionScreen> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: theme.primaryColor))
           : _collection.isEmpty
-              ? _buildEmptyState(theme, mutedColor)
+              ? _buildEmptyState(context, theme, mutedColor)
               : GridView.builder(
                   padding: const EdgeInsets.all(16),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -88,7 +89,7 @@ class _MyCollectionScreenState extends State<MyCollectionScreen> {
     );
   }
 
-  Widget _buildEmptyState(ThemeData theme, Color mutedColor) {
+  Widget _buildEmptyState(BuildContext context, ThemeData theme, Color mutedColor) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -96,12 +97,12 @@ class _MyCollectionScreenState extends State<MyCollectionScreen> {
           Icon(Icons.category_outlined, size: 64, color: mutedColor.withValues(alpha:0.5)),
           const SizedBox(height: 16),
           Text(
-            'Your collection is empty',
+            AppLocalizations.of(context)!.emptyCollection,
             style: TextStyle(color: mutedColor, fontSize: 18),
           ),
           const SizedBox(height: 8),
           Text(
-            'Mark games as owned to see them here',
+            AppLocalizations.of(context)!.exploreToAddToCollection,
             style: TextStyle(color: mutedColor, fontSize: 14),
           ),
         ],

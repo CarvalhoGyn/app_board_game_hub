@@ -8,6 +8,7 @@ import 'game_catalog.dart';
 import 'profile_dashboard.dart';
 import '../providers/user_session.dart';
 import '../services/gamification_service.dart';
+import '../services/supabase_sync_service.dart';
 
 class RecordMatchScore extends StatefulWidget {
   final String matchId;
@@ -414,6 +415,8 @@ class _RecordMatchScoreState extends State<RecordMatchScore> {
         child: ElevatedButton.icon(
           onPressed: () async {
             final matchesDao = context.read<MatchesDao>();
+            final currentUser = context.read<UserSession>().currentUser;
+            final creatorId = _matchDetails?.match.creatorId;
             final isCoop = _matchDetails!.match.scoringType == 'cooperative';
             
             try {
@@ -430,6 +433,12 @@ class _RecordMatchScoreState extends State<RecordMatchScore> {
               }
   
               for (var p in _matchPlayers) {
+                // If the user is NOT the creator, they should ONLY update their own record!
+                // This avoids RLS (Row Level Security) failures on Supabase when trying to update friends' data.
+                if (currentUser?.id != creatorId && p.user.id != currentUser?.id) {
+                   continue;
+                }
+
                 final rank = isCoop ? null : (_playerRanks[p.player.id] ?? 0);
                 final rating = _playerRatings[p.player.id];
                 final isWinner = isCoop ? _coopVictory : (rank == 1);
@@ -509,6 +518,10 @@ class _RecordMatchScoreState extends State<RecordMatchScore> {
                }
 
               if (!mounted) return;
+              
+              // Trigger background sync to push the Enqueued Player Results (UPDATEs)
+              context.read<SupabaseSyncService>().sync();
+
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => const GameCatalog()),

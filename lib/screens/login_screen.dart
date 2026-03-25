@@ -11,6 +11,7 @@ import 'package:app_board_game_hub/l10n/app_localizations.dart';
 import '../widgets/language_selector.dart';
 
 import '../services/supabase_sync_service.dart';
+import '../services/supabase_realtime_service.dart';
 
 // ...
 
@@ -75,7 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       minHeight: MediaQuery.of(context).size.height - 100,
                     ),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         // Top Section
                         Column(
@@ -247,8 +248,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                     final syncService = context.read<SupabaseSyncService>();
                                     
                                     session.login(localUser);
-                                    // Trigger background sync
+                                    // Trigger background sync and Realtime
                                     syncService.sync();
+                                    context.read<SupabaseRealtimeService>().subscribe(authUser.id);
 
                                     Navigator.pushReplacement(
                                       context,
@@ -285,36 +287,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 32),
-                        // Bottom Section
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'New player?',
-                              style: TextStyle(
-                                color: AppColors.textMuted,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const RegistrationScreen()),
-                                );
-                              },
-                              child: Text(
-                                'Create an Account',
-                                style: TextStyle(
-                                  color: theme.primaryColor,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+
                       ],
                     ),
                   ),

@@ -33,6 +33,8 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
   void _loadMatches() {
     final matchesDao = context.read<MatchesDao>();
     _subscription = matchesDao.watchMatchesForUser(widget.userId).listen((matches) {
+      debugPrint('==== MATCH HISTORY STREAM ====');
+      debugPrint('Received ${matches.length} matches from local database for user ${widget.userId}');
       if (mounted) {
         setState(() {
           _allMatches = matches;
@@ -224,6 +226,10 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
      final game = matchData.game;
      final l10n = AppLocalizations.of(context)!;
      
+     final player = matchData.player;
+     final isFinished = player != null && player.rank != null;
+     final isWinner = player?.isWinner == true;
+     
      return GestureDetector(
         onTap: () {
            Navigator.push(context, MaterialPageRoute(builder: (context) => RecordMatchScore(matchId: match.id)));
@@ -232,9 +238,9 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
            margin: const EdgeInsets.only(bottom: 12),
            padding: const EdgeInsets.all(12),
            decoration: BoxDecoration(
-              color: theme.cardTheme.color, 
+              color: isWinner ? Colors.amber.withOpacity(0.05) : theme.cardTheme.color, 
               borderRadius: BorderRadius.circular(16), 
-              border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha:0.05)),
+              border: Border.all(color: isWinner ? Colors.amber.withOpacity(0.3) : theme.colorScheme.onSurface.withValues(alpha:0.05)),
            ),
            child: Row(
               children: [
@@ -251,16 +257,35 @@ class _MatchHistoryScreenState extends State<MatchHistoryScreen> {
                     child: Column(
                        crossAxisAlignment: CrossAxisAlignment.start,
                        children: [
-                          Text(game.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: theme.colorScheme.onSurface)),
-                          const SizedBox(height: 4),
-                          Text(
-                             DateFormat('EEE, MMM d, yyyy', Localizations.localeOf(context).languageCode).format(match.date),
-                             style: TextStyle(color: mutedColor, fontSize: 13),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(game.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: theme.colorScheme.onSurface), overflow: TextOverflow.ellipsis),
+                              ),
+                              if (isWinner)
+                                const Icon(Icons.emoji_events, color: Colors.amber, size: 20),
+                            ],
                           ),
+                          const SizedBox(height: 4),
                           Row(
                             children: [
                               Icon(
-                                match.scoringType == 'cooperative' ? Icons.group_work : Icons.emoji_events, 
+                                isFinished ? Icons.check_circle : Icons.schedule,
+                                size: 14,
+                                color: isFinished ? Colors.green : Colors.orange,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                 DateFormat('EEE, MMM d, yyyy', Localizations.localeOf(context).languageCode).format(match.date),
+                                 style: TextStyle(color: mutedColor, fontSize: 13),
+                              ),
+                            ]
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(
+                                match.scoringType == 'cooperative' ? Icons.group_work : Icons.emoji_events_outlined, 
                                 size: 14, 
                                 color: theme.primaryColor
                               ),

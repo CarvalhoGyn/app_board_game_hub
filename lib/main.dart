@@ -16,17 +16,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'env/env.dart';
 import 'services/supabase_sync_service.dart';
 import 'services/supabase_storage_service.dart';
+import 'services/supabase_realtime_service.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Supabase.initialize(
-    url: Env.supabaseUrl,
-    anonKey: Env.supabaseAnonKey,
-  );
-  
   final database = AppDatabase();
-
 
   runApp(
     MultiProvider(
@@ -44,6 +39,7 @@ void main() async {
         Provider<BggService>(create: (_) => BggService()),
         Provider<SupabaseSyncService>(create: (_) => SupabaseSyncService(database)),
         Provider<SupabaseStorageService>(create: (_) => SupabaseStorageService()),
+        ChangeNotifierProvider<SupabaseRealtimeService>(create: (_) => SupabaseRealtimeService(database)),
         ChangeNotifierProvider<UserSession>(create: (_) => UserSession()),
         ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
         ChangeNotifierProvider<LocalizationProvider>(create: (_) => LocalizationProvider()),

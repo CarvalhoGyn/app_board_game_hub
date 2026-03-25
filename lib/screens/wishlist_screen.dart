@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../database/database.dart';
 import '../providers/user_session.dart';
 import 'game_details.dart';
+import 'package:app_board_game_hub/l10n/app_localizations.dart';
 
 class WishlistScreen extends StatefulWidget {
   const WishlistScreen({super.key});
@@ -49,7 +50,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
     
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${game.name} removed from wishlist')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.removedFromWishlist(game.name))),
       );
     }
   }
@@ -62,7 +63,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('My Wishlist', style: TextStyle(color: theme.colorScheme.onSurface)),
+        title: Text(AppLocalizations.of(context)!.myWishlistTitle, style: TextStyle(color: theme.colorScheme.onSurface)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: theme.colorScheme.onSurface),
@@ -70,7 +71,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: theme.primaryColor))
           : _wishlist.isEmpty
-              ? _buildEmptyState(mutedColor)
+              ? _buildEmptyState(context, mutedColor)
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: _wishlist.length,
@@ -82,7 +83,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
     );
   }
 
-  Widget _buildEmptyState(Color mutedColor) {
+  Widget _buildEmptyState(BuildContext context, Color mutedColor) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -90,12 +91,12 @@ class _WishlistScreenState extends State<WishlistScreen> {
           Icon(Icons.favorite_border, size: 64, color: mutedColor.withValues(alpha:0.5)),
           const SizedBox(height: 16),
           Text(
-            'Your wishlist is empty',
+            AppLocalizations.of(context)!.emptyWishlist,
             style: TextStyle(color: mutedColor, fontSize: 18),
           ),
           const SizedBox(height: 8),
           Text(
-            'Explore games to add them here',
+            AppLocalizations.of(context)!.exploreToAddToWishlist,
             style: TextStyle(color: mutedColor, fontSize: 14),
           ),
         ],

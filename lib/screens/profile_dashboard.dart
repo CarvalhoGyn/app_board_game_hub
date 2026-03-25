@@ -13,12 +13,14 @@ import 'edit_profile_screen.dart';
 import 'wishlist_screen.dart';
 import 'friends_list_screen.dart';
 import 'login_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 import 'my_collection_screen.dart';
 import 'notifications_screen.dart';
 import 'match_history_screen.dart';
 import 'achievements_screen.dart';
 import '../services/gamification_service.dart';
+import '../services/supabase_realtime_service.dart';
 import '../widgets/language_selector.dart';
 import 'package:app_board_game_hub/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as package;
@@ -56,8 +58,8 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
     final usersDao = context.read<UsersDao>();
 
     final results = await Future.wait([
-      // 0: Target User details
-      isMyProfile ? Future.value(currentSessionUser) : usersDao.getUserById(targetUserId),
+      // 0: Target User details (Always fetch fresh from DB for accurate XP!)
+      usersDao.getUserById(targetUserId),
       // 1: Stats
       matchesDao.getUserStats(targetUserId),
       // 2: Wishlist Count
@@ -80,6 +82,11 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
 
     final user = results[0] as User?;
     final matchStats = results[1] as Map<String, dynamic>;
+    
+    // Propagate updated user back to session if it's my profile
+    if (isMyProfile && user != null && mounted) {
+       Future.microtask(() => context.read<UserSession>().updateUser(user));
+    }
     
     return {
       'user': user,
@@ -309,7 +316,11 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
               IconButton(
                 icon: Icon(Icons.logout, color: theme.colorScheme.onSurface),
                 tooltip: AppLocalizations.of(context)!.logoutButton,
-                onPressed: () {
+                onPressed: () async {
+                   await Supabase.instance.client.auth.signOut();
+                   if (!context.mounted) return;
+                   // Disconnect Realtime before logout
+                   context.read<SupabaseRealtimeService>().unsubscribe();
                    context.read<UserSession>().logout();
                    Navigator.of(context).pushAndRemoveUntil(
                      MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -582,11 +593,10 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
              _buildMenuCard(
                 context,
                 theme,
-                title: 'Wishlist',
-                subtitle: '${stats['wishlistCount']} games',
+                title: AppLocalizations.of(context)!.myWishlistTitle,
+                subtitle: AppLocalizations.of(context)!.gamesCount(stats['wishlistCount']),
                 icon: Icons.favorite,
                 color: Colors.redAccent,
-                trailingWidget: _buildWishlistPreviews(wishlistGames),
                 onTap: () {
                     if (isMyProfile) Navigator.push(context, MaterialPageRoute(builder: (context) => const WishlistScreen()));
                 },
@@ -596,7 +606,7 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                 context,
                 theme,
                 title: AppLocalizations.of(context)!.friendsButton,
-                subtitle: '${stats['friendsCount']} friends',
+                subtitle: AppLocalizations.of(context)!.friendsCount(stats['friendsCount']),
                 icon: Icons.diversity_3,
                 color: Colors.blueAccent,
                 trailingWidget: _buildFriendsPreviews(friendsList, theme),
