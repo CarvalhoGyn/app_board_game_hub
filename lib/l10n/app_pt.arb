@@ -227,5 +227,9 @@
   "premiumAnnualDesc": "Economize 33% e apoie o projeto!",
   "premiumBestValue": "MELHOR VALOR",
   "premiumSubscribeButton": "Assinar Agora",
-  "registrationEmailConfirmation": "Por favor, confirme sua conta no e-mail informado."
+  "registrationEmailConfirmation": "Por favor, confirme sua conta no e-mail informado.",
+  "matchLimitTitle": "Limite de Partidas Atingido",
+  "matchLimitMessage": "Você pode participar de apenas 5 partidas com uma conta gratuita. Assine o Pro para registrar mais!",
+  "matchLimitFriendMessage": "{username} atingiu o limite de partidas gratuitas e não pode ser adicionado.",
+  "upgradeNow": "Assinar Agora"
 }

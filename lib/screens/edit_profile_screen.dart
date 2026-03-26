@@ -29,6 +29,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   DateTime? _selectedBirthDate;
   File? _pickedImageFile;
   bool _isLoading = false;
+  Position? _currentPosition;
+  String? _avatarUrl;
 
   @override
   void initState() {
@@ -115,7 +117,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  Position? _currentPosition;
 
   Future<void> _updateLocation() async {
     bool serviceEnabled;
@@ -187,7 +188,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
   
-  String? _avatarUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -243,13 +243,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                            themeProvider.setTheme(newSelection.first);
                         },
                         style: ButtonStyle(
-                           side: MaterialStateProperty.all(BorderSide(color: theme.primaryColor.withOpacity(0.5))),
-                           foregroundColor: MaterialStateProperty.resolveWith((states) {
-                              if (states.contains(MaterialState.selected)) return theme.colorScheme.onPrimary;
+                           side: WidgetStateProperty.all(BorderSide(color: theme.primaryColor.withOpacity(0.5))),
+                           foregroundColor: WidgetStateProperty.resolveWith((states) {
+                              if (states.contains(WidgetState.selected)) return theme.colorScheme.onPrimary;
                               return theme.colorScheme.onSurface;
                            }),
-                           backgroundColor: MaterialStateProperty.resolveWith((states) {
-                              if (states.contains(MaterialState.selected)) return theme.colorScheme.primary; 
+                           backgroundColor: WidgetStateProperty.resolveWith((states) {
+                              if (states.contains(WidgetState.selected)) return theme.colorScheme.primary; 
                               return Colors.transparent;
                            }),
                         ),

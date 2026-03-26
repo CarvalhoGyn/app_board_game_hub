@@ -46,11 +46,11 @@ class TranslationService {
 
     try {
       final String result = await translator.translateText(text);
-      await translator.close();
       return result;
     } catch (e) {
-      await translator.close();
       return text;
+    } finally {
+      await translator.close();
     }
   }
 }

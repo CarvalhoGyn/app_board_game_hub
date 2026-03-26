@@ -64,7 +64,7 @@ void main() async {
         Provider<GamificationService>(create: (_) => GamificationService(database)),
         Provider<SupabaseSyncService>(create: (_) => SupabaseSyncService(database)),
         Provider<SupabaseStorageService>(create: (_) => SupabaseStorageService()),
-        ChangeNotifierProvider<SupabaseRealtimeService>(create: (_) => SupabaseRealtimeService(database)),
+        ChangeNotifierProvider<SupabaseRealtimeService>(create: (context) => SupabaseRealtimeService(database, context.read<SupabaseSyncService>())),
         ChangeNotifierProvider<UserSession>(create: (_) => UserSession()),
         ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
         ChangeNotifierProvider<LocalizationProvider>(create: (_) => LocalizationProvider()),

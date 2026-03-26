@@ -751,5 +751,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get registrationEmailConfirmation =>
-      'Please confirm your account in your email.';
+      'Please confirm your account in the email provided.';
+
+  @override
+  String get matchLimitTitle => 'Match Limit Reached';
+
+  @override
+  String get matchLimitMessage =>
+      'You can only participate in 5 matches with a free account. Upgrade to Pro to record more!';
+
+  @override
+  String matchLimitFriendMessage(Object username) {
+    return '$username reached the free match limit and cannot be added.';
+  }
+
+  @override
+  String get upgradeNow => 'Upgrade Now';
 }

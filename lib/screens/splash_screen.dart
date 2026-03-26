@@ -43,15 +43,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   }
   
   Future<void> _initializeApp() async {
-    // 1. Initialize heavy backend services here while animation plays
-    try {
-        await Supabase.initialize(
-          url: Env.supabaseUrl,
-          anonKey: Env.supabaseAnonKey,
-        );
-    } catch (e) {
-        debugPrint('Splash: Supabase init error: $e');
-    }
+    // Supabase já inicializado em main.dart
 
     // 2. Padding delay to let the animation show for at least 1-1.5 seconds smoothly
     await Future.delayed(const Duration(milliseconds: 1500));

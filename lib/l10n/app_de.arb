@@ -226,5 +226,9 @@
   "premiumAnnualDesc": "Spare 33 % und unterstütze das Projekt!",
   "premiumBestValue": "BESTES ANGEBOT",
   "premiumSubscribeButton": "Jetzt abonnieren",
-  "registrationEmailConfirmation": "Bitte bestätigen Sie Ihr Konto in Ihrer E-Mail."
+  "registrationEmailConfirmation": "Bitte bestätigen Sie Ihr Konto in Ihrer E-Mail.",
+  "matchLimitTitle": "Spielbegrenzung erreicht",
+  "matchLimitMessage": "Mit einem kostenlosen Konto können Sie nur an 5 Spielen teilnehmen. Aktualisieren Sie auf Pro, um mehr aufzunehmen!",
+  "matchLimitFriendMessage": "{username} hat das Limit für kostenlose Spiele erreicht und kann nicht hinzugefügt werden.",
+  "upgradeNow": "Jetzt upgraden"
 }

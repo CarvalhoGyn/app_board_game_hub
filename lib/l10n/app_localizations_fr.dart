@@ -755,4 +755,19 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get registrationEmailConfirmation =>
       'Veuillez confirmer votre compte par e-mail.';
+
+  @override
+  String get matchLimitTitle => 'Limite de parties atteinte';
+
+  @override
+  String get matchLimitMessage =>
+      'Vous ne pouvez participer qu\'à 5 parties avec un compte gratuit. Passez à Pro pour en enregistrer plus !';
+
+  @override
+  String matchLimitFriendMessage(Object username) {
+    return '$username a atteint la limite de parties gratuites et ne peut pas être ajouté.';
+  }
+
+  @override
+  String get upgradeNow => 'Passer à Pro';
 }

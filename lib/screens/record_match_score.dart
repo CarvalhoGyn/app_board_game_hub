@@ -9,6 +9,7 @@ import 'profile_dashboard.dart';
 import '../providers/user_session.dart';
 import '../services/gamification_service.dart';
 import '../services/supabase_sync_service.dart';
+import 'package:app_board_game_hub/l10n/app_localizations.dart';
 
 class RecordMatchScore extends StatefulWidget {
   final String matchId;
@@ -83,7 +84,7 @@ class _RecordMatchScoreState extends State<RecordMatchScore> {
             }
           },
         ),
-        title: Text('Record Results', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
+        title: Text(AppLocalizations.of(context)!.recordMatch, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
         centerTitle: true,
       ),
       body: SingleChildScrollView(

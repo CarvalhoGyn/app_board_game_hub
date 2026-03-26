@@ -1473,8 +1473,32 @@ abstract class AppLocalizations {
   /// No description provided for @registrationEmailConfirmation.
   ///
   /// In en, this message translates to:
-  /// **'Please confirm your account in your email.'**
+  /// **'Please confirm your account in the email provided.'**
   String get registrationEmailConfirmation;
+
+  /// No description provided for @matchLimitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Match Limit Reached'**
+  String get matchLimitTitle;
+
+  /// No description provided for @matchLimitMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You can only participate in 5 matches with a free account. Upgrade to Pro to record more!'**
+  String get matchLimitMessage;
+
+  /// No description provided for @matchLimitFriendMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{username} reached the free match limit and cannot be added.'**
+  String matchLimitFriendMessage(Object username);
+
+  /// No description provided for @upgradeNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade Now'**
+  String get upgradeNow;
 }
 
 class _AppLocalizationsDelegate

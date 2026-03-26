@@ -751,4 +751,19 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get registrationEmailConfirmation =>
       'Bitte bestätigen Sie Ihr Konto in Ihrer E-Mail.';
+
+  @override
+  String get matchLimitTitle => 'Spielbegrenzung erreicht';
+
+  @override
+  String get matchLimitMessage =>
+      'Mit einem kostenlosen Konto können Sie nur an 5 Spielen teilnehmen. Aktualisieren Sie auf Pro, um mehr aufzunehmen!';
+
+  @override
+  String matchLimitFriendMessage(Object username) {
+    return '$username hat das Limit für kostenlose Spiele erreicht und kann nicht hinzugefügt werden.';
+  }
+
+  @override
+  String get upgradeNow => 'Jetzt upgraden';
 }

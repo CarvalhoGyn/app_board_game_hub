@@ -226,5 +226,9 @@
   "premiumAnnualDesc": "Économisez 33% et soutenez le projet !",
   "premiumBestValue": "MEILLEURE OFFRE",
   "premiumSubscribeButton": "S'abonner Maintenant",
-  "registrationEmailConfirmation": "Veuillez confirmer votre compte par e-mail."
+  "registrationEmailConfirmation": "Veuillez confirmer votre compte par e-mail.",
+  "matchLimitTitle": "Limite de parties atteinte",
+  "matchLimitMessage": "Vous ne pouvez participer qu'à 5 parties avec un compte gratuit. Passez à Pro pour en enregistrer plus !",
+  "matchLimitFriendMessage": "{username} a atteint la limite de parties gratuites et ne peut pas être ajouté.",
+  "upgradeNow": "Passer à Pro"
 }

@@ -227,5 +227,9 @@
   "premiumAnnualDesc": "Save 33% and support the project!",
   "premiumBestValue": "BEST VALUE",
   "premiumSubscribeButton": "Subscribe Now",
-  "registrationEmailConfirmation": "Please confirm your account in your email."
+  "registrationEmailConfirmation": "Please confirm your account in the email provided.",
+  "matchLimitTitle": "Match Limit Reached",
+  "matchLimitMessage": "You can only participate in 5 matches with a free account. Upgrade to Pro to record more!",
+  "matchLimitFriendMessage": "{username} reached the free match limit and cannot be added.",
+  "upgradeNow": "Upgrade Now"
 }

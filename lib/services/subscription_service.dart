@@ -28,10 +28,6 @@ class SubscriptionService {
       
       await Purchases.configure(configuration);
       debugPrint('RevenueCat: Initialized for user $userId');
-      
-      
-      await Purchases.configure(configuration);
-      debugPrint('RevenueCat: Initialized for user $userId');
     } catch (e) {
       debugPrint('RevenueCat: Initialization Error: $e');
     }
@@ -115,5 +111,30 @@ class SubscriptionService {
     final expirationStr = info.entitlements.active[_entitlementId]!.expirationDate;
     if (expirationStr == null) return null;
     return DateTime.parse(expirationStr);
+  }
+
+  /// Checks if a user is allowed to participate in a new match (Limit: 5 for Free)
+  Future<bool> canParticipateInMatch({
+    required String userId,
+    required UsersDao usersDao,
+    required MatchesDao matchesDao,
+    required SupabaseSyncService syncService,
+    bool isLocalOnly = false,
+  }) async {
+    final user = await usersDao.getUserById(userId);
+    if (user == null) return false;
+
+    // Premium users have no limit
+    if (user.isPremium) return true;
+
+    // For Free users, check participation count
+    int count;
+    if (isLocalOnly) {
+       count = await matchesDao.countMatchesForUser(userId);
+    } else {
+       count = await syncService.getGlobalMatchCount(userId);
+    }
+    
+    return count < 5;
   }
 }

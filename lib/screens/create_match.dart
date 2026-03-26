@@ -13,6 +13,7 @@ import 'package:app_board_game_hub/l10n/app_localizations.dart';
 import '../services/supabase_sync_service.dart';
 import '../services/games_repository.dart';
 import 'paywall_screen.dart';
+import '../services/subscription_service.dart';
 
 class CreateMatch extends StatefulWidget {
   final Game? initialGame;
@@ -249,8 +250,33 @@ class _CreateMatchState extends State<CreateMatch> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => _UserSearchSheet(
-        onUserSelected: (user) {
+        onUserSelected: (user) async {
           if (!_selectedPlayers.any((p) => p.id == user.id)) {
+             // Validate Friend Limit (Supabase Global Check)
+             final subscriptionService = context.read<SubscriptionService>();
+             final usersDao = context.read<UsersDao>();
+             final matchesDao = context.read<MatchesDao>();
+             final syncService = context.read<SupabaseSyncService>();
+             
+             // Show subtle loader if needed, or just block
+             final canJoin = await subscriptionService.canParticipateInMatch(
+                userId: user.id,
+                usersDao: usersDao,
+                matchesDao: matchesDao,
+                syncService: syncService,
+             );
+
+             if (!canJoin) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(AppLocalizations.of(context)!.matchLimitFriendMessage(user.username)),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+                return;
+             }
+
             setState(() {
               _selectedPlayers.add(user);
             });
@@ -503,10 +529,20 @@ class _CreateMatchState extends State<CreateMatch> {
           final matchesDao = context.read<MatchesDao>();
           final currentUser = userSession.currentUser;
 
-          // MATCH LIMIT GUARD (Freemium)
+          // MATCH LIMIT GUARD (MeepleSync Pro - Limit 5 Participation)
           if (!userSession.isPremium && currentUser != null) {
-            final matchCount = await matchesDao.countMatchesForUser(currentUser.id);
-            if (matchCount >= 2) {
+            final subService = context.read<SubscriptionService>();
+            final usersDao = context.read<UsersDao>();
+            final syncService = context.read<SupabaseSyncService>();
+
+            final canProceed = await subService.canParticipateInMatch(
+              userId: currentUser.id,
+              usersDao: usersDao,
+              matchesDao: matchesDao,
+              syncService: syncService,
+            );
+
+            if (!canProceed) {
                if (!mounted) return;
                Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
                return;

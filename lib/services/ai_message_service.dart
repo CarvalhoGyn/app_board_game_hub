@@ -1,4 +1,5 @@
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:flutter/foundation.dart';
 import '../config/ai_config.dart';
 
 class AiMessageService {
@@ -41,7 +42,7 @@ class AiMessageService {
           }
        } catch (e) {
           // Fallback implicitly
-          print('Gemini API Error: $e');
+          debugPrint('Gemini API Error: $e');
        }
     }
     
@@ -75,7 +76,7 @@ class AiMessageService {
          return response.text!.trim();
       }
     } catch (e) {
-      print('Gemini Translation Error: $e');
+      debugPrint('Gemini Translation Error: $e');
     }
     
     return text; // Fallback to original

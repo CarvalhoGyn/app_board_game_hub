@@ -9,6 +9,7 @@ import 'supabase_sync_service.dart';
 class SupabaseRealtimeService extends ChangeNotifier {
   final AppDatabase _db;
   final SupabaseClient _supabase;
+  final SupabaseSyncService _syncService;
 
   RealtimeChannel? _channel;
 
@@ -19,7 +20,7 @@ class SupabaseRealtimeService extends ChangeNotifier {
   bool _hasPendingUpdate = false;
   bool get hasPendingUpdate => _hasPendingUpdate;
 
-  SupabaseRealtimeService(this._db)
+  SupabaseRealtimeService(this._db, this._syncService)
       : _supabase = Supabase.instance.client;
 
   /// Subscribe to realtime changes. Call this after the user logs in.
@@ -111,8 +112,7 @@ class SupabaseRealtimeService extends ChangeNotifier {
       notifyListeners();
 
       final data = payload.newRecord;
-      final syncService = SupabaseSyncService(_db);
-      final camelData = syncService.toCamelCaseMapPublic(data);
+      final camelData = _syncService.toCamelCaseMap(data);
 
       // insertOnConflictUpdate is idempotent by primary key (id) — safe against duplicates
       await _db.into(_db.notifications).insertOnConflictUpdate(Notification.fromJson(camelData));
@@ -140,15 +140,14 @@ class SupabaseRealtimeService extends ChangeNotifier {
       _hasPendingUpdate = true;
       notifyListeners();
 
-      final syncService = SupabaseSyncService(_db);
-      final camelData = syncService.toCamelCaseMapPublic(data);
+      final camelData = _syncService.toCamelCaseMap(data);
 
       // Ensure both users exist locally to avoid empty joins in UI
       if (camelData.containsKey('userId')) {
-        await syncService.ensureLocalUserPublic(camelData['userId'] as String);
+        await _syncService.ensureLocalUser(camelData['userId'] as String);
       }
       if (camelData.containsKey('friendId')) {
-        await syncService.ensureLocalUserPublic(camelData['friendId'] as String);
+        await _syncService.ensureLocalUser(camelData['friendId'] as String);
       }
 
       await _db.into(_db.friendships).insertOnConflictUpdate(Friendship.fromJson(camelData));
@@ -169,13 +168,12 @@ class SupabaseRealtimeService extends ChangeNotifier {
       notifyListeners();
 
       final data = payload.newRecord;
-      final syncService = SupabaseSyncService(_db);
-      final camelData = syncService.toCamelCaseMapPublic(data);
+      final camelData = _syncService.toCamelCaseMap(data);
 
       final matchId = camelData['matchId'] as String?;
       if (matchId != null) {
         // 1. Ensure Match details (and game) exist locally
-        await syncService.ensureLocalMatchPublic(matchId);
+        await _syncService.ensureLocalMatch(matchId);
         
         // 2. INTEGRITY GUARD: Check if player already exists local with different userId
         // This prevents Realtime events (which might be shadowed by RLS) from corrupting local data.

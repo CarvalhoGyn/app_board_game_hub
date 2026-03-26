@@ -17,17 +17,7 @@ class SupabaseSyncService {
 
   SupabaseSyncService(this._db) : _supabase = Supabase.instance.client;
 
-  /// Public proxy for _toCamelCaseMap — used by SupabaseRealtimeService.
-  Map<String, dynamic> toCamelCaseMapPublic(Map<String, dynamic> input) => _toCamelCaseMap(input);
-
-  /// Public proxy for _ensureLocalUser — used by SupabaseRealtimeService.
-  Future<void> ensureLocalUserPublic(String userId) => _ensureLocalUser(userId);
-
-  /// Public proxy for _ensureLocalMatch — used by SupabaseRealtimeService.
-  Future<bool> ensureLocalMatchPublic(String matchId) => _ensureLocalMatch(matchId);
-
-  /// Public proxy for _ensureLocalGame — used by SupabaseRealtimeService.
-  Future<bool> ensureLocalGamePublic(String gameId) => _ensureLocalGame(gameId);
+  // Métodos de conversão e ensure* são públicos para uso pelo RealtimeService.
 
   /// ONLINE-FIRST: Toggle Wishlist or Collection Status
   /// Returns NULL on success, or Error Message on failure.
@@ -105,14 +95,6 @@ class SupabaseSyncService {
         
         // We actually need the Remote Game ID to match the foreign key.
         // So we should try to resolve it.
-        final localGame = await _db.gamesDao.getGameById(gameId);
-        String targetGameId = gameId;
-        
-        if (localGame != null && localGame.bggId != null) {
-             // Quick lookup if exists? Or just trust current ID?
-             // Trusting current ID is O(1).
-        }
-        
         debugPrint('OnlineSync: Removing from $collectionType: Game $gameId');
 
         // Delete by filter
@@ -121,7 +103,7 @@ class SupabaseSyncService {
             .delete()
             .match({
                'user_id': user.id,
-               'game_id': targetGameId,
+               'game_id': gameId,
                'collection_type': collectionType
             })
             .select()
@@ -248,10 +230,10 @@ class SupabaseSyncService {
       
       // Ensure both users exist locally to avoid empty joins in UI
       if (updatedRow.containsKey('user_id')) {
-        await ensureLocalUserPublic(updatedRow['user_id'] as String);
+        await ensureLocalUser(updatedRow['user_id'] as String);
       }
       if (updatedRow.containsKey('friend_id')) {
-        await ensureLocalUserPublic(updatedRow['friend_id'] as String);
+        await ensureLocalUser(updatedRow['friend_id'] as String);
       }
 
       await _db.friendshipsDao.updateLocalFriendshipStatus(supabaseId, status, now);
@@ -360,8 +342,7 @@ class SupabaseSyncService {
       return newMatchId; // Return ID on success (or we could return null and pass ID separately, but returning ID is useful)
     } catch (e) {
       debugPrint('OnlineSync (CreateMatch) Error: $e');
-      return null; 
-      throw e; 
+      return null;
     }
   }
 
@@ -401,7 +382,7 @@ class SupabaseSyncService {
 
       // 4. Save to Local DB
       // Convert response back to local format (camelCase and proper types)
-      final camelData = _toCamelCaseMap(response);
+      final camelData = toCamelCaseMap(response);
       await _db.reviewsDao.saveLocalReview(Review.fromJson(camelData));
 
       return null; // Success
@@ -475,7 +456,7 @@ class SupabaseSyncService {
       final List<User> results = [];
       for (var item in response) {
         // Supabase returns snake_case, Drift expects camelCase
-        final camelItem = _toCamelCaseMap(item);
+        final camelItem = toCamelCaseMap(item);
         
         // Robust ID mapping: Ensure 'id' exists even if returned as 'uid' or missing
         if (camelItem['id'] == null && item['id'] != null) camelItem['id'] = item['id'];
@@ -524,7 +505,7 @@ class SupabaseSyncService {
         
         // Supabase expects snake_case keys. Drift gives camelCase. 
         // We need to convert payload keys to snake_case.
-        var snakePayload = _toSnakeCaseMap(payload);
+        var snakePayload = toSnakeCaseMap(payload);
 
         // --- FRESH DATA LOOKUP ---
         // The payload might be stale if ID Migration ran after enqueueing.
@@ -706,7 +687,7 @@ class SupabaseSyncService {
              debugPrint('Game $localGameId (BGG ${localGame.bggId}) not found remote. Pushing now...');
              
              var gamePayload = localGame.toJson();
-             var snakeGamePayload = _toSnakeCaseMap(gamePayload);
+             var snakeGamePayload = toSnakeCaseMap(gamePayload);
              snakeGamePayload.remove('id'); // Let remote generate if needed, OR we send specific UUID? 
              // Ideally we send nothing and let remote generate, OR we send our UUID.
              // If we send our UUID, strict collision might happen if UUID logic differs.
@@ -934,7 +915,7 @@ class SupabaseSyncService {
     final lastGamesSync = lastGamesSyncStr != null ? DateTime.parse(lastGamesSyncStr) : DateTime.fromMillisecondsSinceEpoch(0).toUtc();
     
     await _pullTable('games', lastGamesSync, (data) async {
-       final camelData = _toCamelCaseMap(data);
+       final camelData = toCamelCaseMap(data);
        var gameData = Game.fromJson(camelData);
        
        // CRITICAL: Conflict Resolution for Games via BGG_ID
@@ -958,7 +939,7 @@ class SupabaseSyncService {
     // --- PROFILES SYNC (Current User) ---
     // Critical: Ensure current user exists locally to satisfy FKs (e.g. user_collections)
     if (_supabase.auth.currentUser != null) {
-       await _ensureLocalUser(_supabase.auth.currentUser!.id);
+       await ensureLocalUser(_supabase.auth.currentUser!.id);
     }
     
     // --- USER DATA SYNC (Global Timestamp) ---
@@ -966,15 +947,15 @@ class SupabaseSyncService {
     
     // Players: Fetch all players for matches the user participates in
      await _pullTable('match_players', lastSync, (data) async {
-        final camelData = _toCamelCaseMap(data);
+        final camelData = toCamelCaseMap(data);
         // Ensure Match exists for this player entry
         if (camelData.containsKey('matchId')) {
-           final matchExists = await _ensureLocalMatch(camelData['matchId']);
+           final matchExists = await ensureLocalMatch(camelData['matchId']);
            if (!matchExists) return;
         }
         // Ensure User exists
         if (camelData.containsKey('userId')) {
-           await _ensureLocalUser(camelData['userId']);
+           await ensureLocalUser(camelData['userId']);
         }
         
         // INTEGRITY GUARD: Never let sync change a player's userId if it already exists
@@ -999,23 +980,23 @@ class SupabaseSyncService {
     // We remove the strict creatorId filter to allow participants to sync matches they didn't create
     // 1. Profiles (Self & Others)
     await _pullTable('profiles', lastSync, (data) async {
-       final camelData = _toCamelCaseMap(data);
+       final camelData = toCamelCaseMap(data);
        if (!camelData.containsKey('password')) camelData['password'] = '';
        await _db.into(_db.users).insertOnConflictUpdate(User.fromJson(camelData));
     }, timestampColumn: 'updated_at');
 
     await _pullTable('matches', lastSync, (data) async {
-       final camelData = _toCamelCaseMap(data);
+       final camelData = toCamelCaseMap(data);
        // Ensure Creator exists
        if (camelData.containsKey('creatorId') && camelData['creatorId'] != null) {
-           await _ensureLocalUser(camelData['creatorId']);
+           await ensureLocalUser(camelData['creatorId']);
        }
        await _db.into(_db.matches).insertOnConflictUpdate(MatchRow.fromJson(camelData));
     }, timestampColumn: 'date'); // REMOVED userId: _supabase.auth.currentUser?.id, userIdColumn: 'creator_id'
     
     // UserCollections uses 'added_at'
     await _pullTable('user_collections', lastSync, (data) async {
-       final camelData = _toCamelCaseMap(data);
+       final camelData = toCamelCaseMap(data);
        var row = UserGameCollection.fromJson(camelData);
        
        // Ensure Game Exists (Critical for FK)
@@ -1075,10 +1056,10 @@ class SupabaseSyncService {
       for (final row in friendshipRows) {
         if (row is Map<String, dynamic>) {
           try {
-            final camelData = _toCamelCaseMap(row);
+            final camelData = toCamelCaseMap(row);
             // Ensure both users exist locally
-            if (camelData.containsKey('userId')) await _ensureLocalUser(camelData['userId']);
-            if (camelData.containsKey('friendId')) await _ensureLocalUser(camelData['friendId']);
+            if (camelData.containsKey('userId')) await ensureLocalUser(camelData['userId']);
+            if (camelData.containsKey('friendId')) await ensureLocalUser(camelData['friendId']);
             await _db.into(_db.friendships).insertOnConflictUpdate(Friendship.fromJson(camelData));
           } catch (e) {
             debugPrint('Sync ERROR processing friendship row: $e');
@@ -1091,7 +1072,7 @@ class SupabaseSyncService {
     
     // Notifications — with deduplication by (user_id, type, related_id)
     await _pullTable('notifications', lastSync, (data) async {
-       final camelData = _toCamelCaseMap(data);
+       final camelData = toCamelCaseMap(data);
        final relatedId = camelData['relatedId'] as String?;
        final type = camelData['type'] as String?;
        final userId = camelData['userId'] as String?;
@@ -1153,7 +1134,7 @@ class SupabaseSyncService {
   // ... (existing _pullTable, _ensureLocalGame, _ensureLocalMatch)
 
   /// Ensures a User (Profile) exists locally. Fetch if missing.
-  Future<void> _ensureLocalUser(String userId) async {
+  Future<void> ensureLocalUser(String userId) async {
      // Cloud-First: Always fetch fresh profile if connection exists
      // We don't return early anymore just because localUser exists
      
@@ -1162,7 +1143,7 @@ class SupabaseSyncService {
      try {
         final remoteProfile = await _supabase.from('profiles').select().eq('id', userId).maybeSingle();
         if (remoteProfile != null) {
-           final camelData = _toCamelCaseMap(remoteProfile);
+           final camelData = toCamelCaseMap(remoteProfile);
            // Map 'username', 'email' etc.
            // Drift Users class has typical fields.
            // Auto-mapping might work if fields match.
@@ -1260,7 +1241,7 @@ class SupabaseSyncService {
               if (['user_collections', 'matches', 'reviews'].contains(tableName) && row.containsKey('game_id')) {
                  final gameId = row['game_id'] as String;
                  // If we fail to ensure local game, we MUST skip this item to avoid FK Crash
-                 final gameExists = await _ensureLocalGame(gameId);
+                 final gameExists = await ensureLocalGame(gameId);
                  if (!gameExists) {
                     debugPrint('Sync SKIP: $tableName item ${row['id']} skipped because Game $gameId could not be resolved.');
                     failCount++;
@@ -1284,7 +1265,7 @@ class SupabaseSyncService {
 
   /// Ensures a Game exists LOCALLY by fetching it from Supabase if missing.
   /// Returns TRUE if game exists (or was restored), FALSE if not found.
-  Future<bool> _ensureLocalGame(String gameId) async {
+  Future<bool> ensureLocalGame(String gameId) async {
       // Auth Guard
       if (_supabase.auth.currentUser == null) return false;
 
@@ -1298,7 +1279,7 @@ class SupabaseSyncService {
          // 2. Fetch from Supabase
          final remoteGame = await _supabase.from('games').select().eq('id', gameId).maybeSingle();
          if (remoteGame != null) {
-             final camelData = _toCamelCaseMap(remoteGame);
+             final camelData = toCamelCaseMap(remoteGame);
              await _db.into(_db.games).insertOnConflictUpdate(Game.fromJson(camelData));
              debugPrint('Sync Restore: Game $gameId manually restored and inserted.');
              return true;
@@ -1313,7 +1294,7 @@ class SupabaseSyncService {
 
   /// Ensures a Match exists locally. Fetch if missing.
   /// Also ensures the Game for that match exists.
-  Future<bool> _ensureLocalMatch(String matchId) async {
+  Future<bool> ensureLocalMatch(String matchId) async {
      // Check Local
      final localMatch = await _db.matchesDao.getMatchWithDetails(matchId);
      if (localMatch != null) return true;
@@ -1326,11 +1307,11 @@ class SupabaseSyncService {
            final gameId = remoteMatch['game_id'] as String;
            
            // Ensure Game First
-           final gameExists = await _ensureLocalGame(gameId);
+           final gameExists = await ensureLocalGame(gameId);
            if (!gameExists) return false;
            
            // Insert Match
-           final camelData = _toCamelCaseMap(remoteMatch);
+           final camelData = toCamelCaseMap(remoteMatch);
            await _db.into(_db.matches).insertOnConflictUpdate(MatchRow.fromJson(camelData));
            debugPrint('Sync Restore: Match $matchId restored.');
            return true;
@@ -1347,11 +1328,11 @@ class SupabaseSyncService {
 
   // --- Helpers ---
 
-  Map<String, dynamic> _toSnakeCaseMap(Map<String, dynamic> map) {
+  Map<String, dynamic> toSnakeCaseMap(Map<String, dynamic> map) {
     return map.map((key, value) => MapEntry(_camelToSnake(key), value));
   }
   
-  Map<String, dynamic> _toCamelCaseMap(Map<String, dynamic> map) {
+  Map<String, dynamic> toCamelCaseMap(Map<String, dynamic> map) {
     var camelMap = map.map((key, value) => MapEntry(_snakeToCamel(key), value));
     
     // Drift's fromJson expects DateTime as Unix timestamps (millisecondsSinceEpoch) by default.
@@ -1392,14 +1373,17 @@ class SupabaseSyncService {
     return camelMap;
   }
 
+  static final _upperCaseRegExp = RegExp(r'[A-Z]');
+  static final _snakeCaseRegExp = RegExp(r'_([a-z])');
+
   String _camelToSnake(String camel) {
-    return camel.replaceAllMapped(RegExp(r'[A-Z]'), (match) {
+    return camel.replaceAllMapped(_upperCaseRegExp, (match) {
       return '_${match.group(0)!.toLowerCase()}';
     });
   }
   
   String _snakeToCamel(String snake) {
-    return snake.replaceAllMapped(RegExp(r'_([a-z])'), (match) {
+    return snake.replaceAllMapped(_snakeCaseRegExp, (match) {
       return match.group(1)!.toUpperCase();
     });
   }
@@ -1422,15 +1406,33 @@ class SupabaseSyncService {
       final rows = response as List<dynamic>;
       for (final row in rows) {
         if (row is Map<String, dynamic>) {
-          final camelData = _toCamelCaseMap(row);
+          final camelData = toCamelCaseMap(row);
           if (camelData.containsKey('userId')) {
-            await _ensureLocalUser(camelData['userId']);
+            await ensureLocalUser(camelData['userId']);
           }
           await _db.into(_db.reviews).insertOnConflictUpdate(Review.fromJson(camelData));
         }
       }
     } catch (e) {
       debugPrint('Sync Error pulling game reviews: $e');
+    }
+  }
+
+  /// Returns the total match participation count for any user ID globally (Supabase-First)
+  Future<int> getGlobalMatchCount(String userId) async {
+    try {
+      final response = await _supabase
+          .from('match_players')
+          .select('id')
+          .eq('user_id', userId);
+          
+      if (response is List) {
+        return response.length;
+      }
+      return 0;
+    } catch (e) {
+      debugPrint('Sync: Error getting global match count: $e');
+      return 0;
     }
   }
 }
