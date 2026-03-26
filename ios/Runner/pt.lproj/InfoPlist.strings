@@ -1,0 +1,3 @@
+NSCameraUsageDescription = "Este aplicativo precisa de acesso à câmera para você tirar sua foto de perfil ou escanear jogos.";
+NSPhotoLibraryUsageDescription = "Este aplicativo precisa de acesso à galeria para você selecionar sua foto de perfil.";
+NSLocationWhenInUseUsageDescription = "Este aplicativo precisa da sua localização para encontrar sessões de jogo próximas e usuários da comunidade.";

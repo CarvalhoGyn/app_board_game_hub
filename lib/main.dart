@@ -17,11 +17,37 @@ import 'services/supabase_sync_service.dart';
 import 'services/supabase_storage_service.dart';
 import 'services/supabase_realtime_service.dart';
 import 'services/subscription_service.dart';
+import 'services/error_log_service.dart';
+import 'dart:ui';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await Supabase.initialize(
+    url: Env.supabaseUrl,
+    anonKey: Env.supabaseAnonKey,
+  );
+
   final database = AppDatabase();
+  final errorLogService = ErrorLogService(Supabase.instance.client);
+
+  // Captura erros de Widgets do Flutter
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    errorLogService.logError(
+      message: details.exceptionAsString(),
+      stackTrace: details.stack?.toString(),
+    );
+  };
+
+  // Captura erros assíncronos fora da árvore de widgets
+  PlatformDispatcher.instance.onError = (error, stack) {
+    errorLogService.logError(
+      message: error.toString(),
+      stackTrace: stack.toString(),
+    );
+    return true;
+  };
 
   runApp(
     MultiProvider(
@@ -43,6 +69,7 @@ void main() {
         ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
         ChangeNotifierProvider<LocalizationProvider>(create: (_) => LocalizationProvider()),
         Provider<SubscriptionService>(create: (_) => SubscriptionService()),
+        Provider<ErrorLogService>.value(value: errorLogService),
       ],
       child: const MyApp(),
     ),

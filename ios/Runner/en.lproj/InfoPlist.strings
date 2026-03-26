@@ -1,0 +1,3 @@
+NSCameraUsageDescription = "This app needs access to your camera to take a profile picture or scan games.";
+NSPhotoLibraryUsageDescription = "This app needs access to your photo library to select a profile picture.";
+NSLocationWhenInUseUsageDescription = "This app needs your location to find nearby game sessions and community users.";

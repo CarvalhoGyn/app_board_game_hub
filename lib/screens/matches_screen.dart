@@ -143,7 +143,7 @@ class _MatchesScreenState extends State<MatchesScreen> {
                     child: Column(
                        crossAxisAlignment: CrossAxisAlignment.start,
                        children: [
-                          Text(game.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: theme.colorScheme.onSurface)),
+                          Text(game.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: theme.colorScheme.onSurface), maxLines: 1, overflow: TextOverflow.ellipsis),
                           const SizedBox(height: 4),
                           Text(
                              '${match.date.day}/${match.date.month}/${match.date.year} • ${match.scoringType == 'cooperative' ? 'Co-op' : 'Competitive'}',

@@ -154,8 +154,8 @@ class _FriendsListScreenState extends State<FriendsListScreen> with SingleTicker
           labelColor: theme.primaryColor,
           unselectedLabelColor: mutedColor,
           tabs: [
-            Tab(text: AppLocalizations.of(context)!.myFriendsTab),
-            Tab(text: _pendingRequests.isNotEmpty ? AppLocalizations.of(context)!.friendRequestsCount(_pendingRequests.length.toString()) : AppLocalizations.of(context)!.friendRequestsTab),
+            Tab(child: FittedBox(fit: BoxFit.scaleDown, child: Text(AppLocalizations.of(context)!.myFriendsTab))),
+            Tab(child: FittedBox(fit: BoxFit.scaleDown, child: Text(_pendingRequests.isNotEmpty ? AppLocalizations.of(context)!.friendRequestsCount(_pendingRequests.length.toString()) : AppLocalizations.of(context)!.friendRequestsTab))),
           ],
         ),
       ),

@@ -288,29 +288,32 @@ class _RecordMatchScoreState extends State<RecordMatchScore> {
         children: [
            Row(
               children: [
-                 InkWell(
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileDashboard(userId: user.id))),
-                    child: Row(
-                      children: [
-                         CircleAvatar(
-                            backgroundImage: user.avatarUrl != null 
-                              ? (user.avatarUrl!.startsWith('http') 
-                                  ? NetworkImage(user.avatarUrl!) 
-                                  : (File(user.avatarUrl!).existsSync() ? FileImage(File(user.avatarUrl!)) as ImageProvider : null))
-                              : null,
-                            radius: 20,
-                            backgroundColor: theme.colorScheme.surface,
-                            child: user.avatarUrl == null || (user.avatarUrl != null && !user.avatarUrl!.startsWith('http') && !File(user.avatarUrl!).existsSync())
-                                ? Text(user.username.isNotEmpty ? user.username.substring(0, 1).toUpperCase() : '?', 
-                                    style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold))
-                                : null,
-                         ),
-                         const SizedBox(width: 12),
-                         Text(user.username, style: TextStyle(fontSize: 16, fontWeight: isWinner ? FontWeight.bold : FontWeight.w500, color: theme.colorScheme.onSurface)),
-                         const SizedBox(width: 12),
-                    ],),
-                 ),
-                 Expanded(child: Container()), // Spacer
+                  Expanded(
+                    child: InkWell(
+                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileDashboard(userId: user.id))),
+                       child: Row(
+                         children: [
+                            CircleAvatar(
+                               backgroundImage: user.avatarUrl != null 
+                                 ? (user.avatarUrl!.startsWith('http') 
+                                     ? NetworkImage(user.avatarUrl!) 
+                                     : (File(user.avatarUrl!).existsSync() ? FileImage(File(user.avatarUrl!)) as ImageProvider : null))
+                                 : null,
+                               radius: 20,
+                               backgroundColor: theme.colorScheme.surface,
+                               child: user.avatarUrl == null || (user.avatarUrl != null && !user.avatarUrl!.startsWith('http') && !File(user.avatarUrl!).existsSync())
+                                   ? Text(user.username.isNotEmpty ? user.username.substring(0, 1).toUpperCase() : '?', 
+                                       style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold))
+                                   : null,
+                            ),
+                            const SizedBox(width: 12),
+                            Flexible(
+                              child: Text(user.username, style: TextStyle(fontSize: 16, fontWeight: isWinner ? FontWeight.bold : FontWeight.w500, color: theme.colorScheme.onSurface), overflow: TextOverflow.ellipsis),
+                            ),
+                       ],),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                  
                  // Rank Selector (Only if Competitive)
                  if (_matchDetails?.match.scoringType == 'competitive')

@@ -374,15 +374,18 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
             ],
           ),
           const SizedBox(height: 16),
-          Row(
-            mainAxisSize: MainAxisSize.min,
+          Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 4,
             children: [
               Text(
                 displayName,
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                textAlign: TextAlign.center,
               ),
-              if (user.isPremium) ...[
-                const SizedBox(width: 12),
+              if (user.isPremium)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
@@ -393,6 +396,7 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                     ],
                   ),
                   child: const Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.diamond, color: Colors.black, size: 14),
                       SizedBox(width: 4),
@@ -400,11 +404,8 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                     ],
                   ),
                 ),
-              ],
-              if (prestigeStars.isNotEmpty) ...[
-                 const SizedBox(width: 8),
+              if (prestigeStars.isNotEmpty)
                  Text(prestigeStars, style: const TextStyle(fontSize: 20)),
-              ],
             ],
           ),
           
