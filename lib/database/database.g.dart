@@ -172,6 +172,43 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _isPremiumMeta = const VerificationMeta(
+    'isPremium',
+  );
+  @override
+  late final GeneratedColumn<bool> isPremium = GeneratedColumn<bool>(
+    'is_premium',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_premium" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _subscriptionTypeMeta = const VerificationMeta(
+    'subscriptionType',
+  );
+  @override
+  late final GeneratedColumn<String> subscriptionType = GeneratedColumn<String>(
+    'subscription_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _subscriptionExpiresAtMeta =
+      const VerificationMeta('subscriptionExpiresAt');
+  @override
+  late final GeneratedColumn<DateTime> subscriptionExpiresAt =
+      GeneratedColumn<DateTime>(
+        'subscription_expires_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -189,6 +226,9 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     xp,
     prestige,
     title,
+    isPremium,
+    subscriptionType,
+    subscriptionExpiresAt,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -292,6 +332,30 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         title.isAcceptableOrUnknown(data['title']!, _titleMeta),
       );
     }
+    if (data.containsKey('is_premium')) {
+      context.handle(
+        _isPremiumMeta,
+        isPremium.isAcceptableOrUnknown(data['is_premium']!, _isPremiumMeta),
+      );
+    }
+    if (data.containsKey('subscription_type')) {
+      context.handle(
+        _subscriptionTypeMeta,
+        subscriptionType.isAcceptableOrUnknown(
+          data['subscription_type']!,
+          _subscriptionTypeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('subscription_expires_at')) {
+      context.handle(
+        _subscriptionExpiresAtMeta,
+        subscriptionExpiresAt.isAcceptableOrUnknown(
+          data['subscription_expires_at']!,
+          _subscriptionExpiresAtMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -361,6 +425,18 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         DriftSqlType.string,
         data['${effectivePrefix}title'],
       ),
+      isPremium: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_premium'],
+      )!,
+      subscriptionType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}subscription_type'],
+      ),
+      subscriptionExpiresAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}subscription_expires_at'],
+      ),
     );
   }
 
@@ -386,6 +462,9 @@ class User extends DataClass implements Insertable<User> {
   final int xp;
   final int prestige;
   final String? title;
+  final bool isPremium;
+  final String? subscriptionType;
+  final DateTime? subscriptionExpiresAt;
   const User({
     required this.id,
     required this.username,
@@ -402,6 +481,9 @@ class User extends DataClass implements Insertable<User> {
     required this.xp,
     required this.prestige,
     this.title,
+    required this.isPremium,
+    this.subscriptionType,
+    this.subscriptionExpiresAt,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -438,6 +520,15 @@ class User extends DataClass implements Insertable<User> {
     map['prestige'] = Variable<int>(prestige);
     if (!nullToAbsent || title != null) {
       map['title'] = Variable<String>(title);
+    }
+    map['is_premium'] = Variable<bool>(isPremium);
+    if (!nullToAbsent || subscriptionType != null) {
+      map['subscription_type'] = Variable<String>(subscriptionType);
+    }
+    if (!nullToAbsent || subscriptionExpiresAt != null) {
+      map['subscription_expires_at'] = Variable<DateTime>(
+        subscriptionExpiresAt,
+      );
     }
     return map;
   }
@@ -477,6 +568,13 @@ class User extends DataClass implements Insertable<User> {
       title: title == null && nullToAbsent
           ? const Value.absent()
           : Value(title),
+      isPremium: Value(isPremium),
+      subscriptionType: subscriptionType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(subscriptionType),
+      subscriptionExpiresAt: subscriptionExpiresAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(subscriptionExpiresAt),
     );
   }
 
@@ -501,6 +599,11 @@ class User extends DataClass implements Insertable<User> {
       xp: serializer.fromJson<int>(json['xp']),
       prestige: serializer.fromJson<int>(json['prestige']),
       title: serializer.fromJson<String?>(json['title']),
+      isPremium: serializer.fromJson<bool>(json['isPremium']),
+      subscriptionType: serializer.fromJson<String?>(json['subscriptionType']),
+      subscriptionExpiresAt: serializer.fromJson<DateTime?>(
+        json['subscriptionExpiresAt'],
+      ),
     );
   }
   @override
@@ -522,6 +625,11 @@ class User extends DataClass implements Insertable<User> {
       'xp': serializer.toJson<int>(xp),
       'prestige': serializer.toJson<int>(prestige),
       'title': serializer.toJson<String?>(title),
+      'isPremium': serializer.toJson<bool>(isPremium),
+      'subscriptionType': serializer.toJson<String?>(subscriptionType),
+      'subscriptionExpiresAt': serializer.toJson<DateTime?>(
+        subscriptionExpiresAt,
+      ),
     };
   }
 
@@ -541,6 +649,9 @@ class User extends DataClass implements Insertable<User> {
     int? xp,
     int? prestige,
     Value<String?> title = const Value.absent(),
+    bool? isPremium,
+    Value<String?> subscriptionType = const Value.absent(),
+    Value<DateTime?> subscriptionExpiresAt = const Value.absent(),
   }) => User(
     id: id ?? this.id,
     username: username ?? this.username,
@@ -557,6 +668,13 @@ class User extends DataClass implements Insertable<User> {
     xp: xp ?? this.xp,
     prestige: prestige ?? this.prestige,
     title: title.present ? title.value : this.title,
+    isPremium: isPremium ?? this.isPremium,
+    subscriptionType: subscriptionType.present
+        ? subscriptionType.value
+        : this.subscriptionType,
+    subscriptionExpiresAt: subscriptionExpiresAt.present
+        ? subscriptionExpiresAt.value
+        : this.subscriptionExpiresAt,
   );
   User copyWithCompanion(UsersCompanion data) {
     return User(
@@ -575,6 +693,13 @@ class User extends DataClass implements Insertable<User> {
       xp: data.xp.present ? data.xp.value : this.xp,
       prestige: data.prestige.present ? data.prestige.value : this.prestige,
       title: data.title.present ? data.title.value : this.title,
+      isPremium: data.isPremium.present ? data.isPremium.value : this.isPremium,
+      subscriptionType: data.subscriptionType.present
+          ? data.subscriptionType.value
+          : this.subscriptionType,
+      subscriptionExpiresAt: data.subscriptionExpiresAt.present
+          ? data.subscriptionExpiresAt.value
+          : this.subscriptionExpiresAt,
     );
   }
 
@@ -595,7 +720,10 @@ class User extends DataClass implements Insertable<User> {
           ..write('longitude: $longitude, ')
           ..write('xp: $xp, ')
           ..write('prestige: $prestige, ')
-          ..write('title: $title')
+          ..write('title: $title, ')
+          ..write('isPremium: $isPremium, ')
+          ..write('subscriptionType: $subscriptionType, ')
+          ..write('subscriptionExpiresAt: $subscriptionExpiresAt')
           ..write(')'))
         .toString();
   }
@@ -617,6 +745,9 @@ class User extends DataClass implements Insertable<User> {
     xp,
     prestige,
     title,
+    isPremium,
+    subscriptionType,
+    subscriptionExpiresAt,
   );
   @override
   bool operator ==(Object other) =>
@@ -636,7 +767,10 @@ class User extends DataClass implements Insertable<User> {
           other.longitude == this.longitude &&
           other.xp == this.xp &&
           other.prestige == this.prestige &&
-          other.title == this.title);
+          other.title == this.title &&
+          other.isPremium == this.isPremium &&
+          other.subscriptionType == this.subscriptionType &&
+          other.subscriptionExpiresAt == this.subscriptionExpiresAt);
 }
 
 class UsersCompanion extends UpdateCompanion<User> {
@@ -655,6 +789,9 @@ class UsersCompanion extends UpdateCompanion<User> {
   final Value<int> xp;
   final Value<int> prestige;
   final Value<String?> title;
+  final Value<bool> isPremium;
+  final Value<String?> subscriptionType;
+  final Value<DateTime?> subscriptionExpiresAt;
   final Value<int> rowid;
   const UsersCompanion({
     this.id = const Value.absent(),
@@ -672,6 +809,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.xp = const Value.absent(),
     this.prestige = const Value.absent(),
     this.title = const Value.absent(),
+    this.isPremium = const Value.absent(),
+    this.subscriptionType = const Value.absent(),
+    this.subscriptionExpiresAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   UsersCompanion.insert({
@@ -690,6 +830,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.xp = const Value.absent(),
     this.prestige = const Value.absent(),
     this.title = const Value.absent(),
+    this.isPremium = const Value.absent(),
+    this.subscriptionType = const Value.absent(),
+    this.subscriptionExpiresAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : username = Value(username),
        email = Value(email),
@@ -710,6 +853,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     Expression<int>? xp,
     Expression<int>? prestige,
     Expression<String>? title,
+    Expression<bool>? isPremium,
+    Expression<String>? subscriptionType,
+    Expression<DateTime>? subscriptionExpiresAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -728,6 +874,10 @@ class UsersCompanion extends UpdateCompanion<User> {
       if (xp != null) 'xp': xp,
       if (prestige != null) 'prestige': prestige,
       if (title != null) 'title': title,
+      if (isPremium != null) 'is_premium': isPremium,
+      if (subscriptionType != null) 'subscription_type': subscriptionType,
+      if (subscriptionExpiresAt != null)
+        'subscription_expires_at': subscriptionExpiresAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -748,6 +898,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     Value<int>? xp,
     Value<int>? prestige,
     Value<String?>? title,
+    Value<bool>? isPremium,
+    Value<String?>? subscriptionType,
+    Value<DateTime?>? subscriptionExpiresAt,
     Value<int>? rowid,
   }) {
     return UsersCompanion(
@@ -766,6 +919,10 @@ class UsersCompanion extends UpdateCompanion<User> {
       xp: xp ?? this.xp,
       prestige: prestige ?? this.prestige,
       title: title ?? this.title,
+      isPremium: isPremium ?? this.isPremium,
+      subscriptionType: subscriptionType ?? this.subscriptionType,
+      subscriptionExpiresAt:
+          subscriptionExpiresAt ?? this.subscriptionExpiresAt,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -818,6 +975,17 @@ class UsersCompanion extends UpdateCompanion<User> {
     if (title.present) {
       map['title'] = Variable<String>(title.value);
     }
+    if (isPremium.present) {
+      map['is_premium'] = Variable<bool>(isPremium.value);
+    }
+    if (subscriptionType.present) {
+      map['subscription_type'] = Variable<String>(subscriptionType.value);
+    }
+    if (subscriptionExpiresAt.present) {
+      map['subscription_expires_at'] = Variable<DateTime>(
+        subscriptionExpiresAt.value,
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -842,6 +1010,9 @@ class UsersCompanion extends UpdateCompanion<User> {
           ..write('xp: $xp, ')
           ..write('prestige: $prestige, ')
           ..write('title: $title, ')
+          ..write('isPremium: $isPremium, ')
+          ..write('subscriptionType: $subscriptionType, ')
+          ..write('subscriptionExpiresAt: $subscriptionExpiresAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5390,6 +5561,9 @@ typedef $$UsersTableCreateCompanionBuilder =
       Value<int> xp,
       Value<int> prestige,
       Value<String?> title,
+      Value<bool> isPremium,
+      Value<String?> subscriptionType,
+      Value<DateTime?> subscriptionExpiresAt,
       Value<int> rowid,
     });
 typedef $$UsersTableUpdateCompanionBuilder =
@@ -5409,6 +5583,9 @@ typedef $$UsersTableUpdateCompanionBuilder =
       Value<int> xp,
       Value<int> prestige,
       Value<String?> title,
+      Value<bool> isPremium,
+      Value<String?> subscriptionType,
+      Value<DateTime?> subscriptionExpiresAt,
       Value<int> rowid,
     });
 
@@ -5656,6 +5833,21 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
 
   ColumnFilters<String> get title => $composableBuilder(
     column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isPremium => $composableBuilder(
+    column: $table.isPremium,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get subscriptionType => $composableBuilder(
+    column: $table.subscriptionType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get subscriptionExpiresAt => $composableBuilder(
+    column: $table.subscriptionExpiresAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5943,6 +6135,21 @@ class $$UsersTableOrderingComposer
     column: $table.title,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get isPremium => $composableBuilder(
+    column: $table.isPremium,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get subscriptionType => $composableBuilder(
+    column: $table.subscriptionType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get subscriptionExpiresAt => $composableBuilder(
+    column: $table.subscriptionExpiresAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UsersTableAnnotationComposer
@@ -5998,6 +6205,19 @@ class $$UsersTableAnnotationComposer
 
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<bool> get isPremium =>
+      $composableBuilder(column: $table.isPremium, builder: (column) => column);
+
+  GeneratedColumn<String> get subscriptionType => $composableBuilder(
+    column: $table.subscriptionType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get subscriptionExpiresAt => $composableBuilder(
+    column: $table.subscriptionExpiresAt,
+    builder: (column) => column,
+  );
 
   Expression<T> createdMatches<T extends Object>(
     Expression<T> Function($$MatchesTableAnnotationComposer a) f,
@@ -6253,6 +6473,9 @@ class $$UsersTableTableManager
                 Value<int> xp = const Value.absent(),
                 Value<int> prestige = const Value.absent(),
                 Value<String?> title = const Value.absent(),
+                Value<bool> isPremium = const Value.absent(),
+                Value<String?> subscriptionType = const Value.absent(),
+                Value<DateTime?> subscriptionExpiresAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UsersCompanion(
                 id: id,
@@ -6270,6 +6493,9 @@ class $$UsersTableTableManager
                 xp: xp,
                 prestige: prestige,
                 title: title,
+                isPremium: isPremium,
+                subscriptionType: subscriptionType,
+                subscriptionExpiresAt: subscriptionExpiresAt,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -6289,6 +6515,9 @@ class $$UsersTableTableManager
                 Value<int> xp = const Value.absent(),
                 Value<int> prestige = const Value.absent(),
                 Value<String?> title = const Value.absent(),
+                Value<bool> isPremium = const Value.absent(),
+                Value<String?> subscriptionType = const Value.absent(),
+                Value<DateTime?> subscriptionExpiresAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UsersCompanion.insert(
                 id: id,
@@ -6306,6 +6535,9 @@ class $$UsersTableTableManager
                 xp: xp,
                 prestige: prestige,
                 title: title,
+                isPremium: isPremium,
+                subscriptionType: subscriptionType,
+                subscriptionExpiresAt: subscriptionExpiresAt,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../database/database.dart';
 import '../providers/user_session.dart';
 import 'game_details.dart';
+import '../widgets/game_card_grid.dart';
 import 'package:app_board_game_hub/l10n/app_localizations.dart';
 
 class MyCollectionScreen extends StatefulWidget {
@@ -78,12 +79,21 @@ class _MyCollectionScreenState extends State<MyCollectionScreen> {
                     crossAxisCount: 2,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
-                    childAspectRatio: 0.75,
+                    childAspectRatio: 0.68,
                   ),
                   itemCount: _collection.length,
                   itemBuilder: (context, index) {
                     final game = _collection[index];
-                    return _buildGameGridItem(game, theme, mutedColor);
+                    return GameCardGrid(
+                      game: game,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => GameDetails(game: game)),
+                        ).then((_) => _loadCollection());
+                      },
+                      onDelete: () => _removeFromCollection(game),
+                    );
                   },
                 ),
     );
@@ -94,7 +104,7 @@ class _MyCollectionScreenState extends State<MyCollectionScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.category_outlined, size: 64, color: mutedColor.withValues(alpha:0.5)),
+          Icon(Icons.inventory_2_outlined, size: 64, color: mutedColor.withOpacity(0.5)),
           const SizedBox(height: 16),
           Text(
             AppLocalizations.of(context)!.emptyCollection,
@@ -106,74 +116,6 @@ class _MyCollectionScreenState extends State<MyCollectionScreen> {
             style: TextStyle(color: mutedColor, fontSize: 14),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildGameGridItem(Game game, ThemeData theme, Color mutedColor) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => GameDetails(game: game)),
-        ).then((_) => _loadCollection()); // Refresh on return
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: theme.cardTheme.color,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha:0.1)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                child: Image.network(
-                  game.imageUrl ?? 'https://via.placeholder.com/150',
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      Container(color: theme.colorScheme.surface, child: Icon(Icons.broken_image, color: mutedColor)),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    game.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.star, color: theme.primaryColor, size: 12),
-                          const SizedBox(width: 4),
-                          Text(
-                            game.rating?.toStringAsFixed(1) ?? 'N/A',
-                            style: TextStyle(color: mutedColor, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                      InkWell(
-                        onTap: () => _removeFromCollection(game),
-                        child: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 16),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

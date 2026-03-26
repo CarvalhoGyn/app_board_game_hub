@@ -1,4 +1,3 @@
-
 // deno-lint-ignore-file no-explicit-any
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -6,14 +5,16 @@ const BGG_BASE_URL = 'https://boardgamegeek.com/boardgame'
 
 Deno.serve(async (req) => {
   try {
-    // 1. Initialize Supabase Client
-    // Uses default env vars provided by Supabase Edge Runtime
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    
+    if (!supabaseKey) {
+       return new Response(JSON.stringify({ error: 'Missing SUPABASE_SERVICE_ROLE_KEY' }), { status: 500 })
+    }
+
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // 2. Fetch Batch of Unenriched Games
-    // Limit to 5 to avoid timeouts and be polite to BGG
+    // 2. Busca lote de jogos
     const { data: games, error: fetchError } = await supabase
       .from('games')
       .select('id, bgg_id, name')
@@ -30,7 +31,6 @@ Deno.serve(async (req) => {
 
     const results = []
 
-    // 3. Process Each Game
     for (const game of games) {
       try {
         console.log(`Enriching ${game.name} (BGG: ${game.bgg_id})...`)
@@ -53,14 +53,10 @@ Deno.serve(async (req) => {
             results.push({ id: game.id, status: 'success', name: game.name })
           }
         } else {
-          // If scraping failed (e.g. 404 or captcha), maybe mark is_enriched=true anyway to skip next time?
-          // Or keep false to retry? Letting it retry forever is bad. 
-          // For now, we leave is_enriched=false, but in prod we might want an error flag.
           console.error(`Failed to scrape details for ${game.name}`)
           results.push({ id: game.id, status: 'error', reason: 'scrape_failed' })
         }
 
-        // 4. Rate Limiting (Politeness)
         await new Promise((resolve) => setTimeout(resolve, 1500))
 
       } catch (err) {
@@ -84,8 +80,6 @@ Deno.serve(async (req) => {
   }
 })
 
-// --- Helper Functions (Ported from Dart) ---
-
 async function fetchGameDetails(bggId: number) {
   try {
     const res = await fetch(`${BGG_BASE_URL}/${bggId}`, {
@@ -98,17 +92,23 @@ async function fetchGameDetails(bggId: number) {
     if (!res.ok) return null
     const html = await res.text()
 
-    // Extract Description (Meta tag)
+    // 1. Metadados de Meta Tags
     const descMatch = html.match(/<meta property="og:description" content="([^"]+)"/)
     let description = descMatch ? decode(descMatch[1]) : ''
-
-    // Extract Image (Meta tag)
     const imgMatch = html.match(/<meta property="og:image" content="([^"]+)"/)
     const imageUrl = imgMatch ? imgMatch[1] : null
 
-    // Extract Stats (Regex fallback)
+    // 2. Título (Nome Limpo)
+    let bggName: string | null = null
+    const titleMatch = html.match(/<title>(.*?) \| BoardGameGeek<\/title>/)
+    if (titleMatch) {
+       bggName = titleMatch[1]
+          .replace(/\s*\|\s*Board\s*Game.*/gi, '')
+          .replace(/\s*\|\s*BoardGameGeek/gi, '')
+          .trim()
+    }
+
     const tryParseStat = (key: string) => {
-      // Look for: "minplayers":"1" or "minplayers": 1
       const regex = new RegExp(`"${key}"\\s*:\\s*"?(\\d+)"?`, 'i')
       const m = html.match(regex)
       return m ? parseInt(m[1]) : null
@@ -121,11 +121,15 @@ async function fetchGameDetails(bggId: number) {
     const minAge = tryParseStat('minage')
     const yearPublished = tryParseStat('yearpublished')
 
-    // Extract JSON Data (GEEK.geekitemPreload) for standard arrays
+    // 3. Extração Avançada via JSON GEEK.geekitemPreload
     let categories: string | null = null
     let mechanics: string | null = null
     let type: string | null = null
     let families: string | null = null
+    let integrations: string | null = null
+    let reimplementations: string | null = null
+    let rank = 0
+    let rating: number | null = null
     let fullDescription = description
 
     try {
@@ -145,33 +149,41 @@ async function fetchGameDetails(bggId: number) {
               if (item.description) {
                 fullDescription = item.description
                   .replace(/<br\s*\/?>/gi, '\n')
-                  .replace(/<[^>]+>/g, '') // Strip tags
+                  .replace(/<[^>]+>/g, '')
                   .replace(/&quot;/g, '"')
                   .replace(/&amp;/g, '&')
                   .replace(/&#039;/g, "'")
                   .trim()
               }
 
-              const links = item.links
-              if (links) {
+              if (item.links) {
                 const joinNames = (key: string) => {
-                  const arr = links[key]
-                  if (Array.isArray(arr)) {
-                    return arr.map((o: any) => o.name).join(', ')
-                  }
-                  return null
+                  const arr = item.links[key]
+                  return Array.isArray(arr) ? arr.map((o: any) => o.name).join(', ') : null
                 }
                 categories = joinNames('boardgamecategory')
                 mechanics = joinNames('boardgamemechanic')
                 type = joinNames('boardgamesubdomain')
                 families = joinNames('boardgamefamily')
+                integrations = joinNames('boardgameintegration')
+                reimplementations = joinNames('reimplements')
+              }
+
+              if (item.stats) {
+                if (item.stats.rating && item.stats.rating.average) {
+                  rating = parseFloat(item.stats.rating.average)
+                }
+                if (Array.isArray(item.stats.ranks)) {
+                  const bgRank = item.stats.ranks.find((r: any) => r.name === 'boardgame')
+                  if (bgRank) rank = parseInt(bgRank.value) || 0
+                }
               }
             }
           }
         }
       }
     } catch (_e) {
-      console.warn('JSON parsing failed, falling back to basic regex')
+      console.warn('JSON parsing failed')
     }
 
     return {
@@ -183,10 +195,15 @@ async function fetchGameDetails(bggId: number) {
       max_playtime: maxPlaytime,
       min_age: minAge,
       year_published: yearPublished,
-      categories: categories,
-      mechanics: mechanics,
-      type: type,
-      families: families,
+      categories,
+      mechanics,
+      type,
+      families,
+      integrations,
+      reimplementations,
+      rank,
+      rating,
+      name: bggName,
     }
 
   } catch (e) {
@@ -195,7 +212,6 @@ async function fetchGameDetails(bggId: number) {
   }
 }
 
-// Simple entity decoder
 function decode(str: string) {
   return str.replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#039;/g, "'")
 }

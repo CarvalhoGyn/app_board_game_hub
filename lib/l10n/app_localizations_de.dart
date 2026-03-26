@@ -656,4 +656,99 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get notifMatchDefeatMsg => 'Spielergebnis: NIEDERLAGE';
+
+  @override
+  String get categoriesLabel => 'KATEGORIEN';
+
+  @override
+  String get mechanicsLabel => 'MECHANIKEN';
+
+  @override
+  String get bggRatingLabel => 'BGG RATING';
+
+  @override
+  String get timeLabel => 'ZEIT';
+
+  @override
+  String get playersLabel => 'SPIELER';
+
+  @override
+  String get aboutThisGame => 'Über dieses Spiel';
+
+  @override
+  String get classificationLabel => 'Klassifizierung';
+
+  @override
+  String get typeLabel => 'Typ';
+
+  @override
+  String get familyLabel => 'Familie';
+
+  @override
+  String get integrationsLabel => 'Integrationen';
+
+  @override
+  String get reimplementsLabel => 'Reimplementiert';
+
+  @override
+  String get translate => 'Auf Deutsch übersetzen';
+
+  @override
+  String get showOriginal => 'Original anzeigen';
+
+  @override
+  String get premiumTitle => 'MeepleSync Premium';
+
+  @override
+  String get premiumSubtitle =>
+      'Bring dein Brettspiel-Erlebnis auf das nächste Level.';
+
+  @override
+  String get premiumFeature1Title => 'Unbegrenzte Spiele';
+
+  @override
+  String get premiumFeature1Desc =>
+      'Erfasse alle deine Spiele ohne Einschränkungen.';
+
+  @override
+  String get premiumFeature2Title => 'Erweiterte Statistiken';
+
+  @override
+  String get premiumFeature2Desc =>
+      'Detaillierte Diagramme und Einblicke in deine Leistung.';
+
+  @override
+  String get premiumFeature3Title => 'Priorisierte Synchronisierung';
+
+  @override
+  String get premiumFeature3Desc =>
+      'Deine Daten sind immer sicher und über Geräte hinweg synchronisiert.';
+
+  @override
+  String get premiumMonthlyPlan => 'Monatsabo';
+
+  @override
+  String get premiumAnnualPlan => 'Jahresabo';
+
+  @override
+  String get premiumMonthlyPrice => '1,99 € / Monat';
+
+  @override
+  String get premiumAnnualPrice => '14,99 € / Jahr';
+
+  @override
+  String get premiumMonthlyDesc => 'Perfekt für Gelegenheitsspieler.';
+
+  @override
+  String get premiumAnnualDesc => 'Spare 33 % und unterstütze das Projekt!';
+
+  @override
+  String get premiumBestValue => 'BESTES ANGEBOT';
+
+  @override
+  String get premiumSubscribeButton => 'Jetzt abonnieren';
+
+  @override
+  String get registrationEmailConfirmation =>
+      'Bitte bestätigen Sie Ihr Konto in Ihrer E-Mail.';
 }

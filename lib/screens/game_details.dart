@@ -5,6 +5,9 @@ import '../database/database.dart';
 import '../providers/user_session.dart';
 import '../services/supabase_sync_service.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/game_data_localizer.dart';
+import '../services/translation_service.dart';
+import '../widgets/localized_tag.dart';
 import 'create_match.dart';
 
 class GameDetails extends StatefulWidget {
@@ -20,6 +23,11 @@ class _GameDetailsState extends State<GameDetails> {
   bool _isLoading = false;
   bool _isOwned = false;
   bool _isWishlisted = false;
+  String? _translatedDescription;
+  bool _isTranslating = false;
+  bool _showOriginal = false;
+  final Map<String, String> _translatedReviews = {};
+  final Set<String> _translatingReviews = {};
 
   // --- REVIEWS LOGIC ---
   List<ReviewWithUser> _reviews = [];
@@ -158,6 +166,63 @@ class _GameDetailsState extends State<GameDetails> {
       }
   }
 
+  Future<void> _translateDescription() async {
+    if (_translatedDescription != null && !_showOriginal) {
+      setState(() => _showOriginal = true);
+      return;
+    }
+    if (_translatedDescription != null && _showOriginal) {
+      setState(() => _showOriginal = false);
+      return;
+    }
+
+    setState(() => _isTranslating = true);
+    
+    try {
+      final targetLocale = AppLocalizations.of(context)!.localeName;
+      final translated = await TranslationService.translate(_currentGame.description!, targetLocale);
+      
+      if (mounted) {
+        setState(() {
+          _translatedDescription = translated; 
+          _isTranslating = false;
+          _showOriginal = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isTranslating = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Translation failed: $e'),
+          duration: const Duration(seconds: 2),
+        ));
+      }
+    }
+  }
+
+  Future<void> _translateReview(String reviewId, String currentComment) async {
+    if (_translatedReviews.containsKey(reviewId)) {
+      setState(() => _translatedReviews.remove(reviewId));
+      return;
+    }
+
+    setState(() => _translatingReviews.add(reviewId));
+    try {
+      final targetLocale = AppLocalizations.of(context)!.localeName;
+      final translated = await TranslationService.translate(currentComment, targetLocale);
+      if (mounted) {
+        setState(() {
+          _translatedReviews[reviewId] = translated;
+          _translatingReviews.remove(reviewId);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _translatingReviews.remove(reviewId));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
       final theme = Theme.of(context);
@@ -183,11 +248,15 @@ class _GameDetailsState extends State<GameDetails> {
                                 if (_isLoading)
                                     Padding(padding: const EdgeInsets.all(12), child: CircularProgressIndicator(color: theme.colorScheme.onSurface, strokeWidth: 2)),
                                 IconButton(
-                                    icon: Icon(_isWishlisted ? Icons.bookmark : Icons.bookmark_outline, color: theme.colorScheme.onSurface, shadows: const [Shadow(color: Colors.black, blurRadius: 10)]),
+                                    icon: Icon(
+                                      _isWishlisted ? Icons.favorite : Icons.favorite_border, 
+                                      color: _isWishlisted ? Colors.redAccent : theme.colorScheme.onSurface, 
+                                      shadows: const [Shadow(color: Colors.black, blurRadius: 10)]
+                                    ),
                                     onPressed: _toggleWishlist,
                                 ),
                                 IconButton(
-                                    icon: Icon(_isOwned ? Icons.shopping_bag : Icons.shopping_bag_outlined, color: theme.colorScheme.onSurface, shadows: const [Shadow(color: Colors.black, blurRadius: 10)]),
+                                    icon: Icon(_isOwned ? Icons.inventory_2 : Icons.inventory_2_outlined, color: _isOwned ? theme.primaryColor : theme.colorScheme.onSurface, shadows: const [Shadow(color: Colors.black, blurRadius: 10)]),
                                     onPressed: _toggleCollection,
                                 ),
                             ],
@@ -237,6 +306,7 @@ class _GameDetailsState extends State<GameDetails> {
     final categories = _currentGame.categories?.split(', ').where((s) => s.trim().isNotEmpty).toList() ?? [];
     final mechanics = _currentGame.mechanics?.split(', ').where((s) => s.trim().isNotEmpty).toList() ?? [];
     final mutedColor = theme.inputDecorationTheme.hintStyle?.color ?? Colors.grey;
+    final l10n = AppLocalizations.of(context)!;
     
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -260,21 +330,29 @@ class _GameDetailsState extends State<GameDetails> {
           const SizedBox(height: 16),
           
           if (categories.isNotEmpty) ...[
-            Text('CATEGORIES', style: TextStyle(color: mutedColor, fontSize: 10, fontWeight: FontWeight.bold)),
+            Text(l10n.categoriesLabel, style: TextStyle(color: mutedColor, fontSize: 10, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             Wrap(
               spacing: 8, runSpacing: 8,
-              children: categories.take(5).map((cat) => _buildTag(cat, Colors.blue, theme)).toList(),
+              children: categories.take(5).map((cat) => LocalizedTag(
+                text: cat, 
+                backgroundColor: Colors.blue.withValues(alpha:0.15),
+                style: TextStyle(color: theme.brightness == Brightness.dark ? Colors.blue[100] : Colors.blue[800], fontSize: 11, fontWeight: FontWeight.w600),
+              )).toList(),
             ),
             const SizedBox(height: 12),
           ],
           
           if (mechanics.isNotEmpty) ...[
-            Text('MECHANICS', style: TextStyle(color: mutedColor, fontSize: 10, fontWeight: FontWeight.bold)),
+            Text(l10n.mechanicsLabel, style: TextStyle(color: mutedColor, fontSize: 10, fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
             Wrap(
               spacing: 8, runSpacing: 8,
-              children: mechanics.take(5).map((mech) => _buildTag(mech, Colors.green, theme)).toList(),
+              children: mechanics.take(5).map((mech) => LocalizedTag(
+                text: mech, 
+                backgroundColor: Colors.green.withValues(alpha:0.15),
+                style: TextStyle(color: theme.brightness == Brightness.dark ? Colors.green[100] : Colors.green[800], fontSize: 11, fontWeight: FontWeight.w600),
+              )).toList(),
             ),
           ],
         ],
@@ -282,20 +360,8 @@ class _GameDetailsState extends State<GameDetails> {
     );
   }
 
-  Widget _buildTag(String label, MaterialColor color, ThemeData theme) {
-    // Adjust text color based on brightness for legibility
-    final isDark = theme.brightness == Brightness.dark;
-    final textColor = isDark ? color[100] : color[800];
-    final borderColor = isDark ? color.withValues(alpha:0.3) : color.withValues(alpha:0.5);
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: color.withValues(alpha:0.15), borderRadius: BorderRadius.circular(8), border: Border.all(color: borderColor)),
-      child: Text(label, style: TextStyle(color: textColor, fontSize: 11, fontWeight: FontWeight.w600)),
-    );
-  }
-
   Widget _buildStatsGrid(ThemeData theme) {
+    final l10n = AppLocalizations.of(context)!;
     final rating = _currentGame.rating?.toStringAsFixed(1) ?? 'N/A';
     
     // Players
@@ -316,11 +382,11 @@ class _GameDetailsState extends State<GameDetails> {
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          _buildStatItem(rating, 'BGG Rating', theme, isPrimary: true),
+          _buildStatItem(rating, l10n.bggRatingLabel, theme, isPrimary: true),
           const SizedBox(width: 8),
-          _buildStatItem(timeText, 'Time', theme),
+          _buildStatItem(timeText, l10n.timeLabel, theme),
           const SizedBox(width: 8),
-          _buildStatItem(playersText, 'Players', theme),
+          _buildStatItem(playersText, l10n.playersLabel, theme),
         ],
       ),
     );
@@ -350,13 +416,14 @@ class _GameDetailsState extends State<GameDetails> {
 
   Widget _buildDescriptionSection(ThemeData theme) {
     if (_currentGame.description == null || _currentGame.description!.isEmpty) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context)!;
 
-    return Padding(
+     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-           Text('About this Game', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
+           Text(AppLocalizations.of(context)!.aboutThisGame, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
            const SizedBox(height: 8),
            Container(
              height: 140,
@@ -372,12 +439,27 @@ class _GameDetailsState extends State<GameDetails> {
                child: SingleChildScrollView(
                  padding: const EdgeInsets.only(right: 12),
                  child: Text(
-                   _currentGame.description!, 
+                   (_translatedDescription != null && !_showOriginal) ? _translatedDescription! : _currentGame.description!, 
                    style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha:0.9), height: 1.5, fontSize: 14),
                  ),
                ),
              ),
            ),
+           if (AppLocalizations.of(context)!.localeName != 'en') ...[
+             const SizedBox(height: 8),
+             TextButton.icon(
+               onPressed: _isTranslating ? null : _translateDescription,
+               icon: _isTranslating 
+                 ? SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: theme.primaryColor))
+                 : Icon(Icons.translate, size: 16, color: theme.primaryColor),
+               label: Text(
+                 _isTranslating 
+                   ? l10n.loading 
+                   : (_translatedDescription != null ? (_showOriginal ? l10n.translate : l10n.showOriginal) : l10n.translate),
+                 style: TextStyle(color: theme.primaryColor, fontSize: 13, fontWeight: FontWeight.bold),
+               ),
+             ),
+           ],
            const SizedBox(height: 24),
         ],
       ),
@@ -385,6 +467,7 @@ class _GameDetailsState extends State<GameDetails> {
   }
 
   Widget _buildClassificationSection(ThemeData theme) {
+     final l10n = AppLocalizations.of(context)!;
      final type = _currentGame.type;
      final families = _currentGame.families;
      final integrations = _currentGame.integrations;
@@ -397,17 +480,17 @@ class _GameDetailsState extends State<GameDetails> {
          return const SizedBox.shrink();
      }
 
-     return Padding(
+      return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-            Text('Classification', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
+            Text(l10n.classificationLabel, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface)),
             const SizedBox(height: 16),
-            if (type != null && type.isNotEmpty) _buildClassificationItem('Type', type, Icons.category_outlined, theme),
-            if (families != null && families.isNotEmpty) _buildClassificationItem('Family', families, Icons.diversity_3_outlined, theme),
-            if (integrations != null && integrations.isNotEmpty) _buildClassificationItem('Integrations', integrations, Icons.link, theme),
-            if (reimpl != null && reimpl.isNotEmpty) _buildClassificationItem('Reimplements', reimpl, Icons.update, theme),
+            if (type != null && type.isNotEmpty) _buildClassificationItem(l10n.typeLabel, type, Icons.category_outlined, theme),
+            if (families != null && families.isNotEmpty) _buildClassificationItem(l10n.familyLabel, families, Icons.diversity_3_outlined, theme),
+            if (integrations != null && integrations.isNotEmpty) _buildClassificationItem(l10n.integrationsLabel, integrations, Icons.link, theme),
+            if (reimpl != null && reimpl.isNotEmpty) _buildClassificationItem(l10n.reimplementsLabel, reimpl, Icons.update, theme),
         ],
       ),
     );
@@ -416,7 +499,17 @@ class _GameDetailsState extends State<GameDetails> {
   Widget _buildClassificationItem(String label, String value, IconData icon, ThemeData theme) {
     final mutedColor = theme.inputDecorationTheme.hintStyle?.color ?? Colors.grey;
     final items = value.split(', ').where((s) => s.trim().isNotEmpty).map((s) {
-        return s.replaceAll(RegExp(r'^(Category|Game|Components|Creatures|Crowdfunding|Theme|Admin|Misc): '), '').trim();
+        // Advanced cleaning for BGG strings like "Board Game Rank: Family Game Rank: 8"
+        // We want the most meaningful part. Usually it's the part after the last colon if there's a rank,
+        // or just after the first colon if it's a category.
+        if (s.contains(':')) {
+           final parts = s.split(':');
+           // If it ends with a number (like a rank), we might want the part before it.
+           // For simple cases like "Game: Family Games", we want "Family Games".
+           // After analysis: most BGG attributes follow "Prefix: Value"
+           return parts.last.trim();
+        }
+        return s.trim();
     }).toList();
 
     return Padding(
@@ -435,14 +528,11 @@ class _GameDetailsState extends State<GameDetails> {
           Wrap(
              spacing: 6,
              runSpacing: 6,
-             children: items.map((item) => Container(
-                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                 decoration: BoxDecoration(
-                     color: theme.colorScheme.onSurface.withValues(alpha:0.05),
-                     borderRadius: BorderRadius.circular(6),
-                     border: Border.all(color: theme.colorScheme.onSurface.withValues(alpha:0.1))
-                 ),
-                 child: Text(item, style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurface)),
+             children: items.map((item) => LocalizedTag(
+                 text: item,
+                 backgroundColor: theme.colorScheme.onSurface.withValues(alpha:0.05),
+                 borderRadius: BorderRadius.circular(6),
+                 style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurface),
              )).toList(),
           )
         ],
@@ -579,7 +669,23 @@ class _GameDetailsState extends State<GameDetails> {
           ),
           if (r.comment != null && r.comment!.isNotEmpty) ...[
               const SizedBox(height: 8),
-              Text(r.comment!, style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha:0.8), fontSize: 14)),
+              Text(
+                _translatedReviews[r.id] ?? r.comment!, 
+                style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha:0.8), fontSize: 14)
+              ),
+              if (AppLocalizations.of(context)!.localeName != 'en')
+                GestureDetector(
+                  onTap: () => _translateReview(r.id, r.comment!),
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: _translatingReviews.contains(r.id)
+                      ? SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2, color: theme.primaryColor))
+                      : Text(
+                          _translatedReviews.containsKey(r.id) ? AppLocalizations.of(context)!.showOriginal : AppLocalizations.of(context)!.translate,
+                          style: TextStyle(color: theme.primaryColor, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                  ),
+                ),
           ]
         ],
       ),

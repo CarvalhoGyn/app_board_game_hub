@@ -8,7 +8,6 @@ import 'screens/login_screen.dart';
 import 'screens/splash_screen.dart';
 import 'theme/app_theme.dart';
 import 'providers/user_session.dart';
-import 'services/bgg_service.dart';
 import 'services/gamification_service.dart';
 import 'providers/theme_provider.dart';
 import 'providers/localization_provider.dart';
@@ -17,6 +16,7 @@ import 'env/env.dart';
 import 'services/supabase_sync_service.dart';
 import 'services/supabase_storage_service.dart';
 import 'services/supabase_realtime_service.dart';
+import 'services/subscription_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,13 +36,13 @@ void main() {
         Provider<ReviewsDao>(create: (_) => database.reviewsDao),
         Provider<UserAchievementsDao>(create: (_) => database.userAchievementsDao),
         Provider<GamificationService>(create: (_) => GamificationService(database)),
-        Provider<BggService>(create: (_) => BggService()),
         Provider<SupabaseSyncService>(create: (_) => SupabaseSyncService(database)),
         Provider<SupabaseStorageService>(create: (_) => SupabaseStorageService()),
         ChangeNotifierProvider<SupabaseRealtimeService>(create: (_) => SupabaseRealtimeService(database)),
         ChangeNotifierProvider<UserSession>(create: (_) => UserSession()),
         ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
         ChangeNotifierProvider<LocalizationProvider>(create: (_) => LocalizationProvider()),
+        Provider<SubscriptionService>(create: (_) => SubscriptionService()),
       ],
       child: const MyApp(),
     ),

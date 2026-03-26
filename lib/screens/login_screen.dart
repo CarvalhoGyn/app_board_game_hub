@@ -12,6 +12,7 @@ import '../widgets/language_selector.dart';
 
 import '../services/supabase_sync_service.dart';
 import '../services/supabase_realtime_service.dart';
+import '../services/subscription_service.dart';
 
 // ...
 
@@ -251,6 +252,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                     // Trigger background sync and Realtime
                                     syncService.sync();
                                     context.read<SupabaseRealtimeService>().subscribe(authUser.id);
+                                    
+                                    // RevenueCat Init
+                                    final subService = context.read<SubscriptionService>();
+                                    await subService.initialize(authUser.id);
+                                    await subService.updateSubscriptionStatus(authUser.id, usersDao, session, syncService);
 
                                     Navigator.pushReplacement(
                                       context,

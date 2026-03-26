@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../database/database.dart';
 import 'package:drift/drift.dart' as drift;
@@ -26,6 +27,8 @@ import 'package:app_board_game_hub/l10n/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as package;
 import '../services/supabase_sync_service.dart';
 import '../services/supabase_storage_service.dart';
+import '../services/subscription_service.dart';
+import 'paywall_screen.dart';
 
 class ProfileDashboard extends StatefulWidget {
   final String? userId; // Optional: If null, shows current user's profile
@@ -274,42 +277,8 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
           if (isMyProfile)
             Row(
             children: [
-              // Notification Bell
-              StreamBuilder<int>(
-                stream: Stream.fromFuture(context.read<NotificationsDao>().getUnreadCount(user.id)),
-                builder: (context, snapshot) {
-                  final unreadCount = snapshot.data ?? 0;
-                  return Stack(
-                    children: [
-                      IconButton(
-                        icon: Icon(Icons.notifications_outlined, color: theme.colorScheme.onSurface),
-                        onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationsScreen()));
-                        },
-                      ),
-                      if (unreadCount > 0)
-                        Positioned(
-                          right: 8,
-                          top: 8,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Text(
-                              unreadCount > 9 ? '9+' : unreadCount.toString(),
-                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                    ],
-                  );
-                },
-              ),
-              const SizedBox(width: 8),
               IconButton(
-                icon: Icon(Icons.logout, color: theme.colorScheme.onSurface),
+                icon: const Icon(Icons.logout, color: Colors.redAccent),
                 tooltip: AppLocalizations.of(context)!.logoutButton,
                 onPressed: () async {
                    await Supabase.instance.client.auth.signOut();
@@ -412,12 +381,51 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                 displayName,
                 style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
               ),
+              if (user.isPremium) ...[
+                const SizedBox(width: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(colors: [Colors.amber, Colors.orange]),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(color: Colors.amber.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2))
+                    ],
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.diamond, color: Colors.black, size: 14),
+                      SizedBox(width: 4),
+                      Text("PREMIUM", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 10)),
+                    ],
+                  ),
+                ),
+              ],
               if (prestigeStars.isNotEmpty) ...[
                  const SizedBox(width: 8),
                  Text(prestigeStars, style: const TextStyle(fontSize: 20)),
               ],
             ],
           ),
+          
+          if (isMyProfile && user.isPremium && user.subscriptionExpiresAt != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(
+                "Plano ${user.subscriptionType?.toUpperCase() ?? 'PREMIUM'} • Expira em ${DateFormat('dd/MM/yyyy').format(user.subscriptionExpiresAt!)}",
+                style: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.6), fontSize: 12, fontWeight: FontWeight.w500),
+              ),
+            ),
+          
+          if (isMyProfile && user.isPremium)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: TextButton.icon(
+                onPressed: () => SubscriptionService().showCustomerCenter(),
+                icon: Icon(Icons.subscriptions, color: theme.primaryColor, size: 16),
+                label: Text("Gerenciar Assinatura", style: TextStyle(color: theme.primaryColor, fontSize: 13, fontWeight: FontWeight.bold)),
+              ),
+            ),
 
 
           const SizedBox(height: 16),
@@ -440,7 +448,7 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
               ),
             ),
             
-          if (isMyProfile)
+          if (isMyProfile) ...[
             OutlinedButton(
               onPressed: () {
                 Navigator.push(
@@ -457,9 +465,25 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                 AppLocalizations.of(context)!.editProfile,
                 style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold),
               ),
-            )
-          else
-             _buildFriendActionButton(context, user, friendshipStatus, theme),
+            ),
+            if (!user.isPremium)
+              Padding(
+                padding: const EdgeInsets.only(top: 12.0),
+                child: TextButton.icon(
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
+                  },
+                  icon: const Icon(Icons.star, color: Colors.amber, size: 18),
+                  label: const Text("Seja Premium", style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold)),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.amber.withOpacity(0.1),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  ),
+                ),
+              ),
+          ] else
+            _buildFriendActionButton(context, user, friendshipStatus, theme),
         ],
       ),
     );
@@ -577,7 +601,7 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                 theme,
                 title: AppLocalizations.of(context)!.myCollection,
                 subtitle: AppLocalizations.of(context)!.gamesCount(stats['collectionCount']),
-                icon: Icons.category,
+                icon: Icons.inventory_2,
                 color: theme.primaryColor,
                 onTap: () {
                    if (isMyProfile) Navigator.push(context, MaterialPageRoute(builder: (context) => const MyCollectionScreen()));

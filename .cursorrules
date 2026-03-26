@@ -27,3 +27,11 @@ O projeto gera códigos via `build_runner` e `flutter_gen`.
 
 - Sempre verifique imports de localização em `lib/l10n/` (Geração local via `l10n.yaml`).
 - Rode `dart run build_runner build --delete-conflicting-outputs` se houver mudanças no banco de dados.
+
+## 📱 Design Responsivo
+
+Todos os novos componentes e telas DEVEM ser responsivos e adaptáveis a diferentes tamanhos de tela.
+
+1. **Overflows**: Evite fixar larguras e alturas que possam causar `Right Overflow` ou `Bottom Overflow`.
+2. **Layouts Dinâmicos**: Use `LayoutBuilder`, `GridView` com `childAspectRatio` flexível e `Flex/Expanded` com cautela.
+3. **Escalabilidade**: Teste componentes em telas pequenas (iPhone SE) e grandes (Tablets) sempre que possível.

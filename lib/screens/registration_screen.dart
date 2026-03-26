@@ -7,6 +7,8 @@ import 'package:geolocator/geolocator.dart';
 import 'game_catalog.dart';
 import '../providers/user_session.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
+import '../l10n/app_localizations.dart';
+import '../widgets/sync_toast.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -25,6 +27,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool _isPasswordVisible = false;
   bool _enableLocation = false;
   String? _selectedCountry;
+  OverlayEntry? _emailOverlayEntry;
 
   final List<String> _countries = [
     'United States',
@@ -82,6 +85,38 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     } catch (e) {
       if (mounted) _showError('Error getting location: $e');
     }
+  }
+
+  void _showEmailConfirmationToast() {
+    if (_emailOverlayEntry != null) {
+      _emailOverlayEntry!.remove();
+      _emailOverlayEntry = null;
+    }
+
+    final l10n = AppLocalizations.of(context)!;
+    _emailOverlayEntry = OverlayEntry(
+      builder: (context) => SyncToast(
+        message: l10n.registrationEmailConfirmation,
+        onDismiss: () {
+           _emailOverlayEntry?.remove();
+           _emailOverlayEntry = null;
+        },
+      ),
+    );
+
+    Overlay.of(context).insert(_emailOverlayEntry!);
+  }
+
+  @override
+  void dispose() {
+    _nicknameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _emailOverlayEntry?.remove();
+    super.dispose();
   }
 
   @override
@@ -520,6 +555,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               birthDate: drift.Value(_selectedBirthDate),
               latitude: drift.Value(_currentPosition?.latitude),
               longitude: drift.Value(_currentPosition?.longitude),
+              isPremium: const drift.Value(false),
+              subscriptionType: const drift.Value('free'),
             ));
             
             // 3. Login Session
@@ -529,12 +566,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               context.read<UserSession>().login(createdUser);
             }
             
-            messenger.showSnackBar(
-              const SnackBar(
-                content: Text('Account created successfully!'),
-                backgroundColor: Colors.green,
-              ),
-            );
+            _showEmailConfirmationToast();
             
             navigator.pushAndRemoveUntil(
               MaterialPageRoute(builder: (context) => const GameCatalog()),

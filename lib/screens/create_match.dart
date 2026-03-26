@@ -7,12 +7,12 @@ import '../theme/app_theme.dart';
 import 'record_match_score.dart';
 import 'package:drift/drift.dart' as drift;
 import '../providers/user_session.dart';
-import '../services/bgg_service.dart';
 import 'profile_dashboard.dart';
 import 'game_catalog.dart';
 import 'package:app_board_game_hub/l10n/app_localizations.dart';
 import '../services/supabase_sync_service.dart';
 import '../services/games_repository.dart';
+import 'paywall_screen.dart';
 
 class CreateMatch extends StatefulWidget {
   final Game? initialGame;
@@ -498,6 +498,20 @@ class _CreateMatchState extends State<CreateMatch> {
       child: ElevatedButton(
         onPressed: () async {
           if (_selectedGame == null) return;
+
+          final userSession = context.read<UserSession>();
+          final matchesDao = context.read<MatchesDao>();
+          final currentUser = userSession.currentUser;
+
+          // MATCH LIMIT GUARD (Freemium)
+          if (!userSession.isPremium && currentUser != null) {
+            final matchCount = await matchesDao.countMatchesForUser(currentUser.id);
+            if (matchCount >= 2) {
+               if (!mounted) return;
+               Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
+               return;
+            }
+          }
 
           // Show loading
           showDialog(

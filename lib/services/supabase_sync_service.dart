@@ -653,8 +653,8 @@ class SupabaseSyncService {
             // We only want to sync scores, ranks, statuses, etc.
             final Map<String, dynamic> updatePayload = Map<String, dynamic>.from(snakePayload);
             
-            // Remove FKs and Metadata that should not change after creation
-            final forbidden = ['user_id', 'friend_id', 'match_id', 'creator_id', 'game_id', 'created_at', 'requested_at'];
+            // Remove ID and Metadata that should not change during an update
+            final forbidden = ['id', 'user_id', 'friend_id', 'match_id', 'creator_id', 'game_id', 'created_at', 'requested_at'];
             for (var key in forbidden) {
                updatePayload.remove(key);
             }
@@ -997,6 +997,13 @@ class SupabaseSyncService {
 
     // Matches: Fetch any match updated recently that I can see
     // We remove the strict creatorId filter to allow participants to sync matches they didn't create
+    // 1. Profiles (Self & Others)
+    await _pullTable('profiles', lastSync, (data) async {
+       final camelData = _toCamelCaseMap(data);
+       if (!camelData.containsKey('password')) camelData['password'] = '';
+       await _db.into(_db.users).insertOnConflictUpdate(User.fromJson(camelData));
+    }, timestampColumn: 'updated_at');
+
     await _pullTable('matches', lastSync, (data) async {
        final camelData = _toCamelCaseMap(data);
        // Ensure Creator exists
@@ -1147,12 +1154,10 @@ class SupabaseSyncService {
 
   /// Ensures a User (Profile) exists locally. Fetch if missing.
   Future<void> _ensureLocalUser(String userId) async {
-     // Check Local
-     // Users table in Drift is Users.
-     final localUser = await (_db.select(_db.users)..where((u) => u.id.equals(userId))).getSingleOrNull();
-     if (localUser != null) return;
+     // Cloud-First: Always fetch fresh profile if connection exists
+     // We don't return early anymore just because localUser exists
      
-     debugPrint('Sync Restore: User $userId missing locally. Fetching profile...');
+     debugPrint('Sync: Fetching/Refreshing profile for $userId...');
      
      try {
         final remoteProfile = await _supabase.from('profiles').select().eq('id', userId).maybeSingle();
@@ -1351,7 +1356,7 @@ class SupabaseSyncService {
     
     // Drift's fromJson expects DateTime as Unix timestamps (millisecondsSinceEpoch) by default.
     // Supabase returns ISO8601 strings. We must convert them before calling .fromJson()
-    final dateKeys = ['createdAt', 'updatedAt', 'addedAt', 'date', 'requestedAt', 'respondedAt', 'unlockedAt', 'birthDate'];
+    final dateKeys = ['createdAt', 'updatedAt', 'addedAt', 'date', 'requestedAt', 'respondedAt', 'unlockedAt', 'birthDate', 'subscriptionExpiresAt'];
     for (var key in dateKeys) {
        if (camelMap[key] != null && camelMap[key] is String) {
           camelMap[key] = DateTime.parse(camelMap[key] as String).millisecondsSinceEpoch;

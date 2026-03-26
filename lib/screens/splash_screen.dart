@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 import '../env/env.dart';
 import '../database/database.dart';
 import 'game_catalog.dart';
+import '../services/subscription_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -72,6 +73,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               context.read<SupabaseSyncService>().sync();
               // Start Realtime subscription
               context.read<SupabaseRealtimeService>().subscribe(authUser.id);
+              
+              // RevenueCat Init
+              final subService = context.read<SubscriptionService>();
+              final syncService = context.read<SupabaseSyncService>();
+              await subService.initialize(authUser.id);
+              await subService.updateSubscriptionStatus(authUser.id, usersDao, userSession, syncService);
               
               if (!mounted) return;
               Navigator.of(context).pushReplacement(

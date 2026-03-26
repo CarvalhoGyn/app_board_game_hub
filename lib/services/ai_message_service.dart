@@ -50,6 +50,37 @@ class AiMessageService {
     return _generateFallbackMessage(gameName, winnerName, isSolo: isSolo, isLandslide: isLandslide, isCloseMatch: isCloseMatch);
   }
 
+  static Future<String> translateText(String text, String targetLanguageCode) async {
+    if (!AiConfig.hasApiKey) {
+      return text; // No translation possible
+    }
+
+    try {
+      final model = GenerativeModel(model: AiConfig.modelName, apiKey: AiConfig.apiKey);
+      
+      // Map language code to full name for the prompt
+      String langName = 'the user\'s local language';
+      if (targetLanguageCode == 'pt') langName = 'Portuguese (Brazil)';
+      if (targetLanguageCode == 'fr') langName = 'French';
+      if (targetLanguageCode == 'de') langName = 'German';
+      
+      final prompt = 'Translate the following board game description into $langName. '
+                     'Keep the tone engaging and professional. Preserve any formatting. '
+                     'Only return the translated text without any explanations.\n\n'
+                     'Text to translate: "$text"';
+
+      final response = await model.generateContent([Content.text(prompt)]);
+      
+      if (response.text != null && response.text!.isNotEmpty) {
+         return response.text!.trim();
+      }
+    } catch (e) {
+      print('Gemini Translation Error: $e');
+    }
+    
+    return text; // Fallback to original
+  }
+
   static String _generateFallbackMessage(String gameName, String winnerName, {required bool isSolo, required bool isLandslide, required bool isCloseMatch}) {
     List<String> templates = [];
 

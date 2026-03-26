@@ -29,6 +29,11 @@ class Users extends Table {
   IntColumn get prestige => integer().withDefault(const Constant(0))();
   TextColumn get title => text().nullable()();
   
+  // Subscription fields
+  BoolColumn get isPremium => boolean().withDefault(const Constant(false))();
+  TextColumn get subscriptionType => text().nullable()(); // 'free', 'monthly', 'annual'
+  DateTimeColumn get subscriptionExpiresAt => dateTime().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -387,6 +392,9 @@ class UsersDao extends DatabaseAccessor<AppDatabase> with _$UsersDaoMixin {
     if (user.lastName.present) payload['last_name'] = user.lastName.value;
     if (user.username.present) payload['username'] = user.username.value;
     if (user.prestige.present) payload['prestige'] = user.prestige.value;
+    if (user.isPremium.present) payload['is_premium'] = user.isPremium.value;
+    if (user.subscriptionType.present) payload['subscription_type'] = user.subscriptionType.value;
+    if (user.subscriptionExpiresAt.present) payload['subscription_expires_at'] = user.subscriptionExpiresAt.value?.toIso8601String();
     
     await attachedDatabase.syncQueueDao.enqueue(
       entity: 'profiles',
@@ -725,6 +733,13 @@ class GamesDao extends DatabaseAccessor<AppDatabase> with _$GamesDaoMixin {
 @DriftAccessor(tables: [Matches, Players, Users, Games])
 class MatchesDao extends DatabaseAccessor<AppDatabase> with _$MatchesDaoMixin {
   MatchesDao(super.db);
+
+  Future<int> countMatchesForUser(String userId) async {
+    final countExp = players.id.count();
+    final query = selectOnly(players)..addColumns([countExp])..where(players.userId.equals(userId));
+    final result = await query.map((row) => row.read(countExp)).getSingle();
+    return result ?? 0;
+  }
   
   // --- ONLINE-FIRST HELPERS (No Sync Queue) ---
   

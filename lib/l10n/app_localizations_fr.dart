@@ -660,4 +660,99 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get notifMatchDefeatMsg => 'Résultat du match : DÉFAITE';
+
+  @override
+  String get categoriesLabel => 'CATÉGORIES';
+
+  @override
+  String get mechanicsLabel => 'MÉCANIQUES';
+
+  @override
+  String get bggRatingLabel => 'BGG RATING';
+
+  @override
+  String get timeLabel => 'TEMPS';
+
+  @override
+  String get playersLabel => 'JOUEURS';
+
+  @override
+  String get aboutThisGame => 'À propos de ce jeu';
+
+  @override
+  String get classificationLabel => 'Classification';
+
+  @override
+  String get typeLabel => 'Type';
+
+  @override
+  String get familyLabel => 'Famille';
+
+  @override
+  String get integrationsLabel => 'Intégrations';
+
+  @override
+  String get reimplementsLabel => 'Réimplémente';
+
+  @override
+  String get translate => 'Traduire en Français';
+
+  @override
+  String get showOriginal => 'Voir l\'original';
+
+  @override
+  String get premiumTitle => 'MeepleSync Premium';
+
+  @override
+  String get premiumSubtitle =>
+      'Élevez votre expérience de jeu de société au niveau supérieur.';
+
+  @override
+  String get premiumFeature1Title => 'Matchs Illimités';
+
+  @override
+  String get premiumFeature1Desc =>
+      'Enregistrez tous vos matchs sans aucune restriction.';
+
+  @override
+  String get premiumFeature2Title => 'Statistiques Avancées';
+
+  @override
+  String get premiumFeature2Desc =>
+      'Graphiques détaillés et analyses de vos performances.';
+
+  @override
+  String get premiumFeature3Title => 'Sincronisation Prioritaire';
+
+  @override
+  String get premiumFeature3Desc =>
+      'Vos données toujours en sécurité et synchronisées.';
+
+  @override
+  String get premiumMonthlyPlan => 'Plan Mensuel';
+
+  @override
+  String get premiumAnnualPlan => 'Plan Annuel';
+
+  @override
+  String get premiumMonthlyPrice => '1,99 € / mois';
+
+  @override
+  String get premiumAnnualPrice => '14,99 € / an';
+
+  @override
+  String get premiumMonthlyDesc => 'Parfait pour les joueurs occasionnels.';
+
+  @override
+  String get premiumAnnualDesc => 'Économisez 33% et soutenez le projet !';
+
+  @override
+  String get premiumBestValue => 'MEILLEURE OFFRE';
+
+  @override
+  String get premiumSubscribeButton => 'S\'abonner Maintenant';
+
+  @override
+  String get registrationEmailConfirmation =>
+      'Veuillez confirmer votre compte par e-mail.';
 }

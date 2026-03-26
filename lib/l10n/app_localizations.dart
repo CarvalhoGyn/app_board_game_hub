@@ -1295,6 +1295,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Match result: DEFEAT'**
   String get notifMatchDefeatMsg;
+
+  /// No description provided for @categoriesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'CATEGORIES'**
+  String get categoriesLabel;
+
+  /// No description provided for @mechanicsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'MECHANICS'**
+  String get mechanicsLabel;
+
+  /// No description provided for @bggRatingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'BGG RATING'**
+  String get bggRatingLabel;
+
+  /// No description provided for @timeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'TIME'**
+  String get timeLabel;
+
+  /// No description provided for @playersLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'PLAYERS'**
+  String get playersLabel;
+
+  /// No description provided for @aboutThisGame.
+  ///
+  /// In en, this message translates to:
+  /// **'About this Game'**
+  String get aboutThisGame;
+
+  /// No description provided for @classificationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Classification'**
+  String get classificationLabel;
+
+  /// No description provided for @typeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get typeLabel;
+
+  /// No description provided for @familyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Family'**
+  String get familyLabel;
+
+  /// No description provided for @integrationsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Integrations'**
+  String get integrationsLabel;
+
+  /// No description provided for @reimplementsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reimplements'**
+  String get reimplementsLabel;
+
+  /// No description provided for @translate.
+  ///
+  /// In en, this message translates to:
+  /// **'Translate description'**
+  String get translate;
+
+  /// No description provided for @showOriginal.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Original'**
+  String get showOriginal;
+
+  /// No description provided for @premiumTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MeepleSync Premium'**
+  String get premiumTitle;
+
+  /// No description provided for @premiumSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Take your board gaming experience to the next level.'**
+  String get premiumSubtitle;
+
+  /// No description provided for @premiumFeature1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited Matches'**
+  String get premiumFeature1Title;
+
+  /// No description provided for @premiumFeature1Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Record all your matches without any restrictions.'**
+  String get premiumFeature1Desc;
+
+  /// No description provided for @premiumFeature2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced Statistics'**
+  String get premiumFeature2Title;
+
+  /// No description provided for @premiumFeature2Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Detailed charts and insights of your performance.'**
+  String get premiumFeature2Desc;
+
+  /// No description provided for @premiumFeature3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Priority Sync'**
+  String get premiumFeature3Title;
+
+  /// No description provided for @premiumFeature3Desc.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data always safe and synced across devices.'**
+  String get premiumFeature3Desc;
+
+  /// No description provided for @premiumMonthlyPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Plan'**
+  String get premiumMonthlyPlan;
+
+  /// No description provided for @premiumAnnualPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Annual Plan'**
+  String get premiumAnnualPlan;
+
+  /// No description provided for @premiumMonthlyPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'\$ 1.99 / month'**
+  String get premiumMonthlyPrice;
+
+  /// No description provided for @premiumAnnualPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'\$ 14.99 / year'**
+  String get premiumAnnualPrice;
+
+  /// No description provided for @premiumMonthlyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Perfect for occasional players.'**
+  String get premiumMonthlyDesc;
+
+  /// No description provided for @premiumAnnualDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Save 33% and support the project!'**
+  String get premiumAnnualDesc;
+
+  /// No description provided for @premiumBestValue.
+  ///
+  /// In en, this message translates to:
+  /// **'BEST VALUE'**
+  String get premiumBestValue;
+
+  /// No description provided for @premiumSubscribeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe Now'**
+  String get premiumSubscribeButton;
+
+  /// No description provided for @registrationEmailConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Please confirm your account in your email.'**
+  String get registrationEmailConfirmation;
 }
 
 class _AppLocalizationsDelegate

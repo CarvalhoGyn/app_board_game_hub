@@ -657,4 +657,99 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifMatchDefeatMsg => 'Match result: DEFEAT';
+
+  @override
+  String get categoriesLabel => 'CATEGORIES';
+
+  @override
+  String get mechanicsLabel => 'MECHANICS';
+
+  @override
+  String get bggRatingLabel => 'BGG RATING';
+
+  @override
+  String get timeLabel => 'TIME';
+
+  @override
+  String get playersLabel => 'PLAYERS';
+
+  @override
+  String get aboutThisGame => 'About this Game';
+
+  @override
+  String get classificationLabel => 'Classification';
+
+  @override
+  String get typeLabel => 'Type';
+
+  @override
+  String get familyLabel => 'Family';
+
+  @override
+  String get integrationsLabel => 'Integrations';
+
+  @override
+  String get reimplementsLabel => 'Reimplements';
+
+  @override
+  String get translate => 'Translate description';
+
+  @override
+  String get showOriginal => 'Show Original';
+
+  @override
+  String get premiumTitle => 'MeepleSync Premium';
+
+  @override
+  String get premiumSubtitle =>
+      'Take your board gaming experience to the next level.';
+
+  @override
+  String get premiumFeature1Title => 'Unlimited Matches';
+
+  @override
+  String get premiumFeature1Desc =>
+      'Record all your matches without any restrictions.';
+
+  @override
+  String get premiumFeature2Title => 'Advanced Statistics';
+
+  @override
+  String get premiumFeature2Desc =>
+      'Detailed charts and insights of your performance.';
+
+  @override
+  String get premiumFeature3Title => 'Priority Sync';
+
+  @override
+  String get premiumFeature3Desc =>
+      'Your data always safe and synced across devices.';
+
+  @override
+  String get premiumMonthlyPlan => 'Monthly Plan';
+
+  @override
+  String get premiumAnnualPlan => 'Annual Plan';
+
+  @override
+  String get premiumMonthlyPrice => '\$ 1.99 / month';
+
+  @override
+  String get premiumAnnualPrice => '\$ 14.99 / year';
+
+  @override
+  String get premiumMonthlyDesc => 'Perfect for occasional players.';
+
+  @override
+  String get premiumAnnualDesc => 'Save 33% and support the project!';
+
+  @override
+  String get premiumBestValue => 'BEST VALUE';
+
+  @override
+  String get premiumSubscribeButton => 'Subscribe Now';
+
+  @override
+  String get registrationEmailConfirmation =>
+      'Please confirm your account in your email.';
 }

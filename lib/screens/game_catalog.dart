@@ -27,6 +27,7 @@ class GameCatalog extends StatefulWidget {
 class _GameCatalogState extends State<GameCatalog> {
   List<Game> _trendingGames = [];
   List<Game> _recommendedGames = [];
+  Set<String> _wishlistIds = {};
   bool _isLoading = true;
   bool _wasSyncing = false;
   OverlayEntry? _syncOverlayEntry;
@@ -96,11 +97,16 @@ class _GameCatalogState extends State<GameCatalog> {
         if (matchCount > 0) {
            recommended = await matchesDao.getRecommendedGames(currentUser.id, 3);
         }
+
+        final collectionsDao = context.read<UserGameCollectionsDao>();
+        final wishlist = await collectionsDao.getWishlist(currentUser.id);
+        final wishlistIds = wishlist.map((g) => g.id).toSet();
         
         if (mounted) {
            setState(() {
               _trendingGames = trending;
               _recommendedGames = recommended;
+              _wishlistIds = wishlistIds;
            });
         }
       }
@@ -383,7 +389,10 @@ class _GameCatalogState extends State<GameCatalog> {
                 height: 40,
                 width: 40,
                 decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), shape: BoxShape.circle),
-                child: const Icon(Icons.favorite_border, color: Colors.white),
+                child: Icon(
+                  _wishlistIds.contains(game.id) ? Icons.favorite : Icons.favorite_border, 
+                  color: _wishlistIds.contains(game.id) ? Colors.redAccent : Colors.white
+                ),
               ),
             ),
             Positioned(
@@ -545,7 +554,11 @@ class _GameCatalogState extends State<GameCatalog> {
               height: 40,
               width: 40,
               decoration: BoxDecoration(color: theme.scaffoldBackgroundColor, shape: BoxShape.circle),
-              child: Icon(Icons.bookmark_add_outlined, color: mutedColor),
+              child: Icon(
+                _wishlistIds.contains(game.id) ? Icons.favorite : Icons.favorite_border, 
+                color: _wishlistIds.contains(game.id) ? Colors.redAccent : mutedColor,
+                size: 20,
+              ),
             ),
           ],
         ),

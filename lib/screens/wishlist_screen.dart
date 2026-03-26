@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../database/database.dart';
 import '../providers/user_session.dart';
 import 'game_details.dart';
+import '../widgets/game_card_grid.dart';
 import 'package:app_board_game_hub/l10n/app_localizations.dart';
 
 class WishlistScreen extends StatefulWidget {
@@ -72,12 +73,27 @@ class _WishlistScreenState extends State<WishlistScreen> {
           ? Center(child: CircularProgressIndicator(color: theme.primaryColor))
           : _wishlist.isEmpty
               ? _buildEmptyState(context, mutedColor)
-              : ListView.builder(
+              : GridView.builder(
                   padding: const EdgeInsets.all(16),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 0.68,
+                  ),
                   itemCount: _wishlist.length,
                   itemBuilder: (context, index) {
                     final game = _wishlist[index];
-                    return _buildGameCard(game, theme, mutedColor);
+                    return GameCardGrid(
+                      game: game,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => GameDetails(game: game)),
+                        ).then((_) => _loadWishlist());
+                      },
+                      onDelete: () => _removeFromWishlist(game),
+                    );
                   },
                 ),
     );
@@ -88,7 +104,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.favorite_border, size: 64, color: mutedColor.withValues(alpha:0.5)),
+          Icon(Icons.favorite_border, size: 64, color: mutedColor.withOpacity(0.5)),
           const SizedBox(height: 16),
           Text(
             AppLocalizations.of(context)!.emptyWishlist,
@@ -100,68 +116,6 @@ class _WishlistScreenState extends State<WishlistScreen> {
             style: TextStyle(color: mutedColor, fontSize: 14),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildGameCard(Game game, ThemeData theme, Color mutedColor) {
-    return Card(
-      color: theme.cardTheme.color,
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => GameDetails(game: game)),
-          ).then((_) => _loadWishlist()); // Refresh on return
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  game.imageUrl ?? 'https://via.placeholder.com/60',
-                  width: 60,
-                  height: 60,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                      Container(width: 60, height: 60, color: theme.colorScheme.surface, child: Icon(Icons.broken_image, color: mutedColor)),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      game.name,
-                      style: TextStyle(color: theme.colorScheme.onSurface, fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.star, color: theme.primaryColor, size: 14),
-                        const SizedBox(width: 4),
-                        Text(
-                          game.rating?.toStringAsFixed(1) ?? 'N/A',
-                          style: TextStyle(color: mutedColor, fontSize: 14),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                onPressed: () => _removeFromWishlist(game),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
