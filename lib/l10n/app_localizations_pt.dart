@@ -771,4 +771,13 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get upgradeNow => 'Assinar Agora';
+
+  @override
+  String get noOfferingsAvailable => 'Nenhuma oferta disponível no momento.';
+
+  @override
+  String get premiumWelcomeMessage => 'Bem-vindo ao MeepleSync Pro!';
+
+  @override
+  String get subscriptionFailed => 'Falha na assinatura. Tente novamente.';
 }

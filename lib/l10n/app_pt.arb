@@ -231,5 +231,8 @@
   "matchLimitTitle": "Limite de Partidas Atingido",
   "matchLimitMessage": "Você pode participar de apenas 5 partidas com uma conta gratuita. Assine o Pro para registrar mais!",
   "matchLimitFriendMessage": "{username} atingiu o limite de partidas gratuitas e não pode ser adicionado.",
-  "upgradeNow": "Assinar Agora"
+  "upgradeNow": "Assinar Agora",
+  "noOfferingsAvailable": "Nenhuma oferta disponível no momento.",
+  "premiumWelcomeMessage": "Bem-vindo ao MeepleSync Pro!",
+  "subscriptionFailed": "Falha na assinatura. Tente novamente."
 }

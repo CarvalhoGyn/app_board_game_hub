@@ -72,17 +72,41 @@ class SubscriptionService {
     }
   }
 
-  /// Launches the RevenueCat Paywall UI
-  Future<void> showPaywall(String userId, UsersDao usersDao, UserSession session, SupabaseSyncService syncService) async {
+  /// Fetches available offerings from RevenueCat
+  Future<Offerings?> getOfferings() async {
     try {
-      // Using modern PaywallView from purchases_ui_flutter
-      final paywallResult = await RevenueCatUI.presentPaywallIfNeeded(_entitlementId);
-      debugPrint('RevenueCat: Paywall result: $paywallResult');
+      return await Purchases.getOfferings();
+    } catch (e) {
+      debugPrint('RevenueCat: Error fetching offerings: $e');
+      return null;
+    }
+  }
+
+  /// Processes a purchase for a specific package
+  Future<bool> purchasePackage(Package package, String userId, UsersDao usersDao, UserSession session, SupabaseSyncService syncService) async {
+    try {
+      final result = await Purchases.purchasePackage(package);
+      final customerInfo = result.customerInfo;
+      final bool isPremium = customerInfo.entitlements.active.containsKey(_entitlementId);
       
-      // Refresh status after paywall closes
+      if (isPremium) {
+        await updateSubscriptionStatus(userId, usersDao, session, syncService);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('RevenueCat: Purchase Error: $e');
+      return false;
+    }
+  }
+
+  /// Launches the RevenueCat Paywall UI (Native) - Use only as fallback
+  Future<void> showNativePaywall(String userId, UsersDao usersDao, UserSession session, SupabaseSyncService syncService) async {
+    try {
+      await RevenueCatUI.presentPaywallIfNeeded(_entitlementId);
       await updateSubscriptionStatus(userId, usersDao, session, syncService);
     } catch (e) {
-      debugPrint('RevenueCat: Error presenting paywall: $e');
+      debugPrint('RevenueCat: Error presenting native paywall: $e');
     }
   }
 

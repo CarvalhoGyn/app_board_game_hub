@@ -231,5 +231,8 @@
   "matchLimitTitle": "Match Limit Reached",
   "matchLimitMessage": "You can only participate in 5 matches with a free account. Upgrade to Pro to record more!",
   "matchLimitFriendMessage": "{username} reached the free match limit and cannot be added.",
-  "upgradeNow": "Upgrade Now"
+  "upgradeNow": "Upgrade Now",
+  "noOfferingsAvailable": "No offerings available at the moment.",
+  "premiumWelcomeMessage": "Welcome to MeepleSync Pro!",
+  "subscriptionFailed": "Subscription failed. Please try again."
 }

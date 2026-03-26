@@ -5,15 +5,40 @@ import '../services/subscription_service.dart';
 import '../database/database.dart';
 import 'package:app_board_game_hub/l10n/app_localizations.dart';
 import '../services/supabase_sync_service.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 
-class PaywallScreen extends StatelessWidget {
+class PaywallScreen extends StatefulWidget {
   const PaywallScreen({super.key});
+
+  @override
+  State<PaywallScreen> createState() => _PaywallScreenState();
+}
+
+class _PaywallScreenState extends State<PaywallScreen> {
+  bool _isLoading = true;
+  bool _isPurchasing = false;
+  Offerings? _offerings;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadOfferings();
+  }
+
+  Future<void> _loadOfferings() async {
+    final offerings = await SubscriptionService().getOfferings();
+    if (mounted) {
+      setState(() {
+        _offerings = offerings;
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final userSession = context.watch<UserSession>();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -25,61 +50,95 @@ class PaywallScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            const Icon(Icons.diamond_outlined, size: 80, color: Colors.amber),
-            const SizedBox(height: 24),
-            Text(
-              l10n.premiumTitle,
-              style: theme.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.onSurface,
-              ),
-              textAlign: TextAlign.center,
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                const Icon(Icons.diamond_outlined, size: 80, color: Colors.amber),
+                const SizedBox(height: 24),
+                Text(
+                  l10n.premiumTitle,
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  l10n.premiumSubtitle,
+                  style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 40),
+                _buildFeatureRow(context, Icons.all_inclusive, l10n.premiumFeature1Title, l10n.premiumFeature1Desc),
+                _buildFeatureRow(context, Icons.analytics_outlined, l10n.premiumFeature2Title, l10n.premiumFeature2Desc),
+                _buildFeatureRow(context, Icons.cloud_done_outlined, l10n.premiumFeature3Title, l10n.premiumFeature3Desc),
+                const SizedBox(height: 50),
+                
+                if (_isLoading)
+                  const Center(child: CircularProgressIndicator())
+                else if (_offerings?.current == null)
+                   Text(l10n.noOfferingsAvailable, style: TextStyle(color: theme.colorScheme.error))
+                else ...[
+                  if (_offerings!.current!.monthly != null)
+                    _buildPricingCard(
+                      context, 
+                      l10n.premiumMonthlyPlan, 
+                      _offerings!.current!.monthly!.storeProduct.priceString, 
+                      l10n.premiumMonthlyDesc,
+                      onTap: () => _handleSubscribe(context, _offerings!.current!.monthly!),
+                    ),
+                  const SizedBox(height: 16),
+                  if (_offerings!.current!.annual != null)
+                    _buildPricingCard(
+                      context, 
+                      l10n.premiumAnnualPlan, 
+                      _offerings!.current!.annual!.storeProduct.priceString, 
+                      l10n.premiumAnnualDesc,
+                      isPopular: true,
+                      onTap: () => _handleSubscribe(context, _offerings!.current!.annual!),
+                    ),
+                ],
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.premiumSubtitle,
-              style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurface.withOpacity(0.7)),
-              textAlign: TextAlign.center,
+          ),
+          if (_isPurchasing)
+            Container(
+              color: Colors.black45,
+              child: const Center(child: CircularProgressIndicator()),
             ),
-            const SizedBox(height: 40),
-            _buildFeatureRow(context, Icons.all_inclusive, l10n.premiumFeature1Title, l10n.premiumFeature1Desc),
-            _buildFeatureRow(context, Icons.analytics_outlined, l10n.premiumFeature2Title, l10n.premiumFeature2Desc),
-            _buildFeatureRow(context, Icons.cloud_done_outlined, l10n.premiumFeature3Title, l10n.premiumFeature3Desc),
-            const SizedBox(height: 50),
-            _buildPricingCard(
-              context, 
-              l10n.premiumMonthlyPlan, 
-              l10n.premiumMonthlyPrice, 
-              l10n.premiumMonthlyDesc,
-              onTap: () => _handleSubscribe(context),
-            ),
-            const SizedBox(height: 16),
-            _buildPricingCard(
-              context, 
-              l10n.premiumAnnualPlan, 
-              l10n.premiumAnnualPrice, 
-              l10n.premiumAnnualDesc,
-              isPopular: true,
-              onTap: () => _handleSubscribe(context),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
 
-  void _handleSubscribe(BuildContext context) {
+  void _handleSubscribe(BuildContext context, Package package) async {
+    final l10n = AppLocalizations.of(context)!;
     final session = context.read<UserSession>();
     final usersDao = context.read<UsersDao>();
     final userId = session.currentUser?.id;
     
     if (userId != null) {
+      setState(() => _isPurchasing = true);
       final syncService = context.read<SupabaseSyncService>();
-      SubscriptionService().showPaywall(userId, usersDao, session, syncService);
+      final success = await SubscriptionService().purchasePackage(package, userId, usersDao, session, syncService);
+      
+      if (mounted) {
+        setState(() => _isPurchasing = false);
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.premiumWelcomeMessage), backgroundColor: Colors.green),
+          );
+          Navigator.pop(context, true); // Close paywall and indicate success
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.subscriptionFailed), backgroundColor: Colors.red),
+          );
+        }
+      }
     }
   }
 

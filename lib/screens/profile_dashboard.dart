@@ -471,8 +471,11 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
               Padding(
                 padding: const EdgeInsets.only(top: 12.0),
                 child: TextButton.icon(
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
+                  onPressed: () async {
+                    final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
+                    if (result == true) {
+                      _refresh();
+                    }
                   },
                   icon: const Icon(Icons.star, color: Colors.amber, size: 18),
                   label: const Text("Seja Premium", style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold)),

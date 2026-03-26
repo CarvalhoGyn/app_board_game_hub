@@ -143,8 +143,10 @@ class _MatchesScreenState extends State<MatchesScreen> {
      return GestureDetector(
         onTap: () {
            if (isLocked) {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
-              return;
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen())).then((result) {
+                  if (result == true) _loadMatches();
+               });
+               return;
            }
            Navigator.push(context, MaterialPageRoute(builder: (context) => RecordMatchScore(matchId: match.id)));
         },

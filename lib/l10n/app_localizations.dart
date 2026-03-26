@@ -1499,6 +1499,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Upgrade Now'**
   String get upgradeNow;
+
+  /// No description provided for @noOfferingsAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No offerings available at the moment.'**
+  String get noOfferingsAvailable;
+
+  /// No description provided for @premiumWelcomeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to MeepleSync Pro!'**
+  String get premiumWelcomeMessage;
+
+  /// No description provided for @subscriptionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription failed. Please try again.'**
+  String get subscriptionFailed;
 }
 
 class _AppLocalizationsDelegate

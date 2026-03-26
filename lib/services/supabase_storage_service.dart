@@ -35,7 +35,7 @@ class SupabaseStorageService {
           ? 'image/jpeg' 
           : 'image/$extensionWithoutDot';
 
-      final fileName = '$userId${DateTime.now().millisecondsSinceEpoch}$fileExt';
+      final fileName = 'avatar_$userId.jpg';
       final bucketName = 'profile_images';
       
       // Manual HTTP Upload using 'http' package to bypass SDK 404 bugs on iOS
@@ -47,7 +47,7 @@ class SupabaseStorageService {
       request.headers.addAll({
         'apikey': Env.supabaseAnonKey,
         'Authorization': 'Bearer ${_supabase.auth.currentSession?.accessToken ?? Env.supabaseAnonKey}',
-        'x-upsert': 'false',
+        'x-upsert': 'true',
       });
 
       request.files.add(await http.MultipartFile.fromPath(
