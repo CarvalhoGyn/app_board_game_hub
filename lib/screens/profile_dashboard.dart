@@ -29,6 +29,7 @@ import '../services/supabase_sync_service.dart';
 import '../services/supabase_storage_service.dart';
 import '../services/subscription_service.dart';
 import 'paywall_screen.dart';
+import 'privacy_agreement_screen.dart';
 
 class ProfileDashboard extends StatefulWidget {
   final String? userId; // Optional: If null, shows current user's profile
@@ -647,6 +648,18 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                 color: Colors.purpleAccent,
                 onTap: () {
                    Navigator.push(context, MaterialPageRoute(builder: (context) => MatchHistoryScreen(userId: (stats['user'] as User).id)));
+                },
+             ),
+             const SizedBox(height: 16),
+             _buildMenuCard(
+                context,
+                theme,
+                title: AppLocalizations.of(context)!.viewTerms,
+                subtitle: "v1.0.0",
+                icon: Icons.gavel_outlined,
+                color: Colors.blueGrey,
+                onTap: () {
+                   Navigator.push(context, MaterialPageRoute(builder: (context) => const PrivacyAgreementScreen()));
                 },
              ),
           ],

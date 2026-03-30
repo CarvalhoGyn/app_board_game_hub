@@ -9,6 +9,9 @@ import '../services/supabase_sync_service.dart';
 
 class SubscriptionService {
   static const String _entitlementId = 'Meeple Sync Pro';
+  /// Identificadores de API (Sempre use variáveis de ambiente em produção)
+  static const String _appleApiKey = 'appl_ZYUcixKkMZHleCtqrzYgHSKJmNL'; // placeholder
+  static const String _googleApiKey = 'goog_ZYUcixKkMZHleCtqrzYgHSKJmNL'; // placeholder
   static const String _apiKey = 'test_ZyUcixKkMZHleCtqrzYgHSKJmNL';
 
   static final SubscriptionService _instance = SubscriptionService._internal();
@@ -22,12 +25,19 @@ class SubscriptionService {
         await Purchases.setLogLevel(LogLevel.debug);
       }
 
-      // Configure for both iOS and Android (using same key for test as provided)
-      PurchasesConfiguration configuration = PurchasesConfiguration(_apiKey)
+      String apiKey = _apiKey;
+      if (Platform.isIOS) {
+        apiKey = _appleApiKey;
+      } else if (Platform.isAndroid) {
+        apiKey = _googleApiKey;
+      }
+
+      // Configure for both iOS and Android
+      PurchasesConfiguration configuration = PurchasesConfiguration(apiKey)
         ..appUserID = userId;
       
       await Purchases.configure(configuration);
-      debugPrint('RevenueCat: Initialized for user $userId');
+      debugPrint('RevenueCat: Initialized for ${Platform.isIOS ? "iOS" : "Android"} user $userId');
     } catch (e) {
       debugPrint('RevenueCat: Initialization Error: $e');
     }
@@ -159,6 +169,6 @@ class SubscriptionService {
        count = await syncService.getGlobalMatchCount(userId);
     }
     
-    return count < 5;
+    return count < 10;
   }
 }

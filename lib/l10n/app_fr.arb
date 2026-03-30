@@ -228,10 +228,18 @@
   "premiumSubscribeButton": "S'abonner Maintenant",
   "registrationEmailConfirmation": "Veuillez confirmer votre compte par e-mail.",
   "matchLimitTitle": "Limite de parties atteinte",
-  "matchLimitMessage": "Vous ne pouvez participer qu'à 5 parties avec un compte gratuit. Passez à Pro pour en enregistrer plus !",
+  "matchLimitMessage": "Vous ne pouvez participer qu'à 10 parties avec un compte gratuit. Passez à Pro pour en enregistrer plus!",
   "matchLimitFriendMessage": "{username} a atteint la limite de parties gratuites et ne peut pas être ajouté.",
   "upgradeNow": "Mettre à niveau",
   "noOfferingsAvailable": "Aucune offre disponible pour le moment.",
   "premiumWelcomeMessage": "Bienvenue sur MeepleSync Pro !",
-  "subscriptionFailed": "L'abonnement a échoué. Veuillez réessayer."
+  "subscriptionFailed": "L'abonnement a échoué. Veuillez réessayer.",
+  "termsOfService": "Conditions d'Utilisation",
+  "privacyPolicy": "Politique de Confidentialité",
+  "iAgreeToThe": "J'accepte les ",
+  "and": " et la ",
+  "termsError": "Vous devez accepter les conditions d'utilisation pour continuer.",
+  "viewTerms": "Voir les Conditions d'Utilisation",
+  "termsOfServiceContent": "Bienvenue sur MeepleSync. En utilisant notre application, vous acceptez : 1. D'utiliser le service à des fins personnelles et non commerciales. 2. De ne pas publier de contenu offensant ou illégal. 3. De respecter la limite des comptes gratuits (10 matchs). Nous nous réservons le droit de suspendre les comptes violant ces règles.",
+  "privacyPolicyContent": "Votre vie privée est importante. 1. Nous collectons votre e-mail pour gérer votre compte. 2. Les données de localisation ne sont utilisées que si vous l'autorisez. 3. Vos données sont synchronisées avec Supabase. Nous ne vendons pas vos données personnelles."
 }

@@ -33,6 +33,11 @@ class Users extends Table {
   BoolColumn get isPremium => boolean().withDefault(const Constant(false))();
   TextColumn get subscriptionType => text().nullable()(); // 'free', 'monthly', 'annual'
   DateTimeColumn get subscriptionExpiresAt => dateTime().nullable()();
+  
+  // Terms & Privacy
+  BoolColumn get termsAccepted => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get termsAcceptedAt => dateTime().nullable()();
+  TextColumn get termsVersion => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -190,7 +195,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 16;
+  int get schemaVersion => 17;
 
   @override
   MigrationStrategy get migration {
@@ -251,6 +256,11 @@ class AppDatabase extends _$AppDatabase {
          if (from < 16) {
            await m.deleteTable('reviews');
            await m.createTable(reviews);
+         }
+         if (from < 17) {
+            await m.addColumn(users, users.termsAccepted);
+            await m.addColumn(users, users.termsAcceptedAt);
+            await m.addColumn(users, users.termsVersion);
          }
       }
     );
@@ -395,6 +405,9 @@ class UsersDao extends DatabaseAccessor<AppDatabase> with _$UsersDaoMixin {
     if (user.isPremium.present) payload['is_premium'] = user.isPremium.value;
     if (user.subscriptionType.present) payload['subscription_type'] = user.subscriptionType.value;
     if (user.subscriptionExpiresAt.present) payload['subscription_expires_at'] = user.subscriptionExpiresAt.value?.toIso8601String();
+    if (user.termsAccepted.present) payload['terms_accepted'] = user.termsAccepted.value;
+    if (user.termsAcceptedAt.present) payload['terms_accepted_at'] = user.termsAcceptedAt.value?.toIso8601String();
+    if (user.termsVersion.present) payload['terms_version'] = user.termsVersion.value;
     
     await attachedDatabase.syncQueueDao.enqueue(
       entity: 'profiles',

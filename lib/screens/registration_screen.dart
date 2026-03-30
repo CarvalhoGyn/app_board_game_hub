@@ -9,6 +9,7 @@ import '../providers/user_session.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 import '../l10n/app_localizations.dart';
 import '../widgets/sync_toast.dart';
+import 'privacy_agreement_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -27,6 +28,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   bool _isPasswordVisible = false;
   bool _enableLocation = false;
   String? _selectedCountry;
+  bool _termsAccepted = false;
   OverlayEntry? _emailOverlayEntry;
 
   final List<String> _countries = [
@@ -242,7 +244,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 style: TextStyle(color: mutedColor, fontSize: 12),
               ),
             ),
-            const SizedBox(height: 40),
+            _buildTermsCheckbox(theme, mutedColor),
+            const SizedBox(height: 32),
             _buildCreateAccountButton(theme),
             const SizedBox(height: 16),
             Row(
@@ -465,6 +468,64 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     );
   }
 
+  Widget _buildTermsCheckbox(ThemeData theme, Color mutedColor) {
+    final l10n = AppLocalizations.of(context)!;
+    return Column(
+      children: [
+        Row(
+          children: [
+            Checkbox(
+              value: _termsAccepted,
+              activeColor: theme.primaryColor,
+              checkColor: theme.colorScheme.onPrimary,
+              onChanged: (value) {
+                setState(() => _termsAccepted = value ?? false);
+              },
+            ),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() => _termsAccepted = !_termsAccepted),
+                child: Text.rich(
+                  TextSpan(
+                    text: l10n.iAgreeToThe,
+                    style: TextStyle(color: mutedColor, fontSize: 13),
+                    children: [
+                      WidgetSpan(
+                        alignment: PlaceholderAlignment.middle,
+                        child: GestureDetector(
+                          onTap: () {
+                             Navigator.push(context, MaterialPageRoute(builder: (context) => const PrivacyAgreementScreen()));
+                          },
+                          child: Text(
+                            l10n.termsOfService,
+                            style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                        ),
+                      ),
+                      TextSpan(text: l10n.and),
+                      WidgetSpan(
+                        alignment: PlaceholderAlignment.middle,
+                        child: GestureDetector(
+                          onTap: () {
+                             Navigator.push(context, MaterialPageRoute(builder: (context) => const PrivacyAgreementScreen(showOnlyPrivacy: true)));
+                          },
+                          child: Text(
+                            l10n.privacyPolicy,
+                            style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildCreateAccountButton(ThemeData theme) {
     return SizedBox(
       height: 56,
@@ -509,8 +570,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             _showError('Please select your country');
             return;
           }
-          if (_passwordController.text.length < 8) {
-            _showError('Password must be at least 8 characters long');
+          if (!_termsAccepted) {
+            _showError(AppLocalizations.of(context)!.termsError);
             return;
           }
 
@@ -532,7 +593,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 'birth_date': _selectedBirthDate?.toIso8601String(),
                 'latitude': _currentPosition?.latitude,
                 'longitude': _currentPosition?.longitude,
-                // Add other metadata as needed by handle_new_user or just for record
+                'terms_accepted': true,
+                'terms_accepted_at': DateTime.now().toIso8601String(),
+                'terms_version': 'v1.0.0',
               },
             );
 
@@ -557,6 +620,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               longitude: drift.Value(_currentPosition?.longitude),
               isPremium: const drift.Value(false),
               subscriptionType: const drift.Value('free'),
+              termsAccepted: const drift.Value(true),
+              termsAcceptedAt: drift.Value(DateTime.now()),
+              termsVersion: const drift.Value('v1.0.0'),
             ));
             
             // 3. Login Session
