@@ -1485,7 +1485,7 @@ abstract class AppLocalizations {
   /// No description provided for @matchLimitMessage.
   ///
   /// In en, this message translates to:
-  /// **'You can only participate in 5 matches with a free account. Upgrade to Pro to record more!'**
+  /// **'You can only participate in 10 matches with a free account. Upgrade to Pro to record more!'**
   String get matchLimitMessage;
 
   /// No description provided for @matchLimitFriendMessage.
@@ -1517,6 +1517,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Subscription failed. Please try again.'**
   String get subscriptionFailed;
+
+  /// No description provided for @termsOfService.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Service'**
+  String get termsOfService;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicy;
+
+  /// No description provided for @iAgreeToThe.
+  ///
+  /// In en, this message translates to:
+  /// **'I agree to the '**
+  String get iAgreeToThe;
+
+  /// No description provided for @and.
+  ///
+  /// In en, this message translates to:
+  /// **' and '**
+  String get and;
+
+  /// No description provided for @termsError.
+  ///
+  /// In en, this message translates to:
+  /// **'You must accept the terms of service to continue.'**
+  String get termsError;
+
+  /// No description provided for @viewTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'View Terms of Service'**
+  String get viewTerms;
+
+  /// No description provided for @termsOfServiceContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to MeepleSync. By using our app, you agree to: 1. Use the service for personal and non-commercial purposes. 2. Not post offensive or illegal content. 3. Respect the match limit for free accounts (10 matches). We reserve the right to suspend accounts that violate these rules.'**
+  String get termsOfServiceContent;
+
+  /// No description provided for @privacyPolicyContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Your privacy matters. 1. We collect email and profile data to manage your account. 2. Location data is only used if you enable it to find local groups. 3. Your game data is synced with Supabase. We do not sell your personal data to third parties.'**
+  String get privacyPolicyContent;
 }
 
 class _AppLocalizationsDelegate

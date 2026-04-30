@@ -4,10 +4,11 @@ import 'package:drift/drift.dart';
 import '../database/database.dart';
 
 class GamesRepository {
-  final GamesDao _gamesDao;
   final SupabaseClient _supabase;
+  final GamesDao _gamesDao;
 
-  GamesRepository(this._gamesDao) : _supabase = Supabase.instance.client;
+  GamesRepository(this._gamesDao, [SupabaseClient? supabase]) 
+      : _supabase = supabase ?? Supabase.instance.client;
 
   /// Performs a Hybrid Search (Local + Remote).
   /// 1. Searches Local DB.

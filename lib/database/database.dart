@@ -192,7 +192,7 @@ class Reviews extends Table {
   daos: [UsersDao, GamesDao, MatchesDao, UserGameCollectionsDao, FriendshipsDao, NotificationsDao, ReviewsDao, UserAchievementsDao, SyncQueueDao],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  AppDatabase([QueryExecutor? e]) : super(e ?? _openConnection());
 
   @override
   int get schemaVersion => 17;

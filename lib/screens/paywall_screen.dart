@@ -80,9 +80,32 @@ class _PaywallScreenState extends State<PaywallScreen> {
                 
                 if (_isLoading)
                   const Center(child: CircularProgressIndicator())
-                else if (_offerings?.current == null)
-                   Text(l10n.noOfferingsAvailable, style: TextStyle(color: theme.colorScheme.error))
-                else ...[
+                else if (_offerings?.current == null) ...[
+                  _buildPricingCard(
+                    context, 
+                    l10n.premiumMonthlyPlan, 
+                    "R\$ 14,90", 
+                    l10n.premiumMonthlyDesc,
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("RevenueCat não configurado. Oferecimento simulado.")),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _buildPricingCard(
+                    context, 
+                    l10n.premiumAnnualPlan, 
+                    "R\$ 119,90", 
+                    l10n.premiumAnnualDesc,
+                    isPopular: true,
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("RevenueCat não configurado. Oferecimento simulado.")),
+                      );
+                    },
+                  ),
+                ] else ...[
                   if (_offerings!.current!.monthly != null)
                     _buildPricingCard(
                       context, 

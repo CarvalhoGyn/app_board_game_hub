@@ -153,7 +153,7 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                             SizedBox(
                               width: 300,
                               child: SingleChildScrollView(
-                                child: _buildProfileHeader(user, context, isMyProfile, data['friendshipStatus'], theme),
+                                child: _buildProfileHeader(user, context, isMyProfile, data['friendshipStatus'], theme, matchesCount: data['matches'] ?? 0),
                               ),
                             ),
                             Container(width: 1, color: theme.colorScheme.onSurface.withOpacity(0.1)),
@@ -184,7 +184,7 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                             physics: const AlwaysScrollableScrollPhysics(),
                             child: Column(
                               children: [
-                                _buildProfileHeader(user, context, isMyProfile, data['friendshipStatus'], theme),
+                                _buildProfileHeader(user, context, isMyProfile, data['friendshipStatus'], theme, matchesCount: data['matches'] ?? 0),
                                 _buildStatsOverview(context, data, theme),
                                 const SizedBox(height: 24),
                                 _buildMenuOptions(context, data, isMyProfile, theme),
@@ -302,7 +302,7 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
 
   // ... (Following methods are the same as original)
   
-  Widget _buildProfileHeader(User user, BuildContext context, bool isMyProfile, String? friendshipStatus, ThemeData theme) {
+  Widget _buildProfileHeader(User user, BuildContext context, bool isMyProfile, String? friendshipStatus, ThemeData theme, {int matchesCount = 0}) {
     final displayName = user.firstName != null && user.lastName != null
         ? '${user.firstName} ${user.lastName}'
         : user.username;
@@ -468,9 +468,20 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                 style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.bold),
               ),
             ),
-            if (!user.isPremium)
+            if (!user.isPremium) ...[
               Padding(
                 padding: const EdgeInsets.only(top: 12.0),
+                child: Text(
+                  "Partidas Grátis: $matchesCount / 10",
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurface.withOpacity(0.8),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
                 child: TextButton.icon(
                   onPressed: () async {
                     final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
@@ -487,6 +498,7 @@ class _ProfileDashboardState extends State<ProfileDashboard> {
                   ),
                 ),
               ),
+            ],
           ] else
             _buildFriendActionButton(context, user, friendshipStatus, theme),
         ],

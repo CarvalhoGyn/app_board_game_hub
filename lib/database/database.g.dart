@@ -209,6 +209,44 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         type: DriftSqlType.dateTime,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _termsAcceptedMeta = const VerificationMeta(
+    'termsAccepted',
+  );
+  @override
+  late final GeneratedColumn<bool> termsAccepted = GeneratedColumn<bool>(
+    'terms_accepted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("terms_accepted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _termsAcceptedAtMeta = const VerificationMeta(
+    'termsAcceptedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> termsAcceptedAt =
+      GeneratedColumn<DateTime>(
+        'terms_accepted_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _termsVersionMeta = const VerificationMeta(
+    'termsVersion',
+  );
+  @override
+  late final GeneratedColumn<String> termsVersion = GeneratedColumn<String>(
+    'terms_version',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -229,6 +267,9 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     isPremium,
     subscriptionType,
     subscriptionExpiresAt,
+    termsAccepted,
+    termsAcceptedAt,
+    termsVersion,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -356,6 +397,33 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         ),
       );
     }
+    if (data.containsKey('terms_accepted')) {
+      context.handle(
+        _termsAcceptedMeta,
+        termsAccepted.isAcceptableOrUnknown(
+          data['terms_accepted']!,
+          _termsAcceptedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('terms_accepted_at')) {
+      context.handle(
+        _termsAcceptedAtMeta,
+        termsAcceptedAt.isAcceptableOrUnknown(
+          data['terms_accepted_at']!,
+          _termsAcceptedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('terms_version')) {
+      context.handle(
+        _termsVersionMeta,
+        termsVersion.isAcceptableOrUnknown(
+          data['terms_version']!,
+          _termsVersionMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -437,6 +505,18 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}subscription_expires_at'],
       ),
+      termsAccepted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}terms_accepted'],
+      )!,
+      termsAcceptedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}terms_accepted_at'],
+      ),
+      termsVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}terms_version'],
+      ),
     );
   }
 
@@ -465,6 +545,9 @@ class User extends DataClass implements Insertable<User> {
   final bool isPremium;
   final String? subscriptionType;
   final DateTime? subscriptionExpiresAt;
+  final bool termsAccepted;
+  final DateTime? termsAcceptedAt;
+  final String? termsVersion;
   const User({
     required this.id,
     required this.username,
@@ -484,6 +567,9 @@ class User extends DataClass implements Insertable<User> {
     required this.isPremium,
     this.subscriptionType,
     this.subscriptionExpiresAt,
+    required this.termsAccepted,
+    this.termsAcceptedAt,
+    this.termsVersion,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -530,6 +616,13 @@ class User extends DataClass implements Insertable<User> {
         subscriptionExpiresAt,
       );
     }
+    map['terms_accepted'] = Variable<bool>(termsAccepted);
+    if (!nullToAbsent || termsAcceptedAt != null) {
+      map['terms_accepted_at'] = Variable<DateTime>(termsAcceptedAt);
+    }
+    if (!nullToAbsent || termsVersion != null) {
+      map['terms_version'] = Variable<String>(termsVersion);
+    }
     return map;
   }
 
@@ -575,6 +668,13 @@ class User extends DataClass implements Insertable<User> {
       subscriptionExpiresAt: subscriptionExpiresAt == null && nullToAbsent
           ? const Value.absent()
           : Value(subscriptionExpiresAt),
+      termsAccepted: Value(termsAccepted),
+      termsAcceptedAt: termsAcceptedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(termsAcceptedAt),
+      termsVersion: termsVersion == null && nullToAbsent
+          ? const Value.absent()
+          : Value(termsVersion),
     );
   }
 
@@ -604,6 +704,9 @@ class User extends DataClass implements Insertable<User> {
       subscriptionExpiresAt: serializer.fromJson<DateTime?>(
         json['subscriptionExpiresAt'],
       ),
+      termsAccepted: serializer.fromJson<bool>(json['termsAccepted']),
+      termsAcceptedAt: serializer.fromJson<DateTime?>(json['termsAcceptedAt']),
+      termsVersion: serializer.fromJson<String?>(json['termsVersion']),
     );
   }
   @override
@@ -630,6 +733,9 @@ class User extends DataClass implements Insertable<User> {
       'subscriptionExpiresAt': serializer.toJson<DateTime?>(
         subscriptionExpiresAt,
       ),
+      'termsAccepted': serializer.toJson<bool>(termsAccepted),
+      'termsAcceptedAt': serializer.toJson<DateTime?>(termsAcceptedAt),
+      'termsVersion': serializer.toJson<String?>(termsVersion),
     };
   }
 
@@ -652,6 +758,9 @@ class User extends DataClass implements Insertable<User> {
     bool? isPremium,
     Value<String?> subscriptionType = const Value.absent(),
     Value<DateTime?> subscriptionExpiresAt = const Value.absent(),
+    bool? termsAccepted,
+    Value<DateTime?> termsAcceptedAt = const Value.absent(),
+    Value<String?> termsVersion = const Value.absent(),
   }) => User(
     id: id ?? this.id,
     username: username ?? this.username,
@@ -675,6 +784,11 @@ class User extends DataClass implements Insertable<User> {
     subscriptionExpiresAt: subscriptionExpiresAt.present
         ? subscriptionExpiresAt.value
         : this.subscriptionExpiresAt,
+    termsAccepted: termsAccepted ?? this.termsAccepted,
+    termsAcceptedAt: termsAcceptedAt.present
+        ? termsAcceptedAt.value
+        : this.termsAcceptedAt,
+    termsVersion: termsVersion.present ? termsVersion.value : this.termsVersion,
   );
   User copyWithCompanion(UsersCompanion data) {
     return User(
@@ -700,6 +814,15 @@ class User extends DataClass implements Insertable<User> {
       subscriptionExpiresAt: data.subscriptionExpiresAt.present
           ? data.subscriptionExpiresAt.value
           : this.subscriptionExpiresAt,
+      termsAccepted: data.termsAccepted.present
+          ? data.termsAccepted.value
+          : this.termsAccepted,
+      termsAcceptedAt: data.termsAcceptedAt.present
+          ? data.termsAcceptedAt.value
+          : this.termsAcceptedAt,
+      termsVersion: data.termsVersion.present
+          ? data.termsVersion.value
+          : this.termsVersion,
     );
   }
 
@@ -723,13 +846,16 @@ class User extends DataClass implements Insertable<User> {
           ..write('title: $title, ')
           ..write('isPremium: $isPremium, ')
           ..write('subscriptionType: $subscriptionType, ')
-          ..write('subscriptionExpiresAt: $subscriptionExpiresAt')
+          ..write('subscriptionExpiresAt: $subscriptionExpiresAt, ')
+          ..write('termsAccepted: $termsAccepted, ')
+          ..write('termsAcceptedAt: $termsAcceptedAt, ')
+          ..write('termsVersion: $termsVersion')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     id,
     username,
     email,
@@ -748,7 +874,10 @@ class User extends DataClass implements Insertable<User> {
     isPremium,
     subscriptionType,
     subscriptionExpiresAt,
-  );
+    termsAccepted,
+    termsAcceptedAt,
+    termsVersion,
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -770,7 +899,10 @@ class User extends DataClass implements Insertable<User> {
           other.title == this.title &&
           other.isPremium == this.isPremium &&
           other.subscriptionType == this.subscriptionType &&
-          other.subscriptionExpiresAt == this.subscriptionExpiresAt);
+          other.subscriptionExpiresAt == this.subscriptionExpiresAt &&
+          other.termsAccepted == this.termsAccepted &&
+          other.termsAcceptedAt == this.termsAcceptedAt &&
+          other.termsVersion == this.termsVersion);
 }
 
 class UsersCompanion extends UpdateCompanion<User> {
@@ -792,6 +924,9 @@ class UsersCompanion extends UpdateCompanion<User> {
   final Value<bool> isPremium;
   final Value<String?> subscriptionType;
   final Value<DateTime?> subscriptionExpiresAt;
+  final Value<bool> termsAccepted;
+  final Value<DateTime?> termsAcceptedAt;
+  final Value<String?> termsVersion;
   final Value<int> rowid;
   const UsersCompanion({
     this.id = const Value.absent(),
@@ -812,6 +947,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.isPremium = const Value.absent(),
     this.subscriptionType = const Value.absent(),
     this.subscriptionExpiresAt = const Value.absent(),
+    this.termsAccepted = const Value.absent(),
+    this.termsAcceptedAt = const Value.absent(),
+    this.termsVersion = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   UsersCompanion.insert({
@@ -833,6 +971,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.isPremium = const Value.absent(),
     this.subscriptionType = const Value.absent(),
     this.subscriptionExpiresAt = const Value.absent(),
+    this.termsAccepted = const Value.absent(),
+    this.termsAcceptedAt = const Value.absent(),
+    this.termsVersion = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : username = Value(username),
        email = Value(email),
@@ -856,6 +997,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     Expression<bool>? isPremium,
     Expression<String>? subscriptionType,
     Expression<DateTime>? subscriptionExpiresAt,
+    Expression<bool>? termsAccepted,
+    Expression<DateTime>? termsAcceptedAt,
+    Expression<String>? termsVersion,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -878,6 +1022,9 @@ class UsersCompanion extends UpdateCompanion<User> {
       if (subscriptionType != null) 'subscription_type': subscriptionType,
       if (subscriptionExpiresAt != null)
         'subscription_expires_at': subscriptionExpiresAt,
+      if (termsAccepted != null) 'terms_accepted': termsAccepted,
+      if (termsAcceptedAt != null) 'terms_accepted_at': termsAcceptedAt,
+      if (termsVersion != null) 'terms_version': termsVersion,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -901,6 +1048,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     Value<bool>? isPremium,
     Value<String?>? subscriptionType,
     Value<DateTime?>? subscriptionExpiresAt,
+    Value<bool>? termsAccepted,
+    Value<DateTime?>? termsAcceptedAt,
+    Value<String?>? termsVersion,
     Value<int>? rowid,
   }) {
     return UsersCompanion(
@@ -923,6 +1073,9 @@ class UsersCompanion extends UpdateCompanion<User> {
       subscriptionType: subscriptionType ?? this.subscriptionType,
       subscriptionExpiresAt:
           subscriptionExpiresAt ?? this.subscriptionExpiresAt,
+      termsAccepted: termsAccepted ?? this.termsAccepted,
+      termsAcceptedAt: termsAcceptedAt ?? this.termsAcceptedAt,
+      termsVersion: termsVersion ?? this.termsVersion,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -986,6 +1139,15 @@ class UsersCompanion extends UpdateCompanion<User> {
         subscriptionExpiresAt.value,
       );
     }
+    if (termsAccepted.present) {
+      map['terms_accepted'] = Variable<bool>(termsAccepted.value);
+    }
+    if (termsAcceptedAt.present) {
+      map['terms_accepted_at'] = Variable<DateTime>(termsAcceptedAt.value);
+    }
+    if (termsVersion.present) {
+      map['terms_version'] = Variable<String>(termsVersion.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1013,6 +1175,9 @@ class UsersCompanion extends UpdateCompanion<User> {
           ..write('isPremium: $isPremium, ')
           ..write('subscriptionType: $subscriptionType, ')
           ..write('subscriptionExpiresAt: $subscriptionExpiresAt, ')
+          ..write('termsAccepted: $termsAccepted, ')
+          ..write('termsAcceptedAt: $termsAcceptedAt, ')
+          ..write('termsVersion: $termsVersion, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5564,6 +5729,9 @@ typedef $$UsersTableCreateCompanionBuilder =
       Value<bool> isPremium,
       Value<String?> subscriptionType,
       Value<DateTime?> subscriptionExpiresAt,
+      Value<bool> termsAccepted,
+      Value<DateTime?> termsAcceptedAt,
+      Value<String?> termsVersion,
       Value<int> rowid,
     });
 typedef $$UsersTableUpdateCompanionBuilder =
@@ -5586,6 +5754,9 @@ typedef $$UsersTableUpdateCompanionBuilder =
       Value<bool> isPremium,
       Value<String?> subscriptionType,
       Value<DateTime?> subscriptionExpiresAt,
+      Value<bool> termsAccepted,
+      Value<DateTime?> termsAcceptedAt,
+      Value<String?> termsVersion,
       Value<int> rowid,
     });
 
@@ -5848,6 +6019,21 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
 
   ColumnFilters<DateTime> get subscriptionExpiresAt => $composableBuilder(
     column: $table.subscriptionExpiresAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get termsAccepted => $composableBuilder(
+    column: $table.termsAccepted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get termsAcceptedAt => $composableBuilder(
+    column: $table.termsAcceptedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get termsVersion => $composableBuilder(
+    column: $table.termsVersion,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6150,6 +6336,21 @@ class $$UsersTableOrderingComposer
     column: $table.subscriptionExpiresAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get termsAccepted => $composableBuilder(
+    column: $table.termsAccepted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get termsAcceptedAt => $composableBuilder(
+    column: $table.termsAcceptedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get termsVersion => $composableBuilder(
+    column: $table.termsVersion,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UsersTableAnnotationComposer
@@ -6216,6 +6417,21 @@ class $$UsersTableAnnotationComposer
 
   GeneratedColumn<DateTime> get subscriptionExpiresAt => $composableBuilder(
     column: $table.subscriptionExpiresAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get termsAccepted => $composableBuilder(
+    column: $table.termsAccepted,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get termsAcceptedAt => $composableBuilder(
+    column: $table.termsAcceptedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get termsVersion => $composableBuilder(
+    column: $table.termsVersion,
     builder: (column) => column,
   );
 
@@ -6476,6 +6692,9 @@ class $$UsersTableTableManager
                 Value<bool> isPremium = const Value.absent(),
                 Value<String?> subscriptionType = const Value.absent(),
                 Value<DateTime?> subscriptionExpiresAt = const Value.absent(),
+                Value<bool> termsAccepted = const Value.absent(),
+                Value<DateTime?> termsAcceptedAt = const Value.absent(),
+                Value<String?> termsVersion = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UsersCompanion(
                 id: id,
@@ -6496,6 +6715,9 @@ class $$UsersTableTableManager
                 isPremium: isPremium,
                 subscriptionType: subscriptionType,
                 subscriptionExpiresAt: subscriptionExpiresAt,
+                termsAccepted: termsAccepted,
+                termsAcceptedAt: termsAcceptedAt,
+                termsVersion: termsVersion,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -6518,6 +6740,9 @@ class $$UsersTableTableManager
                 Value<bool> isPremium = const Value.absent(),
                 Value<String?> subscriptionType = const Value.absent(),
                 Value<DateTime?> subscriptionExpiresAt = const Value.absent(),
+                Value<bool> termsAccepted = const Value.absent(),
+                Value<DateTime?> termsAcceptedAt = const Value.absent(),
+                Value<String?> termsVersion = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UsersCompanion.insert(
                 id: id,
@@ -6538,6 +6763,9 @@ class $$UsersTableTableManager
                 isPremium: isPremium,
                 subscriptionType: subscriptionType,
                 subscriptionExpiresAt: subscriptionExpiresAt,
+                termsAccepted: termsAccepted,
+                termsAcceptedAt: termsAcceptedAt,
+                termsVersion: termsVersion,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

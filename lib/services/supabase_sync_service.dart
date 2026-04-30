@@ -8,14 +8,15 @@ import 'gamification_service.dart';
 class SupabaseSyncService {
   final AppDatabase _db;
   final SupabaseClient _supabase;
-  
+
   static const String _kLastSyncKey = 'last_sync_timestamp';
   static const String _kLastGamesSyncKey = 'last_games_sync_timestamp_v1';
   static const String _kIdsAlignedKey = 'ids_aligned_v1';
   
   final ValueNotifier<bool> isSyncing = ValueNotifier(false);
 
-  SupabaseSyncService(this._db) : _supabase = Supabase.instance.client;
+  SupabaseSyncService(this._db, [SupabaseClient? supabase]) 
+      : _supabase = supabase ?? Supabase.instance.client;
 
   // Métodos de conversão e ensure* são públicos para uso pelo RealtimeService.
 

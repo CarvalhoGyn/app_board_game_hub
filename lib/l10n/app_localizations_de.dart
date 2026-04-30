@@ -757,7 +757,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get matchLimitMessage =>
-      'Mit einem kostenlosen Konto können Sie nur an 5 Spielen teilnehmen. Aktualisieren Sie auf Pro, um mehr aufzunehmen!';
+      'Mit einem kostenlosen Konto können Sie nur an 10 Spielen teilnehmen. Aktualisieren Sie auf Pro, um mehr aufzunehmen!';
 
   @override
   String matchLimitFriendMessage(Object username) {
@@ -776,4 +776,31 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get subscriptionFailed =>
       'Abonnement fehlgeschlagen. Bitte versuchen Sie es erneut.';
+
+  @override
+  String get termsOfService => 'Nutzungsbedingungen';
+
+  @override
+  String get privacyPolicy => 'Datenschutzrichtlinie';
+
+  @override
+  String get iAgreeToThe => 'Ich stimme den ';
+
+  @override
+  String get and => ' und der ';
+
+  @override
+  String get termsError =>
+      'Sie müssen den Nutzungsbedingungen zustimmen, um fortzufahren.';
+
+  @override
+  String get viewTerms => 'Nutzungsbedingungen anzeigen';
+
+  @override
+  String get termsOfServiceContent =>
+      'Willkommen bei MeepleSync. Durch die Nutzung akzeptieren Sie: 1. Den Dienst nur für private Zwecke zu nutzen. 2. Keine beleidigenden Inhalte zu posten. 3. Das Spiellimit für kostenlose Konten (10 Spiele) einzuhalten. Wir behalten uns das Recht vor, Konten bei Verstößen zu sperren.';
+
+  @override
+  String get privacyPolicyContent =>
+      'Ihre Privatsphäre ist uns wichtig. 1. Wir erheben E-Mail-Daten zur Kontoverwaltung. 2. Standortdaten werden nur mit Erlaubnis genutzt. 3. Ihre Daten werden mit Supabase synchronisiert. Wir verkaufen keine persönlichen Daten an Dritte.';
 }
